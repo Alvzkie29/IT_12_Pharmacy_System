@@ -49,11 +49,14 @@
 
         <!-- Logout -->
         <div class="p-6 border-t border-green-700">
-            <a href="#" 
-               class="flex items-center justify-center gap-2 py-2 px-3 rounded-md bg-red-600 hover:bg-red-700 text-white font-bold">
-                <i class="fas fa-sign-out-alt"></i>
-                <span class="nav-text">Log Out</span>
-            </a>
+            <form action="{{ route('logout') }}" method="POST">
+                @csrf
+                <button type="submit" 
+                        class="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-md bg-red-600 hover:bg-red-700 text-white font-bold">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="nav-text">Log Out</span>
+                </button>
+            </form>
         </div>
     </aside>
 

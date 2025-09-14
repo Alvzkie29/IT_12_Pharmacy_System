@@ -2,14 +2,14 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
-class Employee extends Model
+class Employee extends Authenticatable
 {
-    use HasFactory;
+    use Notifiable;
 
-    protected $primaryKey = 'employeeID';
+    protected $primaryKey = 'employeeID'; // since your migration uses this
 
     protected $fillable = [
         'firstName',
@@ -19,6 +19,12 @@ class Employee extends Model
         'password',
         'role',
     ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
 
     // Relationships
     public function sales()
