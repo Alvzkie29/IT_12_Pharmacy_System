@@ -13,25 +13,20 @@ class Product extends Model
 
     protected $fillable = [
         'supplierID',
-        'name',
+        'productName',
         'price',
         'category',
         'description',
     ];
 
     // Relationships
-    public function supplier()
+     public function supplier()
     {
-        return $this->belongsTo(Supplier::class, 'supplierID', 'supplierID');
+        return $this->belongsTo(Supplier::class, 'supplierID');
     }
 
-    public function transactions()
+    public function stocks()
     {
-        return $this->hasMany(Transaction::class, 'productID', 'productID');
-    }
-
-    public function stock()
-    {
-        return $this->hasMany(Stock::class, 'productID', 'productID');
+        return $this->hasMany(Stock::class, 'productID');
     }
 }

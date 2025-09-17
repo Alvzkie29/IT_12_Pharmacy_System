@@ -13,17 +13,18 @@ return new class extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id('productID');
-            $table->unsignedBigInteger('supplierID');
-            $table->string('name');
-            $table->decimal('price', 10, 2);
-            $table->enum('category', ['Antibiotic', 'Analgesic', 'Prescription', 'Inhaler', 'Vitamins']);
-            $table->string('description')->nullable();
-            $table->timestamps();
+            $table->unsignedBigInteger('supplierID'); // must match suppliers PK type
 
             $table->foreign('supplierID')
                 ->references('supplierID')
                 ->on('suppliers')
-                ->onDelete('cascade');
+                ->cascadeOnDelete();
+
+            $table->string('productName');
+            $table->decimal('price', 10, 2); 
+            $table->enum('category', ['Antibiotic', 'Vitamins', 'Prescription', 'Analgesic']); 
+            $table->string('description')->nullable();
+            $table->timestamps();
         });
     }
 

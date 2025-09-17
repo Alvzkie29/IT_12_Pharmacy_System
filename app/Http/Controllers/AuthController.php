@@ -17,7 +17,13 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email' => ['required', 'email'],
+            'username' => [
+            'required',
+            'string',
+            'max:255',
+            'alpha_num', 
+             
+        ],
             'password' => ['required'],
         ]);
 
@@ -27,7 +33,7 @@ class AuthController extends Controller
         }
 
         return back()->withErrors([
-            'email' => 'Invalid credentials.',
+            'username' => 'Invalid credentials.',
         ]);
     }
 

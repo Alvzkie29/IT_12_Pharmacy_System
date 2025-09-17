@@ -13,10 +13,11 @@ class Stock extends Model
 
     protected $fillable = [
         'productID',
-        'transactionID',
+        'employeeID',
         'type',
+        'price',
         'quantity',
-        'isAvailable',
+        'availability',
         'batchNo',
         'expiryDate',
         'movementDate',
@@ -25,11 +26,16 @@ class Stock extends Model
     // Relationships
     public function product()
     {
-        return $this->belongsTo(Product::class, 'productID', 'productID');
+        return $this->belongsTo(Product::class, 'productID');
     }
 
-    public function transaction()
+    public function employee()
     {
-        return $this->belongsTo(Transaction::class, 'transactionID', 'transactionID');
+        return $this->belongsTo(Employee::class, 'employeeID');
+    }
+
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class, 'stockID');
     }
 }

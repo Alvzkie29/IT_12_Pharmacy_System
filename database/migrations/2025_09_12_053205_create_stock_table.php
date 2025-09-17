@@ -11,27 +11,30 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('stock', function (Blueprint $table) {
-            $table->id('stockID');
+        Schema::create('stocks', function (Blueprint $table) {
+            $table->id('stockID'); // UNSIGNED BIGINT PRIMARY KEY
+
             $table->unsignedBigInteger('productID');
-            $table->unsignedBigInteger('transactionID')->nullable();
-            $table->enum('type', ['IN', 'OUT']);
-            $table->integer('quantity');
-            $table->boolean('isAvailable')->default(true);
-            $table->string('batchNo')->nullable();
-            $table->date('expiryDate')->nullable();
-            $table->date('movementDate');
-            $table->timestamps();
+            $table->unsignedBigInteger('employeeID');
 
             $table->foreign('productID')
                 ->references('productID')
                 ->on('products')
-                ->onDelete('cascade');
+                ->cascadeOnDelete();
 
-            $table->foreign('transactionID')
-                ->references('transactionID')
-                ->on('transactions')
-                ->onDelete('set null'); 
+            $table->foreign('employeeID')
+                ->references('employeeID')
+                ->on('employees')
+                ->cascadeOnDelete();
+
+            $table->enum('type', ['IN', 'OUT']);
+            $table->decimal('price', 10, 2); 
+            $table->integer('quantity');
+            $table->boolean('availability')->default(true);
+            $table->string('batchNo')->nullable();
+            $table->date('expiryDate')->nullable();
+            $table->date('movementDate');
+            $table->timestamps();
         });
     }
 
@@ -40,6 +43,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('stock');
+        Schema::dropIfExists('stocks');
     }
 };

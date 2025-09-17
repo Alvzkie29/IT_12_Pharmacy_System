@@ -23,8 +23,8 @@
         <form action="{{ route('login.submit') }}" method="POST" class="space-y-4">
             @csrf
             <div>
-                <label class="block font-medium">Email</label>
-                <input type="email" name="email" class="w-full border rounded p-2" required>
+                <label class="block font-medium">Username</label>
+                <input type="username" name="username" class="w-full border rounded p-2" required>
             </div>
             <div>
                 <label class="block font-medium">Password</label>

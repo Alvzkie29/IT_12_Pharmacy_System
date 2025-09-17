@@ -20,11 +20,11 @@ class Sale extends Model
     // Relationships
     public function employee()
     {
-        return $this->belongsTo(Employee::class, 'employeeID', 'employeeID');
+        return $this->belongsTo(Employee::class, 'employeeID');
     }
 
     public function transactions()
     {
-        return $this->hasMany(Transaction::class, 'saleID', 'saleID');
+        return $this->hasMany(Transaction::class, 'saleID');
     }
 }

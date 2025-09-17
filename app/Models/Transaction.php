@@ -13,7 +13,7 @@ class Transaction extends Model
 
     protected $fillable = [
         'saleID',
-        'productID',
+        'stockID',
         'quantity',
         'unitPrice',
     ];
@@ -21,16 +21,12 @@ class Transaction extends Model
     // Relationships
     public function sale()
     {
-        return $this->belongsTo(Sale::class, 'saleID', 'saleID');
+        return $this->belongsTo(Sale::class, 'saleID');
     }
 
-    public function product()
+    public function stock()
     {
-        return $this->belongsTo(Product::class, 'productID', 'productID');
-    }
-
-    public function stockMovements()
-    {
-        return $this->hasMany(Stock::class, 'transactionID', 'transactionID');
+        return $this->belongsTo(Stock::class, 'stockID');
     }
 }
+

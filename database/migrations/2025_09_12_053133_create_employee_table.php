@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('firstName');
             $table->string('middleName')->nullable();
             $table->string('lastName');
-            $table->string('email')->unique();
+            $table->string('username')->unique();
             $table->string('password');
             $table->enum('role', ['Owner', 'Pharmacist', 'Staff']);
             $table->timestamps();

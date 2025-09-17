@@ -22,3 +22,11 @@ Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard
 Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
 Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
 Route::get('/reports', [ReportsController::class, 'index'])->name('reports.index');
+
+// INVENTORY CONTROLLERS
+Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
+Route::get('/inventory/create', [InventoryController::class, 'create'])->name('inventory.create');
+Route::post('/inventory', [InventoryController::class, 'store'])->name('inventory.store');
+Route::get('/inventory/edit/{id}', [InventoryController::class, 'edit'])->name('inventory.edit');
+Route::put('/inventory/{id}', [InventoryController::class, 'update'])->name('inventory.update');
+Route::delete('/inventory/{id}', [InventoryController::class, 'destroy'])->name('inventory.destroy');

@@ -2,20 +2,21 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class Employee extends Authenticatable
 {
-    use Notifiable;
+    use HasFactory;
 
-    protected $primaryKey = 'employeeID'; // since your migration uses this
+    protected $primaryKey = 'employeeID'; 
 
     protected $fillable = [
         'firstName',
         'middleName',
         'lastName',
-        'email',
+        'username',
         'password',
         'role',
     ];
@@ -30,5 +31,10 @@ class Employee extends Authenticatable
     public function sales()
     {
         return $this->hasMany(Sale::class, 'employeeID', 'employeeID');
+    }
+
+       public function stocks()
+    {
+        return $this->hasMany(Stock::class, 'employeeID');
     }
 }

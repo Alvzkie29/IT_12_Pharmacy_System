@@ -2,9 +2,13 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Database\Seeders\EmployeesTableSeeder;
+use Database\Seeders\SuppliersTableSeeder;
+use Database\Seeders\ProductsTableSeeder;
+use Database\Seeders\StocksTableSeeder;
+use Database\Seeders\SalesTableSeeder;
+use Database\Seeders\TransactionsTableSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -14,9 +18,12 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-        SuppliersSeeder::class,
-        ProductsSeeder::class,
-        StockSeeder::class,
-    ]);
+            EmployeesTableSeeder::class,
+            SuppliersTableSeeder::class,
+            ProductsTableSeeder::class,
+            StocksTableSeeder::class,
+            SalesTableSeeder::class,
+            TransactionsTableSeeder::class,
+        ]);
     }
 }
