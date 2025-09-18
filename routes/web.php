@@ -5,6 +5,7 @@ use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ProductController;
 
 
 use Illuminate\Support\Facades\Route;
@@ -23,10 +24,10 @@ Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory
 Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
 Route::get('/reports', [ReportsController::class, 'index'])->name('reports.index');
 
-// INVENTORY CONTROLLERS
-Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
-Route::get('/inventory/create', [InventoryController::class, 'create'])->name('inventory.create');
-Route::post('/inventory', [InventoryController::class, 'store'])->name('inventory.store');
-Route::get('/inventory/edit/{id}', [InventoryController::class, 'edit'])->name('inventory.edit');
-Route::put('/inventory/{id}', [InventoryController::class, 'update'])->name('inventory.update');
-Route::delete('/inventory/{id}', [InventoryController::class, 'destroy'])->name('inventory.destroy');
+Route::post('/products', [ProductController::class, 'store'])->name('products.store');
+
+Route::prefix('inventory')->group(function () {
+    Route::get('/', [InventoryController::class, 'index'])->name('inventory.index');
+    Route::post('/stock-in', [InventoryController::class, 'stockIn'])->name('inventory.stockIn');
+    Route::put('/stock-out/{id}', [InventoryController::class, 'stockOut'])->name('inventory.stockOut');
+});
