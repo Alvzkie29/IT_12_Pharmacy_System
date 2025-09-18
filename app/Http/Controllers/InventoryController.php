@@ -13,13 +13,25 @@ class InventoryController extends Controller
     /**
      * Show inventory page with products and stock info
      */
-    public function index()
+    public function index(Request $request)
     {
-        $stocks = Stock::with('product')->orderBy('movementDate', 'desc')->get();
+        $search = $request->input('search');
+
+        $stocks = Stock::with('product')
+            ->when($search, function ($query, $search) {
+                return $query->where('batchNo', 'like', "%{$search}%")
+                            ->orWhere('quantity', 'like', "%{$search}%")
+                            ->orWhereHas('product', function ($q) use ($search) {
+                                $q->where('productName', 'like', "%{$search}%");
+                            });
+            })
+            ->paginate(10)
+            ->appends(['search' => $search]);
+
         $products = Product::all();
         $suppliers = Supplier::all();
 
-        return view('inventory.index', compact('stocks', 'products', 'suppliers'));
+        return view('inventory.index', compact('stocks', 'products', 'suppliers', 'search'));
     }
 
     /**

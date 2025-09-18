@@ -2,8 +2,7 @@
 
 @section('content')
 <div class="container">
-    <h1 class="mb-4 fw-bold">LM3 PHARMACY</h1>
-
+    <h1 class="mb-4 fw-bold">STOCK LIST</h1>
     {{-- Flash Messages --}}
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -22,16 +21,17 @@
         </div>
     @endif
 
-    {{-- Action Buttons --}}
+    {{-- Title + Actions --}}
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <div>
-            <button class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#addProductModal">
-                <i class="bi bi-plus-circle me-1"></i> Add Product
-            </button>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStockModal">
-                <i class="bi bi-box-arrow-in-down me-1"></i> Add Stock
-            </button>
-        </div>
+        <form method="GET" action="{{ route('inventory.index') }}" class="d-flex" style="max-width: 350px; flex: 1;">
+            <div class="input-group">
+                <input type="text" name="search" class="form-control" placeholder="Search stock..." value="{{ request('search') }}">
+                <button class="btn btn-outline-secondary" type="submit">Search</button>
+            </div>
+        </form>
+        <button class="btn btn-success ms-2" data-bs-toggle="modal" data-bs-target="#addStockModal">
+            <i class="bi bi-plus-circle me-1"></i> Add Stock
+        </button>
     </div>
 
     {{-- Inventory Table --}}
@@ -78,7 +78,7 @@
                                             @csrf
                                             @method('PUT')
                                             <button type="submit" class="btn btn-danger btn-sm">
-                                                <i class="bi bi-box-arrow-up"></i> Stock Out
+                                                <i class="bi bi-box-arrow-up"></i> Out of Stock
                                             </button>
                                         </form>
                                     @else
@@ -96,54 +96,9 @@
             </div>
         </div>
     </div>
-</div>
-
-{{-- Add Product Modal --}}
-<div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content shadow-sm">
-      <div class="modal-header bg-success text-white">
-        <h5 class="modal-title" id="addProductModalLabel">Add Product</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <form action="{{ route('products.store') }}" method="POST">
-            @csrf
-            <div class="mb-3">
-                <label for="supplierID" class="form-label">Supplier</label>
-                <select name="supplierID" class="form-select" required>
-                    <option value="" disabled selected>Select supplier</option>
-                    @foreach($suppliers as $supplier)
-                        <option value="{{ $supplier->supplierID }}">{{ $supplier->supplierName }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="mb-3">
-                <label for="productName" class="form-label">Product Name</label>
-                <input type="text" name="productName" class="form-control" required>
-            </div>
-            <div class="mb-3">
-                <label for="price" class="form-label">Price</label>
-                <input type="number" step="0.01" name="price" class="form-control" required>
-            </div>
-            <div class="mb-3">
-                <label for="category" class="form-label">Category</label>
-                <select name="category" class="form-select" required>
-                    <option value="Antibiotic">Antibiotic</option>
-                    <option value="Vitamins">Vitamins</option>
-                    <option value="Prescription">Prescription</option>
-                    <option value="Analgesic">Analgesic</option>
-                </select>
-            </div>
-            <div class="mb-3">
-                <label for="description" class="form-label">Description (optional)</label>
-                <textarea name="description" class="form-control"></textarea>
-            </div>
-            <button type="submit" class="btn btn-success w-100">Save Product</button>
-        </form>
-      </div>
+    <div class="d-flex justify-content-end mt-3">
+        {{ $stocks->links() }}
     </div>
-  </div>
 </div>
 
 {{-- Add Stock Modal --}}

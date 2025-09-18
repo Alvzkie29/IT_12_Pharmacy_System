@@ -4,89 +4,84 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Pharmacy')</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        /* Custom active state for sidebar */
+        .active-link {
+            background-color: #14532d; /* dark green */
+            color: #fff !important;
+        }
+        .active-link:hover {
+            background-color: #166534; /* slightly lighter green on hover */
+        }
+    </style>
 </head>
-<body class="flex bg-gray-100">
+<body class="bg-light d-flex">
 
     <!-- Sidebar -->
-    <aside id="sidebar" class="w-64 h-screen bg-green-900 text-white flex flex-col shadow-lg transition-all duration-300">
-        <!-- Logo + Toggle -->
-        <div class="flex items-center justify-between p-6 border-b border-green-700">
-            <span id="logoText" class="font-bold text-lg">LM3</span>
-            <button id="toggleBtn" class="text-white focus:outline-none">
+    <aside id="sidebar" class="bg-success text-white vh-100 p-3 d-flex flex-column shadow-lg" style="width: 250px;">
+        <!-- Logo -->
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <span class="fw-bold fs-5">LM3</span>
+            <button class="btn btn-sm text-white d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
                 <i class="fas fa-bars"></i>
             </button>
         </div>
 
         <!-- Navigation -->
-        <nav class="flex-1 px-4 py-6 space-y-4 text-lg font-semibold tracking-wide">
+        <nav class="nav flex-column" id="sidebarMenu">
             <a href="{{ route('dashboard.index') }}" 
-               class="flex items-center gap-3 py-2 px-3 rounded-md transition 
-                      {{ request()->routeIs('dashboard.index') ? 'bg-green-700 text-white' : 'hover:bg-green-800' }}">
-                <i class="fas fa-home"></i>
-                <span class="nav-text">Dashboard</span>
+               class="nav-link text-white mb-2 {{ request()->routeIs('dashboard.index') ? 'active-link rounded' : '' }}">
+                <i class="fas fa-home me-2"></i> Dashboard
             </a>
-            <a href="{{ route('inventory.index') }}" 
-               class="flex items-center gap-3 py-2 px-3 rounded-md transition 
-                      {{ request()->routeIs('inventory.index') ? 'bg-green-700 text-white' : 'hover:bg-green-800' }}">
-                <i class="fas fa-boxes"></i>
-                <span class="nav-text">Inventory</span>
+
+            <!-- Inventory Dropdown -->
+            @php
+                $inventoryActive = request()->routeIs('products.index') || request()->routeIs('inventory.index');
+            @endphp
+            <a class="nav-link text-white mb-2 d-flex justify-content-between align-items-center {{ $inventoryActive ? 'active-link rounded' : '' }}" 
+               data-bs-toggle="collapse" href="#inventoryMenu" role="button" 
+               aria-expanded="{{ $inventoryActive ? 'true' : 'false' }}" aria-controls="inventoryMenu">
+                <span><i class="fas fa-box me-2"></i> Inventory</span>
+                <i class="fas fa-chevron-down small"></i>
             </a>
+            <div class="collapse ps-3 {{ $inventoryActive ? 'show' : '' }}" id="inventoryMenu">
+                <a href="{{ route('products.index') }}" 
+                   class="nav-link text-white mb-1 {{ request()->routeIs('products.index') ? 'active-link rounded' : '' }}">
+                    <i class="fas fa-tags me-2"></i> Products
+                </a>
+                <a href="{{ route('inventory.index') }}" 
+                   class="nav-link text-white mb-1 {{ request()->routeIs('inventory.index') ? 'active-link rounded' : '' }}">
+                    <i class="fas fa-warehouse me-2"></i> Stocks
+                </a>
+            </div>
+
             <a href="{{ route('sales.index') }}" 
-               class="flex items-center gap-3 py-2 px-3 rounded-md transition 
-                      {{ request()->routeIs('sales.index') ? 'bg-green-700 text-white' : 'hover:bg-green-800' }}">
-                <i class="fas fa-shopping-cart"></i>
-                <span class="nav-text">Sales</span>
+               class="nav-link text-white mb-2 {{ request()->routeIs('sales.index') ? 'active-link rounded' : '' }}">
+                <i class="fas fa-shopping-cart me-2"></i> Sales
             </a>
             <a href="{{ route('reports.index') }}" 
-               class="flex items-center gap-3 py-2 px-3 rounded-md transition 
-                      {{ request()->routeIs('reports.index') ? 'bg-green-700 text-white' : 'hover:bg-green-800' }}">
-                <i class="fas fa-chart-line"></i>
-                <span class="nav-text">Reports</span>
+               class="nav-link text-white mb-2 {{ request()->routeIs('reports.index') ? 'active-link rounded' : '' }}">
+                <i class="fas fa-chart-line me-2"></i> Reports
             </a>
         </nav>
 
         <!-- Logout -->
-        <div class="p-6 border-t border-green-700">
+        <div class="mt-auto">
             <form action="{{ route('logout') }}" method="POST">
                 @csrf
-                <button type="submit" 
-                        class="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-md bg-red-600 hover:bg-red-700 text-white font-bold">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span class="nav-text">Log Out</span>
+                <button type="submit" class="btn btn-danger w-100 d-flex align-items-center justify-content-center gap-2">
+                    <i class="fas fa-sign-out-alt"></i> Log Out
                 </button>
             </form>
         </div>
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 p-8 transition-all duration-300">
+    <main class="flex-grow-1 p-4">
         @yield('content')
     </main>
-
-    <!-- Script -->
-    <script>
-        const toggleBtn = document.getElementById('toggleBtn');
-        const sidebar = document.getElementById('sidebar');
-        const navTexts = document.querySelectorAll('.nav-text');
-        const logoText = document.getElementById('logoText');
-
-        toggleBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('w-64');
-            sidebar.classList.toggle('w-20');
-
-            // Toggle nav text visibility
-            navTexts.forEach(text => {
-                text.classList.toggle('hidden');
-            });
-
-            // Toggle logo text
-            logoText.classList.toggle('hidden');
-        });
-    </script>
-
 </body>
 </html>
