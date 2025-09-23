@@ -23,6 +23,18 @@ class Stock extends Model
         'movementDate',
     ];
 
+
+    public function getStatusBadgeAttribute()
+    {
+        if ($this->type === 'IN') {
+            return '<span class="badge bg-success">In</span>';
+        } elseif ($this->type === 'OUT') {
+            return '<span class="badge bg-danger">Out</span>';
+        }
+
+        return '<span class="badge bg-secondary">N/A</span>';
+    }
+
     // Relationships
     public function product()
     {

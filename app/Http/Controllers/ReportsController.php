@@ -20,7 +20,7 @@ class ReportsController extends Controller
             ->get();
 
         // All stock movements (for modal, paginated)
-        $allStockMovements = Stock::with('product')->latest()->paginate(5);
+        $allStockMovements = Stock::with('product')->latest()->paginate(10);
 
         return view('reports.index', compact('stocks', 'expiredDamagedItems', 'allStockMovements'));
     }

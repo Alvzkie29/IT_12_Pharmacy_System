@@ -2,12 +2,6 @@
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
-    <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pharmacy Reports | Inventory & Sales Tracking</title>
     <style>
         .report-card:hover {
             transform: translateY(-5px);
@@ -81,102 +75,14 @@
                             </div>
                         </div>
 
-                        <!-- Detailed Reports -->
+                        
                         <div class="row mb-4">
                             <!-- Stock Movements -->
-                            <div class="col-md-6 mb-4">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <h3 class="h4 fw-semibold">Stock Movements</h3>
-                                    <button id="view-all-movements" 
-                                        class="btn btn-sm btn-outline-primary"
-                                        data-bs-toggle="modal" 
-                                        data-bs-target="#stockMovementsModal">
-                                        View All <i data-feather="chevron-right" class="ms-1" style="width: 16px; height: 16px;"></i>
-                                    </button>
-                                </div>
-                                <div class="table-responsive">
-                                    <table class="table table-striped">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th>Product</th>
-                                                <th>Status</th>
-                                                <th>Quantity</th>
-                                                <th>Date</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @forelse ($stocks as $stock)
-                                                <tr>
-                                                    <td>{{ $stock->product->productName ?? 'Unknown' }}</td>
-                                                    <td>
-                                                        @if($stock->type === 'IN')
-                                                            <span class="badge bg-success">In</span>
-                                                        @elseif($stock->type === 'OUT')
-                                                            <span class="badge bg-danger">Out</span>
-                                                        @else
-                                                            <span class="badge bg-secondary">N/A</span>
-                                                        @endif
-                                                    </td>
-                                                    <td>{{ $stock->quantity }}</td>
-                                                    <td>{{ $stock->movementDate}}</td>
-                                                </tr>
-                                            @empty
-                                                <tr>
-                                                    <td colspan="4" class="text-center">No stock records found</td>
-                                                </tr>
-                                            @endforelse
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-
-
-
-
+                            
+                            @include('reports.stocks_widget')
                             <!-- Expired/Damaged Items -->
-                            <div class="col-md-6 mb-4">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <h3 class="h4 fw-semibold">Expired & Damaged Items</h3>
-                                    <button id="view-all-expired" class="btn btn-sm btn-outline-primary">
-                                        View All <i data-feather="chevron-right" class="ms-1" style="width: 16px; height: 16px;"></i>
-                                    </button>
-                                </div>
-                                <div class="table-responsive">
-                                    <table class="table table-striped">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th>Product</th>
-                                                <th>Status</th>
-                                                <th>Quantity</th>
-                                                <th>Date</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @forelse ($expiredDamagedItems as $item)
-                                                <tr>
-                                                    <td>{{ $item->product->name ?? 'Unknown Product' }}</td>
-                                                    <td>
-                                                        @if($item->status === 'expired')
-                                                            <span class="badge bg-danger">Expired</span>
-                                                        @elseif($item->status === 'damaged')
-                                                            <span class="badge bg-warning">Damaged</span>
-                                                        @elseif($item->status === 'pulled_out')
-                                                            <span class="badge bg-info">Pulled Out</span>
-                                                        @endif
-                                                    </td>
-                                                    <td>{{ $item->quantity }}</td>
-                                                    <td>{{ $item->created_at->format('M d, Y') }}</td>
-                                                </tr>
-                                            @empty
-                                                <tr>
-                                                    <td colspan="4" class="text-center">No expired or damaged items found</td>
-                                                </tr>
-                                            @endforelse
-                                        </tbody>
 
-                                    </table>
-                                </div>
-                            </div>
+                            @include('reports.Expired_Damage')
                         </div>
 
                         <!-- Sales Summary -->
@@ -199,30 +105,7 @@
                                             <td>87</td>
                                             <td>₱8,745</td>
                                         </tr>
-                                        <tr>
-                                            <td>Jan 8, 2023</td>
-                                            <td>31</td>
-                                            <td>112</td>
-                                            <td>₱10,230</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Jan 15, 2023</td>
-                                            <td>28</td>
-                                            <td>94</td>
-                                            <td>₱9,560</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Jan 22, 2023</td>
-                                            <td>35</td>
-                                            <td>128</td>
-                                            <td>₱12,450</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Jan 29, 2023</td>
-                                            <td>42</td>
-                                            <td>156</td>
-                                            <td>₱15,320</td>
-                                        </tr>
+                                        
                                     </tbody>
                                     <tfoot class="table-light fw-bold">
                                         <tr>
@@ -242,69 +125,7 @@
     </div>
 
     <!-- Stock Movements Modal -->
-    <div class="modal fade" id="stockMovementsModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">All Stock Movements</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Product</th>
-                                    <th>Batch</th>
-                                    <th>Type</th>
-                                    <th>Quantity</th>
-                                    <th>Date</th>
-                                    
-                                </tr>
-                            </thead>
-                            <tbody id="movements-body">
-                                @forelse ($allStockMovements as $movement)
-                                    <tr>
-                                        <td>{{ $movement->product->productName ?? 'Unknown' }}</td>
-                                        <td>{{ $movement->batchNo}}</td>
-                                        <td>
-                                            @if($movement->type === 'IN')
-                                                <span class="badge bg-success">In</span>
-                                            @else
-                                                <span class="badge bg-danger">Out</span>
-                                            @endif
-                                        </td>
-                                        <td>{{ $movement->type === 'IN' ? '+' : '-' }}{{ $movement->quantity }}</td>
-                                        <td>{{ $movement->movementDate}}</td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="6" class="text-center">No stock movements found</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-
-                        </table>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <div class="d-flex justify-content-between w-100 align-items-center">
-                        <div class="text-muted">
-                            Showing {{ $allStockMovements->firstItem() }} to 
-                            {{ $allStockMovements->lastItem() }} of 
-                            {{ $allStockMovements->total() }} entries
-                        </div>
-                        <div>
-                            {{-- Laravel automatically disables prev/next when needed --}}
-                            {{ $allStockMovements->onEachSide(1)->links('pagination::bootstrap-5') }}
-                        </div>
-                    </div>
-                </div>
-
-
-            </div>
-        </div>
-    </div>
+    @include('reports.stocks_movement')
 
     <!-- Expired/Damaged Items Modal -->
     <div class="modal fade" id="expiredItemsModal" tabindex="-1" aria-hidden="true">
@@ -352,39 +173,6 @@
         </div>
     </div>
 
-    <!-- Pulled Out Items Modal -->
-    <div class="modal fade" id="pulledOutModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Pulled Out Item Details</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Product Name</label>
-                        <p class="fw-semibold mb-0">Loratadine 10mg (Batch #LT2022-45)</p>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Quantity</label>
-                        <p class="fw-semibold mb-0">8 boxes</p>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Date Pulled Out</label>
-                        <p class="fw-semibold mb-0">January 22, 2023</p>
-                    </div>
-                    <div>
-                        <label class="form-label">Reason</label>
-                        <p class="bg-light p-3 rounded mb-0">Product recall issued by manufacturer due to potential packaging defect that may compromise product integrity.</p>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -406,8 +194,6 @@
             });
         </script>
     @endif
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
         // Initialize AOS
         AOS.init();
