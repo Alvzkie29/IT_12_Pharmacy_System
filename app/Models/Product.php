@@ -14,9 +14,9 @@ class Product extends Model
     protected $fillable = [
         'supplierID',
         'productName',
-        'genericName',     // ✅ added
-        'productWeight',   // ✅ added
-        'dosageForm',      // ✅ added
+        'genericName',     
+        'productWeight',  
+        'dosageForm',      
         'price',
         'category',
         'description',

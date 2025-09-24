@@ -43,10 +43,10 @@
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
                         <tr>
-                            <th>Product</th>
+                            <th>Brand Name</th>
                             <th>Generic Name</th>
                             <th>Weight</th>
-                            <th>Dosage Form</th>
+                            <th>Type</th>
                             <th>Supplier</th>
                             <th>Category</th>
                             <th>Price</th>

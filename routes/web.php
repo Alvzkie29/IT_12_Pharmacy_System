@@ -28,10 +28,9 @@ Route::post('/products', [ProductController::class, 'store'])->name('products.st
 
 Route::resource('products', ProductController::class)->only(['index','store']);
 
-Route::get('/reports', [ReportsController::class, 'index'])->name('reports.index');
 
 Route::prefix('inventory')->group(function () {
     Route::get('/', [InventoryController::class, 'index'])->name('inventory.index');
     Route::post('/stock-in', [InventoryController::class, 'stockIn'])->name('inventory.stockIn');
-    Route::put('/stock-out/{id}', [InventoryController::class, 'stockOut'])->name('inventory.stockOut');
+    Route::put('/inventory/stock-out/{id}', [InventoryController::class, 'stockOut'])->name('inventory.stockOut');
 });

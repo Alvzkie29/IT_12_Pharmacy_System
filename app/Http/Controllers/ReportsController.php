@@ -9,19 +9,25 @@ class ReportsController extends Controller
 {
     public function index(Request $request)
     {
-        // Latest stock movements (for dashboard widget)
-        $stocks = Stock::with('product')->latest()->take(3)->get();
+        $search = $request->input('search');
 
-        // Expired, damaged, pulled-out (still from stocks table)
-        $expiredDamagedItems = Stock::with('product')
-            ->whereIn('type', ['expired', 'damaged', 'pulled_out'])
-            ->latest()
-            ->take(10)
-            ->get();
+        // All stock movements (with search + pagination)
+        $reports = Stock::with('product')
+            ->when($search, function ($query, $search) {
+                return $query->where('batchNo', 'like', "%{$search}%")
+                             ->orWhere('type', 'like', "%{$search}%")
+                             ->orWhere('reason', 'like', "%{$search}%")
+                             ->orWhereHas('product', function ($q) use ($search) {
+                                 $q->where('productName', 'like', "%{$search}%")
+                                   ->orWhere('genericName', 'like', "%{$search}%")
+                                   ->orWhere('productWeight', 'like', "%{$search}%")
+                                   ->orWhere('dosageForm', 'like', "%{$search}%");
+                             });
+            })
+            ->latest('movementDate')
+            ->paginate(10)
+            ->appends(['search' => $search]);
 
-        // All stock movements (for modal, paginated)
-        $allStockMovements = Stock::with('product')->latest()->paginate(10);
-
-        return view('reports.index', compact('stocks', 'expiredDamagedItems', 'allStockMovements'));
+        return view('reports.index', compact('reports',  'search'));
     }
 }

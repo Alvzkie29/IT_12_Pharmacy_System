@@ -15,6 +15,7 @@ class Stock extends Model
         'productID',
         'employeeID',
         'type',
+        'reason',
         'price',
         'quantity',
         'availability',
@@ -22,18 +23,26 @@ class Stock extends Model
         'expiryDate',
         'movementDate',
     ];
-
+    protected $casts = [
+        'movementDate' => 'datetime',
+    ];
 
     public function getStatusBadgeAttribute()
     {
         if ($this->type === 'IN') {
             return '<span class="badge bg-success">In</span>';
+        } elseif ($this->reason === 'expired') {
+            return '<span class="badge bg-danger">Expired</span>';
+        } elseif ($this->reason === 'damaged') {
+            return '<span class="badge bg-warning">Damaged</span>';
+        } elseif ($this->reason === 'pullout') {
+            return '<span class="badge bg-info">Pulled Out</span>';
         } elseif ($this->type === 'OUT') {
-            return '<span class="badge bg-danger">Out</span>';
+            return '<span class="badge bg-secondary">Out</span>';
         }
-
-        return '<span class="badge bg-secondary">N/A</span>';
+        return '<span class="badge bg-dark">Unknown</span>';
     }
+
 
     // Relationships
     public function product()

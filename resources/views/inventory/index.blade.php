@@ -31,10 +31,10 @@
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
                         <tr>
-                            <th>Product</th>
-                            <th>Generic</th>
+                            <th>Brand Name</th>
+                            <th>Generic Name</th>
                             <th>Weight</th>
-                            <th>Dosage Form</th>
+                            <th>Type</th>
                             <th>Quantity</th>
                             <th>Price</th>
                             <th>Batch No</th>
@@ -68,6 +68,7 @@
                               <div class="modal-dialog">
                                 <form action="{{ route('inventory.stockOut', $stock->stockID) }}" method="POST">
                                     @csrf
+                                    @method('PUT')
                                     <div class="modal-content">
                                       <div class="modal-header bg-warning text-dark">
                                         <h5 class="modal-title">Stock Out Product</h5>
@@ -86,7 +87,6 @@
                                           <div class="mb-3">
                                               <label class="form-label">Reason</label>
                                               <select name="reason" class="form-select" required>
-                                                  <option value="sale">Sale</option>
                                                   <option value="expired">Expired</option>
                                                   <option value="pullout">Pullout (near expiry)</option>
                                               </select>
