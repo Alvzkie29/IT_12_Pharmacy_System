@@ -14,13 +14,16 @@ class Product extends Model
     protected $fillable = [
         'supplierID',
         'productName',
+        'genericName',     // ✅ added
+        'productWeight',   // ✅ added
+        'dosageForm',      // ✅ added
         'price',
         'category',
         'description',
     ];
 
     // Relationships
-     public function supplier()
+    public function supplier()
     {
         return $this->belongsTo(Supplier::class, 'supplierID');
     }

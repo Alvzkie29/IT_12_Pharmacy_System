@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id('productID');
-            $table->unsignedBigInteger('supplierID'); // must match suppliers PK type
+            $table->unsignedBigInteger('supplierID'); // FK to suppliers
 
             $table->foreign('supplierID')
                 ->references('supplierID')
@@ -21,8 +21,21 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             $table->string('productName');
-            $table->decimal('price', 10, 2); 
-            $table->enum('category', ['Antibiotic', 'Vitamins', 'Prescription', 'Analgesic']); 
+            $table->string('genericName'); // generic name of the medicine
+            $table->string('productWeight'); // weight/dosage e.g. 500mg, 10ml
+
+            $table->enum('dosageForm', [
+                'Tablet', 
+                'Capsule', 
+                'Syrup', 
+                'Injection', 
+                'Cream', 
+                'Ointment', 
+                'Drops'
+            ])->default('Tablet'); // type of medicine
+
+            $table->decimal('price', 10, 2);
+            $table->enum('category', ['Antibiotic', 'Vitamins', 'Prescription', 'Analgesic']);
             $table->string('description')->nullable();
             $table->timestamps();
         });

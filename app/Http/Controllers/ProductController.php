@@ -15,13 +15,16 @@ class ProductController extends Controller
         $products = Product::with('supplier')
             ->when($search, function ($query, $search) {
                 return $query->where('productName', 'like', "%{$search}%")
+                            ->orWhere('genericName', 'like', "%{$search}%") 
+                            ->orWhere('productWeight', 'like', "%{$search}%") 
+                            ->orWhere('dosageForm', 'like', "%{$search}%")   
                             ->orWhere('category', 'like', "%{$search}%")
                             ->orWhereHas('supplier', function ($q) use ($search) {
                                 $q->where('supplierName', 'like', "%{$search}%");
                             });
             })
-            ->paginate(10) // show 10 per page
-            ->appends(['search' => $search]); // keep search query in pagination links
+            ->paginate(10)
+            ->appends(['search' => $search]);
 
         $suppliers = Supplier::all();
 
@@ -33,8 +36,11 @@ class ProductController extends Controller
         $request->validate([
             'supplierID' => 'required|exists:suppliers,supplierID',
             'productName' => 'required|string|max:255',
+            'genericName' => 'required|string|max:255',   // ✅ new validation
+            'productWeight' => 'required|string|max:100', // ✅ new validation
+            'dosageForm' => 'required|in:Tablet,Capsule,Syrup,Injection,Cream,Ointment,Drops', // ✅ enforce enum
             'price' => 'required|numeric|min:0',
-            'category' => 'required|string|max:255',
+            'category' => 'required|in:Antibiotic,Vitamins,Prescription,Analgesic', // ✅ enforce enum
             'description' => 'nullable|string',
         ]);
 

@@ -44,6 +44,9 @@
                     <thead class="table-light">
                         <tr>
                             <th>Product</th>
+                            <th>Generic Name</th>
+                            <th>Weight</th>
+                            <th>Dosage Form</th>
                             <th>Supplier</th>
                             <th>Category</th>
                             <th>Price</th>
@@ -54,6 +57,9 @@
                         @forelse($products as $product)
                             <tr>
                                 <td>{{ $product->productName }}</td>
+                                <td>{{ $product->genericName ?? 'N/A' }}</td>
+                                <td>{{ $product->productWeight ?? 'N/A' }}</td>
+                                <td>{{ $product->dosageForm ?? 'N/A' }}</td>
                                 <td>{{ $product->supplier->supplierName }}</td>
                                 <td>{{ $product->category }}</td>
                                 <td>₱{{ number_format($product->price, 2) }}</td>
@@ -61,7 +67,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="text-center text-muted">No products found.</td>
+                                <td colspan="8" class="text-center text-muted">No products found.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -71,8 +77,8 @@
     </div>
 </div>
 <div class="d-flex justify-content-end mt-3">
-        {{ $products->links() }}
-    </div>
+    {{ $products->links() }}
+</div>
 
 {{-- Add Product Modal --}}
 <div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
@@ -99,8 +105,26 @@
                 <input type="text" name="productName" class="form-control" required>
             </div>
             <div class="mb-3">
+                <label for="genericName" class="form-label">Generic Name</label>
+                <input type="text" name="genericName" class="form-control">
+            </div>
+            <div class="mb-3">
+                <label for="productWeight" class="form-label">Product Weight (e.g., 500mg)</label>
+                <input type="text" name="productWeight" class="form-control">
+            </div>
+            <div class="mb-3">
+                <label for="dosageForm" class="form-label">Dosage Form</label>
+                <select name="dosageForm" class="form-select">
+                    <option value="Tablet">Tablet</option>
+                    <option value="Capsule">Capsule</option>
+                    <option value="Syrup">Syrup</option>
+                    <option value="Injection">Injection</option>
+                    <option value="Cream">Cream</option>
+                </select>
+            </div>
+            <div class="mb-3">
                 <label for="price" class="form-label">Price</label>
-                <input type="number" step="0.01" name="price" class="form-control" required>
+                <input type="text" name="price" class="form-control" required>
             </div>
             <div class="mb-3">
                 <label for="category" class="form-label">Category</label>

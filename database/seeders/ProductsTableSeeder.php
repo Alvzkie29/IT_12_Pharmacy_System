@@ -1,34 +1,45 @@
 <?php
+
 namespace Database\Seeders;
+
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
 class ProductsTableSeeder extends Seeder
 {
-    public function run()
+    public function run(): void
     {
         DB::table('products')->insert([
             [
                 'supplierID'   => 1, // assumes supplier with ID 1 exists
-                'productName'  => 'Amoxicillin 500mg',
+                'productName'  => 'Augmentin',         // brand name
+                'genericName'  => 'Amoxicillin',       // generic name
+                'productWeight'=> '500mg',
+                'dosageForm'   => 'Capsule',
                 'price'        => 12.50,
                 'category'     => 'Antibiotic',
-                'description'  => 'Used for bacterial infections',
+                'description'  => 'Broad-spectrum antibiotic for bacterial infections',
                 'created_at'   => now(),
                 'updated_at'   => now(),
             ],
             [
                 'supplierID'   => 1,
-                'productName'  => 'Vitamin C 1000mg',
+                'productName'  => 'Ceelin',            // brand name
+                'genericName'  => 'Ascorbic Acid',     // generic name
+                'productWeight'=> '1000mg/5ml',
+                'dosageForm'   => 'Syrup',
                 'price'        => 5.00,
                 'category'     => 'Vitamins',
-                'description'  => 'Boosts immune system',
+                'description'  => 'Vitamin C supplement to boost immune system',
                 'created_at'   => now(),
                 'updated_at'   => now(),
             ],
             [
                 'supplierID'   => 2, // assumes supplier with ID 2 exists
-                'productName'  => 'Paracetamol 500mg',
+                'productName'  => 'Biogesic',          // brand name
+                'genericName'  => 'Paracetamol',       // generic name
+                'productWeight'=> '500mg',
+                'dosageForm'   => 'Tablet',
                 'price'        => 3.00,
                 'category'     => 'Analgesic',
                 'description'  => 'Pain reliever and fever reducer',
@@ -38,5 +49,3 @@ class ProductsTableSeeder extends Seeder
         ]);
     }
 }
-
-
