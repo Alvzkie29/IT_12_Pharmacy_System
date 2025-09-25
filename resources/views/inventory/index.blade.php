@@ -85,12 +85,15 @@
                                           </div>
 
                                           <div class="mb-3">
-                                              <label class="form-label">Reason</label>
-                                              <select name="reason" class="form-select" required>
-                                                  <option value="expired">Expired</option>
-                                                  <option value="pullout">Pullout (near expiry)</option>
-                                              </select>
-                                          </div>
+                                                <label class="form-label">Reason</label>
+                                                <select name="reason" class="form-select" required>
+                                                    <option value="expired">Expired</option>
+                                                    <option value="pulled_out_near_expiry">Pulled Out - Near Expiry</option>
+                                                    <option value="pulled_out_damaged">Pulled Out - Damaged</option>
+                                                    <option value="pulled_out_contaminated">Pulled Out - Contaminated</option>
+                                                    <option value="pulled_out_other">Pulled Out - Other</option>
+                                                </select>
+                                            </div>
                                       </div>
 
                                       <div class="modal-footer">

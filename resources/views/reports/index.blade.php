@@ -2,92 +2,97 @@
 
 @section('content')
 <div class="container">
-    <h1 class="mb-4">Reports</h1>
+    <h1 class="mb-4">Reports for {{ $date ?? now()->toDateString() }}</h1>
 
-    {{-- Flash Messages --}}
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show">
-            {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    {{-- Search + Print Row --}}
+    <div class="row mb-4 align-items-center justify-content-between">
+        <div class="col-md-6">
+            <form action="{{ route('reports.index') }}" method="GET" class="d-flex">
+                <input type="date" name="date" value="{{ $date ?? now()->toDateString() }}" class="form-control me-2">
+                <input type="text" name="search" value="{{ $search ?? '' }}" class="form-control me-2" placeholder="Search by product, batch, type...">
+                <button type="submit" class="btn btn-outline-primary">Filter</button>
+            </form>
         </div>
-    @endif
-    @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show">
-            {{ session('error') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <div class="col-md-3 text-end">
+            <a href="{{ route('reports.print', ['date' => $date ?? now()->toDateString()]) }}" target="_blank" class="btn btn-primary">
+                <i class="bi bi-printer"></i> Print Report
+            </a>
         </div>
-    @endif
+    </div>
 
-    {{-- Search --}}
-    <form method="GET" action="{{ route('reports.index') }}" class="mb-3">
-        <div class="input-group">
-            <input type="text" name="search" class="form-control" 
-                   placeholder="Search by product, batch, or reason..." 
-                   value="{{ request('search') }}">
-            <button class="btn btn-primary" type="submit">Search</button>
+    {{-- Totals cards --}}
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-success shadow-sm">
+                <div class="card-body text-center">
+                    <h5>Stocked In</h5>
+                    <h2>{{ $totalStockIn }}</h2>
+                </div>
+            </div>
         </div>
-    </form>
+        <div class="col-md-4">
+            <div class="card text-white bg-warning shadow-sm">
+                <div class="card-body text-center">
+                    <h5>Pulled Out</h5>
+                    <h2>{{ $totalPulledOut }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-danger shadow-sm">
+                <div class="card-body text-center">
+                    <h5>Expired</h5>
+                    <h2>{{ $totalExpired }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    {{-- Stock Movements Table --}}
-    <div class="card shadow-sm">
-        <div class="card-header bg-dark text-white">
-            Stock Movements
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
+    {{-- Tables --}}
+    @foreach (['validReports' => 'Stocked In', 'pulledOutReports' => 'Pulled Out', 'expiredReports' => 'Expired'] as $var => $title)
+        <div class="card shadow-sm mb-4">
+            <div class="card-header
+                @if($var == 'validReports') bg-success text-white
+                @elseif($var == 'pulledOutReports') bg-warning text-dark
+                @else bg-danger  @endif">
+                {{ $title }}
+            </div>
+            <div class="card-body table-responsive">
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
                         <tr>
                             <th>Product</th>
-                            <th>Batch</th>
-                            <th>Type</th>
-                            <th>Reason</th>
                             <th>Quantity</th>
+                            @if($var == 'validReports')<th>Value</th>@endif
+                            @if($var == 'pulledOutReports')<th>Reason</th>@endif
                             <th>Date</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($reports as $movement)
+                        @forelse($$var as $report)
                             <tr>
-                                <td>{{ $movement->product->productName ?? 'Unknown' }}</td>
-                                <td>{{ $movement->batchNo ?? 'N/A' }}</td>
-                                <td>
-                                    @if($movement->type === 'IN')
-                                        <span class="badge bg-success">IN</span>
-                                    @else
-                                        <span class="badge bg-danger">OUT</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    @if($movement->reason === 'expired')
-                                        <span class="badge bg-danger">Expired</span>
-                                    @elseif($movement->reason === 'damaged')
-                                        <span class="badge bg-warning">Damaged</span>
-                                    @elseif($movement->reason === 'pullout')
-                                        <span class="badge bg-info">Pullout</span>
-                                    @elseif($movement->reason === 'sale')
-                                        <span class="badge bg-primary">Sale</span>
-                                    @else
-                                        <span class="badge bg-secondary">{{ $movement->reason ?? 'N/A' }}</span>
-                                    @endif
-                                </td>
-                                <td>{{ $movement->quantity }}</td>
-                                <td>{{ $movement->movementDate->format('M d, Y') }}</td>
+                                <td>{{ $report->product->productName }}</td>
+                                <td>{{ $report->quantity }}</td>
+                                @if($var == 'validReports')
+                                    <td>₱{{ number_format($report->quantity * $report->product->price, 2) }}</td>
+                                @endif
+                                @if($var == 'pulledOutReports')
+                                    {{-- Format reason nicely for display --}}
+                                    <td>{{ ucwords(str_replace(['pulled_out_', '_'], ['Pulled Out - ', ' '], $report->reason)) }}</td>
+                                @endif
+                                <td>{{ $report->created_at->timezone('Asia/Manila')->format('Y-m-d H:i') }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center text-muted">No stock movements found.</td>
+                                <td colspan="@if($var == 'pulledOutReports')4 @elseif($var == 'validReports')4 @else 3 @endif" class="text-center text-muted">
+                                    No items for this category today.
+                                </td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
-
-            {{-- Pagination --}}
-            <div class="d-flex justify-content-end mt-3">
-                {{ $reports->links() }}
-            </div>
         </div>
-    </div>
+    @endforeach
 </div>
 @endsection

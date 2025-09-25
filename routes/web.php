@@ -20,9 +20,12 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // Dashboard (protected by auth middleware)
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
 
-Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
+
 Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
+
+
 Route::get('/reports', [ReportsController::class, 'index'])->name('reports.index');
+Route::get('/reports/print/{date}', [ReportsController::class, 'print'])->name('reports.print');
 
 Route::post('/products', [ProductController::class, 'store'])->name('products.store');
 

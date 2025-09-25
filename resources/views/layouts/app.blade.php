@@ -19,12 +19,18 @@
         .active-link:hover {
             background-color: #166534; /* slightly lighter green on hover */
         }
+        #sidebar {
+            position: sticky; /* stays on top while scrolling */
+            top: 0;
+            height: 100vh; /* full viewport height */
+            overflow-y: auto; /* allows scrolling if content exceeds height */
+        }
     </style>
 </head>
 <body class="bg-light d-flex">
 
     <!-- Sidebar -->
-    <aside id="sidebar" class="bg-success text-white vh-100 p-3 d-flex flex-column shadow-lg" style="width: 250px;">
+    <aside id="sidebar" class="bg-success text-white p-3 d-flex flex-column shadow-lg" style="width: 250px;">
         <!-- Logo -->
         <div class="d-flex align-items-center justify-content-between mb-4">
             <span class="fw-bold fs-5">LM3</span>
