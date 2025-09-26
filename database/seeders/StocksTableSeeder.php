@@ -14,7 +14,8 @@ class StocksTableSeeder extends Seeder
                 'productID'    => 1, // Augmentin (Amoxicillin)
                 'employeeID'   => 1, // assumes employee with ID 1 exists
                 'type'         => 'IN',
-                'price'        => 12.50,
+                'purchase_price'        => 12.50,
+                'selling_price'         => 15.00,
                 'quantity'     => 100,
                 'availability' => true,
                 'batchNo'      => 'AMX-1001',
@@ -27,7 +28,8 @@ class StocksTableSeeder extends Seeder
                 'productID'    => 2, // Ceelin (Ascorbic Acid)
                 'employeeID'   => 1,
                 'type'         => 'IN',
-                'price'        => 5.00,
+                'purchase_price'        => 12.50,
+                'selling_price'         => 15.00,
                 'quantity'     => 200,
                 'availability' => true,
                 'batchNo'      => 'VITC-2001',
@@ -40,7 +42,8 @@ class StocksTableSeeder extends Seeder
                 'productID'    => 3, // Biogesic (Paracetamol)
                 'employeeID'   => 1,
                 'type'         => 'IN',
-                'price'        => 3.00,
+                'purchase_price'        => 12.50,
+                'selling_price'         => 15.00,
                 'quantity'     => 300,
                 'availability' => true,
                 'batchNo'      => 'PCM-3001',

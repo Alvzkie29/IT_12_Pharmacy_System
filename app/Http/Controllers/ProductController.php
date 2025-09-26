@@ -39,7 +39,6 @@ class ProductController extends Controller
             'genericName' => 'required|string|max:255',   // ✅ new validation
             'productWeight' => 'required|string|max:100', // ✅ new validation
             'dosageForm' => 'required|in:Tablet,Capsule,Syrup,Injection,Cream,Ointment,Drops', // ✅ enforce enum
-            'price' => 'required|numeric|min:0',
             'category' => 'required|in:Antibiotic,Vitamins,Prescription,Analgesic', // ✅ enforce enum
             'description' => 'nullable|string',
         ]);

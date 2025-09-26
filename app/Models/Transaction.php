@@ -15,7 +15,6 @@ class Transaction extends Model
         'saleID',
         'stockID',
         'quantity',
-        'unitPrice',
     ];
 
     // Relationships

@@ -12,7 +12,6 @@ class TransactionsTableSeeder extends Seeder
                 'saleID'     => 1, // links to SalesTableSeeder (Pharmacist sale)
                 'stockID'    => 1, // links to StocksTableSeeder (Amoxicillin batch)
                 'quantity'   => 5,
-                'unitPrice'  => 12.50, // matches ProductsTableSeeder price
                 'created_at' => now()->subDays(2),
                 'updated_at' => now()->subDays(2),
             ],
@@ -20,7 +19,6 @@ class TransactionsTableSeeder extends Seeder
                 'saleID'     => 2, // links to SalesTableSeeder (Staff sale)
                 'stockID'    => 2, // Vitamin C stock
                 'quantity'   => 10,
-                'unitPrice'  => 5.00,
                 'created_at' => now()->subDay(),
                 'updated_at' => now()->subDay(),
             ],
@@ -28,7 +26,6 @@ class TransactionsTableSeeder extends Seeder
                 'saleID'     => 3, // links to SalesTableSeeder (Pharmacist sale today)
                 'stockID'    => 3, // Paracetamol stock
                 'quantity'   => 20,
-                'unitPrice'  => 3.00,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],

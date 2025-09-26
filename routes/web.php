@@ -21,7 +21,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
 
 
-Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
+Route::resource('sales', SaleController::class)->only(['index', 'create', 'store']);
 
 
 Route::get('/reports', [ReportsController::class, 'index'])->name('reports.index');

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Stock;
+use App\Models\Sale;
 use Illuminate\Http\Request;
 
 class ReportsController extends Controller
@@ -12,7 +13,7 @@ class ReportsController extends Controller
         $search = $request->input('search');
         $date = $request->input('date', now()->toDateString());
 
-        // All stock movements (with search + pagination)
+        // 🔹 Stock Reports
         $reports = Stock::with('product')
             ->when($search, function ($query, $search) {
                 return $query->where('batchNo', 'like', "%{$search}%")
@@ -30,17 +31,41 @@ class ReportsController extends Controller
             ->paginate(10)
             ->appends(['search' => $search, 'date' => $date]);
 
-        // Separate by reason
-        $validReports = $reports->filter(fn($r) => 
+        $validReports = $reports->filter(fn($r) =>
             !str_starts_with(strtolower($r->reason), 'pulled_out') && strtolower($r->reason) !== 'expired'
         );
         $expiredReports = $reports->filter(fn($r) => strtolower($r->reason) === 'expired');
         $pulledOutReports = $reports->filter(fn($r) => str_starts_with(strtolower($r->reason), 'pulled_out'));
 
-        // Totals
         $totalStockIn = $validReports->sum('quantity');
         $totalPulledOut = $pulledOutReports->sum('quantity');
         $totalExpired = $expiredReports->sum('quantity');
+
+        // 🔹 Sales Reports (profit from stocks)
+        $sales = Sale::with(['transactions.stock.product'])
+            ->whereDate('saleDate', $date)
+            ->get();
+
+        $salesData = $sales->flatMap->transactions->map(function ($transaction) {
+            $stock = $transaction->stock;
+            $sellingPrice = $stock->selling_price ?? 0;
+            $purchasePrice = $stock->purchase_price ?? 0;
+            $profit = ($sellingPrice - $purchasePrice) * $transaction->quantity;
+
+            return [
+                'productName'   => $stock->product->productName ?? 'N/A',
+                'batchNo'       => $stock->batchNo ?? 'N/A',
+                'quantity'      => $transaction->quantity,
+                'purchasePrice' => $purchasePrice,
+                'sellingPrice'  => $sellingPrice,
+                'total'         => $transaction->quantity * $sellingPrice,
+                'profit'        => $profit,
+                'saleDate'      => $transaction->sale->saleDate,
+            ];
+        });
+
+        $totalSales = $salesData->sum('total');
+        $totalProfit = $salesData->sum('profit');
 
         return view('reports.index', compact(
             'reports',
@@ -51,37 +76,59 @@ class ReportsController extends Controller
             'pulledOutReports',
             'totalStockIn',
             'totalPulledOut',
-            'totalExpired'
+            'totalExpired',
+            'salesData',
+            'totalSales',
+            'totalProfit'
         ));
     }
 
     public function print($date)
     {
+        // Stock reports
         $reports = Stock::with('product')
             ->whereDate('created_at', $date)
             ->get();
 
-        // Separate by reason
-        $validReports = $reports->filter(fn($r) => 
+        $validReports = $reports->filter(fn($r) =>
             !str_starts_with(strtolower($r->reason), 'pulled_out') && strtolower($r->reason) !== 'expired'
         );
         $expiredReports = $reports->filter(fn($r) => strtolower($r->reason) === 'expired');
         $pulledOutReports = $reports->filter(fn($r) => str_starts_with(strtolower($r->reason), 'pulled_out'));
 
-        // Totals
-        $totalQuantity = $reports->sum('quantity');
-        $validTotalValue = $validReports->sum(fn($r) => $r->quantity * $r->product->price);
-        $expiredTotal = $expiredReports->sum('quantity');
-        $pulledOutTotal = $pulledOutReports->sum('quantity');
+        // Sales reports
+        $sales = Sale::with(['transactions.stock.product'])
+            ->whereDate('saleDate', $date)
+            ->get();
+
+        $salesData = $sales->flatMap->transactions->map(function ($transaction) {
+            $stock = $transaction->stock;
+            $sellingPrice = $stock->selling_price ?? 0;
+            $purchasePrice = $stock->purchase_price ?? 0;
+            $profit = ($sellingPrice - $purchasePrice) * $transaction->quantity;
+
+            return [
+                'productName'   => $stock->product->productName ?? 'N/A',
+                'batchNo'       => $stock->batchNo ?? 'N/A',
+                'quantity'      => $transaction->quantity,
+                'purchasePrice' => $purchasePrice,
+                'sellingPrice'  => $sellingPrice,
+                'total'         => $transaction->quantity * $sellingPrice,
+                'profit'        => $profit,
+                'saleDate'      => $transaction->sale->saleDate,
+            ];
+        });
+
+        $totalSales = $salesData->sum('total');
+        $totalProfit = $salesData->sum('profit');
 
         return view('reports.print', compact(
             'validReports',
             'expiredReports',
             'pulledOutReports',
-            'totalQuantity',
-            'validTotalValue',
-            'expiredTotal',
-            'pulledOutTotal',
+            'salesData',
+            'totalSales',
+            'totalProfit',
             'date'
         ));
     }

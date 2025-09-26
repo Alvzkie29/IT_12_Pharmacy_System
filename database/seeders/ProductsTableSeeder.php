@@ -16,7 +16,6 @@ class ProductsTableSeeder extends Seeder
                 'genericName'  => 'Amoxicillin',       // generic name
                 'productWeight'=> '500mg',
                 'dosageForm'   => 'Capsule',
-                'price'        => 12.50,
                 'category'     => 'Antibiotic',
                 'description'  => 'Broad-spectrum antibiotic for bacterial infections',
                 'created_at'   => now(),
@@ -28,7 +27,6 @@ class ProductsTableSeeder extends Seeder
                 'genericName'  => 'Ascorbic Acid',     // generic name
                 'productWeight'=> '1000mg/5ml',
                 'dosageForm'   => 'Syrup',
-                'price'        => 5.00,
                 'category'     => 'Vitamins',
                 'description'  => 'Vitamin C supplement to boost immune system',
                 'created_at'   => now(),
@@ -40,7 +38,6 @@ class ProductsTableSeeder extends Seeder
                 'genericName'  => 'Paracetamol',       // generic name
                 'productWeight'=> '500mg',
                 'dosageForm'   => 'Tablet',
-                'price'        => 3.00,
                 'category'     => 'Analgesic',
                 'description'  => 'Pain reliever and fever reducer',
                 'created_at'   => now(),

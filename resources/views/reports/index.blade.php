@@ -22,7 +22,7 @@
 
     {{-- Totals cards --}}
     <div class="row mb-4">
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="card text-white bg-success shadow-sm">
                 <div class="card-body text-center">
                     <h5>Stocked In</h5>
@@ -30,7 +30,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="card text-white bg-warning shadow-sm">
                 <div class="card-body text-center">
                     <h5>Pulled Out</h5>
@@ -38,7 +38,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="card text-white bg-danger shadow-sm">
                 <div class="card-body text-center">
                     <h5>Expired</h5>
@@ -46,9 +46,66 @@
                 </div>
             </div>
         </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-primary shadow-sm">
+                <div class="card-body text-center">
+                    <h5>Total Profit</h5>
+                    <h2>₱{{ number_format($totalProfit, 2) }}</h2>
+                </div>
+            </div>
+        </div>
     </div>
 
-    {{-- Tables --}}
+
+    {{-- Sales Table --}}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-info text-white">Sales</div>
+        <div class="card-body table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Product</th>
+                        <th>Batch No</th>
+                        <th>Quantity</th>
+                        <th>Purchase Price</th>
+                        <th>Selling Price</th>
+                        <th>Date</th>
+                        <th>Total</th>
+                        <th>Profit</th> 
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($salesData as $sale)
+                        <tr>
+                            <td>{{ $sale['productName'] }}</td>
+                            <td>{{ $sale['batchNo'] }}</td>
+                            <td>{{ $sale['quantity'] }}</td>
+                            <td>₱{{ number_format($sale['purchasePrice'], 2) }}</td>
+                            <td>₱{{ number_format($sale['sellingPrice'], 2) }}</td>
+                            <td>{{ \Carbon\Carbon::parse($sale['saleDate'])->timezone('Asia/Manila')->format('Y-m-d H:i') }}</td>
+                            <td>₱{{ number_format($sale['total'], 2) }}</td>
+                            <td>₱{{ number_format($sale['profit'], 2) }}</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="8" class="text-center text-muted">No sales for this day.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+                <tfoot>
+                    <tr class="fw-bold">
+                        <td colspan="6" class="text-end">Totals:</td>
+                        <td>₱{{ number_format($totalSales, 2) }}</td>
+                        <td>₱{{ number_format($totalProfit, 2) }}</td>
+                        <td></td> 
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+
+    {{-- Stock Tables --}}
     @foreach (['validReports' => 'Stocked In', 'pulledOutReports' => 'Pulled Out', 'expiredReports' => 'Expired'] as $var => $title)
         <div class="card shadow-sm mb-4">
             <div class="card-header
@@ -63,8 +120,12 @@
                         <tr>
                             <th>Product</th>
                             <th>Quantity</th>
-                            @if($var == 'validReports')<th>Value</th>@endif
-                            @if($var == 'pulledOutReports')<th>Reason</th>@endif
+                            @if($var == 'validReports')
+                                <th>Value</th>
+                            @endif
+                            @if($var == 'pulledOutReports')
+                                <th>Reason</th>
+                            @endif
                             <th>Date</th>
                         </tr>
                     </thead>
@@ -74,10 +135,9 @@
                                 <td>{{ $report->product->productName }}</td>
                                 <td>{{ $report->quantity }}</td>
                                 @if($var == 'validReports')
-                                    <td>₱{{ number_format($report->quantity * $report->product->price, 2) }}</td>
+                                    <td>₱{{ number_format($report->quantity * $report->selling_price, 2) }}</td>
                                 @endif
                                 @if($var == 'pulledOutReports')
-                                    {{-- Format reason nicely for display --}}
                                     <td>{{ ucwords(str_replace(['pulled_out_', '_'], ['Pulled Out - ', ' '], $report->reason)) }}</td>
                                 @endif
                                 <td>{{ $report->created_at->timezone('Asia/Manila')->format('Y-m-d H:i') }}</td>
@@ -94,5 +154,6 @@
             </div>
         </div>
     @endforeach
+
 </div>
 @endsection

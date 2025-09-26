@@ -49,7 +49,6 @@
                             <th>Type</th>
                             <th>Supplier</th>
                             <th>Category</th>
-                            <th>Price</th>
                             <th>Description</th>
                         </tr>
                     </thead>
@@ -62,7 +61,6 @@
                                 <td>{{ $product->dosageForm ?? 'N/A' }}</td>
                                 <td>{{ $product->supplier->supplierName }}</td>
                                 <td>{{ $product->category }}</td>
-                                <td>₱{{ number_format($product->price, 2) }}</td>
                                 <td>{{ $product->description ?? 'N/A' }}</td>
                             </tr>
                         @empty
@@ -121,10 +119,6 @@
                     <option value="Injection">Injection</option>
                     <option value="Cream">Cream</option>
                 </select>
-            </div>
-            <div class="mb-3">
-                <label for="price" class="form-label">Price</label>
-                <input type="text" name="price" class="form-control" required>
             </div>
             <div class="mb-3">
                 <label for="category" class="form-label">Category</label>

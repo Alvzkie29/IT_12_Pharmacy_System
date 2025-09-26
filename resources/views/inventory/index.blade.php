@@ -36,7 +36,8 @@
                             <th>Weight</th>
                             <th>Type</th>
                             <th>Quantity</th>
-                            <th>Price</th>
+                            <th>Purchase Price</th>
+                            <th>Selling Price</th>
                             <th>Batch No</th>
                             <th>Expiry</th>
                             <th>Action</th>
@@ -50,7 +51,8 @@
                                 <td>{{ $stock->product->productWeight }}</td>
                                 <td>{{ $stock->product->dosageForm }}</td>
                                 <td>{{ $stock->quantity }}</td>
-                                <td>₱{{ number_format($stock->price, 2) }}</td>
+                                <td>₱{{ number_format($stock->purchase_price, 2) }}</td>
+                                <td>₱{{ number_format($stock->selling_price, 2) }}</td>
                                 <td>{{ $stock->batchNo ?? 'N/A' }}</td>
                                 <td>{{ $stock->expiryDate ?? 'N/A' }}</td>
                                 <td>
@@ -64,6 +66,7 @@
                                 </td>
                             </tr>
 
+                            {{-- Stock Out Modal --}}
                             <div class="modal fade" id="stockOutModal{{ $stock->stockID }}" tabindex="-1" aria-hidden="true">
                               <div class="modal-dialog">
                                 <form action="{{ route('inventory.stockOut', $stock->stockID) }}" method="POST">
@@ -106,7 +109,7 @@
                             </div>
                         @empty
                             <tr>
-                                <td colspan="9" class="text-center text-muted">No stock available.</td>
+                                <td colspan="10" class="text-center text-muted">No stock available.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -145,8 +148,13 @@
               </div>
 
               <div class="mb-3">
-                  <label for="price" class="form-label">Batch Price</label>
-                  <input type="number" step="0.01" name="price" id="price" class="form-control" required>
+                  <label for="purchase_price" class="form-label">Purchase Price</label>
+                  <input type="number" step="0.01" name="purchase_price" id="purchase_price" class="form-control" required>
+              </div>
+
+              <div class="mb-3">
+                  <label for="selling_price" class="form-label">Selling Price</label>
+                  <input type="number" step="0.01" name="selling_price" id="selling_price" class="form-control" required>
               </div>
 
               <div class="mb-3">
