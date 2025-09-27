@@ -87,7 +87,9 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <form action="{{ route('products.store') }}" method="POST">
+        <form action="{{ route('products.store') }}" 
+              method="POST"
+              onsubmit="return confirm('Confirm adding this new product?');">
             @csrf
             <div class="mb-3">
                 <label for="supplierID" class="form-label">Supplier</label>

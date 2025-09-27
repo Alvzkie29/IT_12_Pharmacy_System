@@ -48,10 +48,10 @@ class InventoryController extends Controller
         $request->validate([
             'productID'      => 'required|exists:products,productID',
             'purchase_price' => 'required|numeric|min:0',
-            'selling_price'  => 'required|numeric|min:0',
+            'selling_price'  => 'required|numeric|min:0|gte:purchase_price', // selling must be >= purchase
             'quantity'       => 'required|integer|min:1',
-            'batchNo'        => 'nullable|string',
-            'expiryDate'     => 'nullable|date',
+            'batchNo'        => 'nullable|string|max:50',
+            'expiryDate'     => 'nullable|date|after:today',
         ]);
 
         Stock::create([
@@ -67,10 +67,10 @@ class InventoryController extends Controller
             'movementDate'   => now(),
         ]);
 
-        return redirect()->route('inventory.index')
-                         ->with('success', 'Stock added successfully!');
+        return redirect()
+            ->route('inventory.index')
+            ->with('success', 'Stock added successfully!');
     }
-
     /**
      * Stock Out - Reduce quantity and log movement
      */

@@ -12,24 +12,13 @@ use Illuminate\Support\Facades\DB;
 class SaleController extends Controller
 {
     /**
-     * List sales and/or stock movements
+     * Show POS with cart
      */
     public function index(Request $request)
     {
         $search = $request->input('search');
 
-        // Sales with employees
-        $sales = Sale::with('employee')
-            ->when($search, function ($query, $search) {
-                return $query->whereHas('employee', function ($q) use ($search) {
-                    $q->where('firstName', 'like', "%$search%")
-                      ->orWhere('lastName', 'like', "%$search%");
-                });
-            })
-            ->orderBy('saleDate', 'desc')
-            ->paginate(10, ['*'], 'sales_page');
-
-        // Stock movements with products
+        // Products (stock list)
         $stocks = Stock::with('product')
             ->when($search, function ($query, $search) {
                 return $query->whereHas('product', function ($q) use ($search) {
@@ -37,76 +26,118 @@ class SaleController extends Controller
                 });
             })
             ->orderBy('created_at', 'desc')
-            ->paginate(10, ['*'], 'stocks_page');
+            ->get();
 
-        return view('sales.index', compact('sales', 'stocks', 'search'));
+        return view('sales.index', compact('stocks', 'search'));
     }
 
     /**
-     * Store new sale
+     * Step 1: Handle cart actions and go to confirmation
      */
     public function store(Request $request)
-    {
-        $request->validate([
-            'items'   => 'required|array|min:1',
-        ]);
+{
+    // Existing cart items
+    $items = collect($request->items ?? []);
 
-        // Filter out empty rows (no product or no quantity)
-        $items = collect($request->items)
-            ->filter(fn($item) => !empty($item['stockID']) && !empty($item['quantity']));
-
-        if ($items->isEmpty()) {
-            return back()->with('error', 'Please select at least one product.')->withInput();
-        }
-
-        DB::beginTransaction();
-
-        try {
-            // 1. Create the sale record
-            $sale = Sale::create([
-                'employeeID'  => Auth::user()->employeeID,
-                'totalAmount' => 0, // will update later
-                'saleDate'    => now(),
+    // Handle 'Add' button
+    if ($request->has('add_item')) {
+        $stockID = $request->input('add_item');
+        
+        // Check if item already exists in cart
+        $existingKey = $items->search(fn($item) => $item['stockID'] == $stockID);
+        if ($existingKey !== false) {
+            // Increase quantity if already in cart
+            $items[$existingKey]['quantity'] += 1;
+        } else {
+            // Add new item with quantity 1
+            $items->push([
+                'stockID' => $stockID,
+                'quantity' => 1,
             ]);
-
-            $totalAmount = 0;
-
-            // 2. Loop through sale items
-            foreach ($items as $item) {
-                $stock = Stock::with('product')->findOrFail($item['stockID']);
-
-                // Check if enough stock exists
-                if ($item['quantity'] > $stock->quantity) {
-                    throw new \Exception("Not enough stock for {$stock->product->productName}");
-                }
-
-                $lineTotal = $stock->selling_price * $item['quantity'];
-                $totalAmount += $lineTotal;
-
-                // Create transaction record
-                Transaction::create([
-                    'saleID'    => $sale->saleID,
-                    'stockID'   => $stock->stockID,
-                    'quantity'  => $item['quantity'],
-                ]);
-
-                // Deduct stock
-                $stock->quantity -= $item['quantity'];
-                if ($stock->quantity <= 0) {
-                    $stock->availability = false;
-                }
-                $stock->save();
-            }
-
-            // 3. Update total amount in sale
-            $sale->update(['totalAmount' => $totalAmount]);
-
-            DB::commit();
-
-            return redirect()->route('sales.index')->with('success', 'Sale recorded successfully!');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->with('error', 'Sale failed: ' . $e->getMessage())->withInput();
         }
     }
+
+    // Now check if cart has items
+    if ($items->isEmpty()) {
+        return back()->with('error', 'Please select at least one product.')->withInput();
+    }
+
+    $cash = (float) $request->input('cash', 0);
+    $subtotal = 0;
+
+    // Calculate subtotal
+    foreach ($items as $item) {
+        $stock = Stock::with('product')->find($item['stockID']);
+        if ($stock) {
+            $subtotal += $stock->selling_price * ($item['quantity'] ?? 1);
+        }
+    }
+
+    if ($cash < $subtotal && $cash > 0) {
+        return back()->with('error', 'Insufficient cash received.')->withInput();
+    }
+
+    // Return to the same POS view with updated items
+    return view('sales.index', [
+        'stocks' => Stock::with('product')->get(),
+        'items' => $items,
+        'cash' => $cash,
+    ]);
+}
+
+/**
+ * Finalize sale after confirmation
+ */
+public function confirm(Request $request)
+{
+    $items = collect($request->items ?? []);
+    $cash = (float) $request->input('cash', 0);
+
+    DB::beginTransaction();
+
+    try {
+        $sale = Sale::create([
+            'employeeID'  => Auth::user()->employeeID,
+            'totalAmount' => 0,
+            'saleDate'    => now(),
+        ]);
+
+        $totalAmount = 0;
+
+        foreach ($items as $item) {
+            $stock = Stock::with('product')->findOrFail($item['stockID']);
+            $quantity = (int) $item['quantity'];
+
+            if ($quantity > $stock->quantity) {
+                throw new \Exception("Not enough stock for {$stock->product->productName}");
+            }
+
+            $lineTotal = $stock->selling_price * $quantity;
+            $totalAmount += $lineTotal;
+
+            Transaction::create([
+                'saleID'   => $sale->saleID,
+                'stockID'  => $stock->stockID,
+                'quantity' => $quantity,
+            ]);
+
+            $stock->quantity -= $quantity;
+            if ($stock->quantity <= 0) {
+                $stock->availability = false;
+            }
+            $stock->save();
+        }
+
+        $sale->update(['totalAmount' => $totalAmount]);
+
+        DB::commit();
+
+        return redirect()->route('sales.index')
+            ->with('success', "Sale recorded successfully! Change: ₱" . number_format($cash - $totalAmount, 2));
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return back()->with('error', 'Sale failed: ' . $e->getMessage())->withInput();
+    }
+}
+
 }

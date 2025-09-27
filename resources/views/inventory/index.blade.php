@@ -18,10 +18,18 @@
         </div>
     @endif
 
-    {{-- Add Stock Button --}}
-    <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#addStockModal">
-        Add Stock
-    </button>
+    {{-- Search + Add Stock Button --}}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <form method="GET" action="{{ route('inventory.index') }}" class="d-flex" style="max-width: 350px; flex: 1;">
+            <div class="input-group">
+                <input type="text" name="search" class="form-control" placeholder="Search inventory..." value="{{ request('search') }}">
+                <button class="btn btn-outline-secondary" type="submit">Search</button>
+            </div>
+        </form>
+        <button class="btn btn-success ms-2" data-bs-toggle="modal" data-bs-target="#addStockModal">
+            <i class="bi bi-plus-circle me-1"></i> Add Stock
+        </button>
+    </div>
 
     {{-- Inventory Table --}}
     <div class="card shadow-sm">
@@ -69,7 +77,9 @@
                             {{-- Stock Out Modal --}}
                             <div class="modal fade" id="stockOutModal{{ $stock->stockID }}" tabindex="-1" aria-hidden="true">
                               <div class="modal-dialog">
-                                <form action="{{ route('inventory.stockOut', $stock->stockID) }}" method="POST">
+                                <form action="{{ route('inventory.stockOut', $stock->stockID) }}" 
+                                      method="POST" 
+                                      onsubmit="return confirm('Confirm stock out for this product?');">
                                     @csrf
                                     @method('PUT')
                                     <div class="modal-content">
@@ -127,7 +137,9 @@
 {{-- Add Stock Modal --}}
 <div class="modal fade" id="addStockModal" tabindex="-1" aria-labelledby="addStockModalLabel" aria-hidden="true">
   <div class="modal-dialog">
-    <form action="{{ route('inventory.stockIn') }}" method="POST">
+    <form action="{{ route('inventory.stockIn') }}" 
+          method="POST" 
+          onsubmit="return confirm('Confirm adding this new stock?');">
         @csrf
         <div class="modal-content">
           <div class="modal-header bg-success text-white">
