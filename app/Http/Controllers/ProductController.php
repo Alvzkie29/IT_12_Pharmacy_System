@@ -15,13 +15,13 @@ class ProductController extends Controller
         $products = Product::with('supplier')
             ->when($search, function ($query, $search) {
                 return $query->where('productName', 'like', "%{$search}%")
-                            ->orWhere('genericName', 'like', "%{$search}%") 
-                            ->orWhere('productWeight', 'like', "%{$search}%") 
-                            ->orWhere('dosageForm', 'like', "%{$search}%")   
-                            ->orWhere('category', 'like', "%{$search}%")
-                            ->orWhereHas('supplier', function ($q) use ($search) {
-                                $q->where('supplierName', 'like', "%{$search}%");
-                            });
+                             ->orWhere('genericName', 'like', "%{$search}%")
+                             ->orWhere('productWeight', 'like', "%{$search}%")
+                             ->orWhere('dosageForm', 'like', "%{$search}%")
+                             ->orWhere('category', 'like', "%{$search}%")
+                             ->orWhereHas('supplier', function ($q) use ($search) {
+                                 $q->where('supplierName', 'like', "%{$search}%");
+                             });
             })
             ->paginate(10)
             ->appends(['search' => $search]);
@@ -36,15 +36,44 @@ class ProductController extends Controller
         $request->validate([
             'supplierID' => 'required|exists:suppliers,supplierID',
             'productName' => 'required|string|max:255',
-            'genericName' => 'required|string|max:255',   // ✅ new validation
-            'productWeight' => 'required|string|max:100', // ✅ new validation
-            'dosageForm' => 'required|in:Tablet,Capsule,Syrup,Injection,Cream,Ointment,Drops', // ✅ enforce enum
-            'category' => 'required|in:Antibiotic,Vitamins,Prescription,Analgesic', // ✅ enforce enum
+            'genericName' => 'nullable|string|max:255',
+            'productWeight' => 'nullable|string|max:100',
+            'dosageForm' => 'required|in:Tablet,Capsule,Syrup,Injection,Cream,Ointment,Drops',
+            'category' => 'required|in:Antibiotic,Vitamins,Prescription,Analgesic',
             'description' => 'nullable|string',
         ]);
 
         Product::create($request->all());
 
         return redirect()->route('products.index')->with('success', 'Product added successfully.');
+    }
+
+    // ✅ Update product
+    public function update(Request $request, $id)
+    {
+        $product = Product::findOrFail($id);
+
+        $request->validate([
+            'supplierID' => 'required|exists:suppliers,supplierID',
+            'productName' => 'required|string|max:255',
+            'genericName' => 'nullable|string|max:255',
+            'productWeight' => 'nullable|string|max:100',
+            'dosageForm' => 'required|in:Tablet,Capsule,Syrup,Injection,Cream,Ointment,Drops',
+            'category' => 'required|in:Antibiotic,Vitamins,Prescription,Analgesic',
+            'description' => 'nullable|string',
+        ]);
+
+        $product->update($request->all());
+
+        return redirect()->route('products.index')->with('success', 'Product updated successfully.');
+    }
+
+    // ✅ Delete product
+    public function destroy($id)
+    {
+        $product = Product::findOrFail($id);
+        $product->delete();
+
+        return redirect()->route('products.index')->with('success', 'Product deleted successfully.');
     }
 }

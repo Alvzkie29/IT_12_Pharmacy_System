@@ -11,19 +11,18 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/feather-icons"></script>
     <style>
-        /* Custom active state for sidebar */
         .active-link {
-            background-color: #14532d; /* dark green */
+            background-color: #14532d; 
             color: #fff !important;
         }
         .active-link:hover {
-            background-color: #166534; /* slightly lighter green on hover */
+            background-color: #166534; 
         }
         #sidebar {
-            position: sticky; /* stays on top while scrolling */
+            position: sticky; 
             top: 0;
-            height: 100vh; /* full viewport height */
-            overflow-y: auto; /* allows scrolling if content exceeds height */
+            height: 100vh; 
+            overflow-y: auto; 
         }
     </style>
 </head>
@@ -44,6 +43,11 @@
             <a href="{{ route('dashboard.index') }}" 
                class="nav-link text-white mb-2 {{ request()->routeIs('dashboard.index') ? 'active-link rounded' : '' }}">
                 <i class="fas fa-home me-2"></i> Dashboard
+            </a>
+
+            <a href="{{ route('suppliers.index') }}" 
+               class="nav-link text-white mb-2 {{ request()->routeIs('supplier.index') ? 'active-link rounded' : '' }}">
+                <i class="fas fa-shopping-cart me-2"></i> Suppliers
             </a>
 
             <!-- Inventory Dropdown -->

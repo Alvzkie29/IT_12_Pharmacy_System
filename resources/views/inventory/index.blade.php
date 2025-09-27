@@ -53,7 +53,22 @@
                     </thead>
                     <tbody>
                         @forelse($stocks as $stock)
-                            <tr>
+                            @php
+                                $rowClass = '';
+                                if ($stock->expiryDate) {
+                                    $expiry = \Carbon\Carbon::parse($stock->expiryDate);
+                                    $today = \Carbon\Carbon::today();
+                                    $monthsDiff = $today->diffInMonths($expiry, false);
+
+                                    if ($monthsDiff < 0) {
+                                        $rowClass = 'table-danger'; // Expired
+                                    } elseif ($monthsDiff <= 6) {
+                                        $rowClass = 'table-warning'; // Near expiry
+                                    }
+                                }
+                            @endphp
+
+                            <tr class="{{ $rowClass }}">
                                 <td>{{ $stock->product->productName }}</td>
                                 <td>{{ $stock->product->genericName }}</td>
                                 <td>{{ $stock->product->productWeight }}</td>

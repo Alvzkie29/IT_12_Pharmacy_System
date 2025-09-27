@@ -54,12 +54,12 @@
                 </div>
                 <div class="card-body">
                     <div class="d-flex justify-content-between mb-2">
-                        <span>Subtotal:</span>
-                        <span>₱{{ number_format($subtotal, 2) }}</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
                         <span>Cash Received:</span>
                         <span>₱{{ number_format($cash, 2) }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal:</span>
+                        <span>₱{{ number_format($subtotal, 2) }}</span>
                     </div>
                     <div class="d-flex justify-content-between mb-3 fw-bold fs-5">
                         <span>Change:</span>

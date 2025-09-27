@@ -1,0 +1,81 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Suppliers;
+use Illuminate\Http\Request;
+
+class SuppliersController extends Controller
+{
+    /**
+     * Display a listing of suppliers with optional search.
+     */
+    public function index(Request $request)
+    {
+        $search = $request->input('search');
+
+        $suppliers = Suppliers::when($search, function ($query, $search) {
+                return $query->where('supplierName', 'like', "%$search%");
+            })
+            ->orderBy('supplierName')
+            ->paginate(3); // 10 suppliers per page
+
+        // Keep the search query in pagination links
+        $suppliers->appends($request->only('search'));
+
+        return view('suppliers.index', compact('suppliers'));
+    }
+
+    /**
+     * Store a newly created supplier in storage.
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'supplierName' => 'required|string|max:255',
+            'contactInfo'  => 'nullable|string|max:255',
+            'address'      => 'nullable|string|max:255',
+        ]);
+
+        Suppliers::create([
+            'supplierName' => $request->supplierName,
+            'contactInfo'  => $request->contactInfo,
+            'address'      => $request->address,
+        ]);
+
+        return redirect()->route('suppliers.index')->with('success', 'Supplier added successfully.');
+    }
+
+    /**
+     * Update the specified supplier in storage.
+     */
+    public function update(Request $request, $id)
+    {
+        $supplier = Suppliers::findOrFail($id);
+
+        $request->validate([
+            'supplierName' => 'required|string|max:255',
+            'contactInfo'  => 'nullable|string|max:255',
+            'address'      => 'nullable|string|max:255',
+        ]);
+
+        $supplier->update([
+            'supplierName' => $request->supplierName,
+            'contactInfo'  => $request->contactInfo,
+            'address'      => $request->address,
+        ]);
+
+        return redirect()->route('suppliers.index')->with('success', 'Supplier updated successfully.');
+    }
+
+    /**
+     * Remove the specified supplier from storage.
+     */
+    public function destroy($id)
+    {
+        $supplier = Suppliers::findOrFail($id);
+        $supplier->delete();
+
+        return redirect()->route('suppliers.index')->with('success', 'Supplier deleted successfully.');
+    }
+}

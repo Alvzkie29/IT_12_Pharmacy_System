@@ -50,6 +50,7 @@
                             <th>Supplier</th>
                             <th>Category</th>
                             <th>Description</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -62,7 +63,87 @@
                                 <td>{{ $product->supplier->supplierName }}</td>
                                 <td>{{ $product->category }}</td>
                                 <td>{{ $product->description ?? 'N/A' }}</td>
+                                <td class="d-flex justify-content-center mt-2 gap-1">
+                                    {{-- Edit Button --}}
+                                    <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editProductModal{{ $product->productID }}">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </button>
+
+                                    {{-- Delete Button --}}
+                                    <form action="{{ route('products.destroy', $product->productID) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this product?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
                             </tr>
+
+                            {{-- Edit Product Modal --}}
+                            <div class="modal fade" id="editProductModal{{ $product->productID }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content shadow-sm">
+                                        <div class="modal-header bg-primary text-white">
+                                            <h5 class="modal-title">Edit Product</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form action="{{ route('products.update', $product->productID) }}" method="POST" onsubmit="return confirm('Confirm updating this product?');">
+                                                @csrf
+                                                @method('PUT')
+                                                <div class="mb-3">
+                                                    <label for="supplierID{{ $product->productID }}" class="form-label">Supplier</label>
+                                                    <select name="supplierID" class="form-select" required>
+                                                        <option value="" disabled>Select supplier</option>
+                                                        @foreach($suppliers as $supplier)
+                                                            <option value="{{ $supplier->supplierID }}" {{ $product->supplierID == $supplier->supplierID ? 'selected' : '' }}>
+                                                                {{ $supplier->supplierName }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="productName{{ $product->productID }}" class="form-label">Product Name</label>
+                                                    <input type="text" name="productName" class="form-control" value="{{ $product->productName }}" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="genericName{{ $product->productID }}" class="form-label">Generic Name</label>
+                                                    <input type="text" name="genericName" class="form-control" value="{{ $product->genericName }}">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="productWeight{{ $product->productID }}" class="form-label">Product Weight (e.g., 500mg)</label>
+                                                    <input type="text" name="productWeight" class="form-control" value="{{ $product->productWeight }}">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="dosageForm{{ $product->productID }}" class="form-label">Dosage Form</label>
+                                                    <select name="dosageForm" class="form-select">
+                                                        <option value="Tablet" {{ $product->dosageForm == 'Tablet' ? 'selected' : '' }}>Tablet</option>
+                                                        <option value="Capsule" {{ $product->dosageForm == 'Capsule' ? 'selected' : '' }}>Capsule</option>
+                                                        <option value="Syrup" {{ $product->dosageForm == 'Syrup' ? 'selected' : '' }}>Syrup</option>
+                                                        <option value="Injection" {{ $product->dosageForm == 'Injection' ? 'selected' : '' }}>Injection</option>
+                                                        <option value="Cream" {{ $product->dosageForm == 'Cream' ? 'selected' : '' }}>Cream</option>
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="category{{ $product->productID }}" class="form-label">Category</label>
+                                                    <select name="category" class="form-select" required>
+                                                        <option value="Antibiotic" {{ $product->category == 'Antibiotic' ? 'selected' : '' }}>Antibiotic</option>
+                                                        <option value="Vitamins" {{ $product->category == 'Vitamins' ? 'selected' : '' }}>Vitamins</option>
+                                                        <option value="Prescription" {{ $product->category == 'Prescription' ? 'selected' : '' }}>Prescription</option>
+                                                        <option value="Analgesic" {{ $product->category == 'Analgesic' ? 'selected' : '' }}>Analgesic</option>
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="description{{ $product->productID }}" class="form-label">Description (optional)</label>
+                                                    <textarea name="description" class="form-control">{{ $product->description }}</textarea>
+                                                </div>
+                                                <button type="submit" class="btn btn-primary w-100">Update Product</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         @empty
                             <tr>
                                 <td colspan="8" class="text-center text-muted">No products found.</td>

@@ -6,8 +6,7 @@ use App\Http\Controllers\SaleController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProductController;
-
-
+use App\Http\Controllers\SuppliersController;
 use Illuminate\Support\Facades\Route;
 
 // Landing page = Login form
@@ -20,19 +19,18 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // Dashboard (protected by auth middleware)
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
 
-
 Route::resource('sales', SaleController::class)->only(['index', 'store']);
 Route::post('/sales/confirm', [SaleController::class, 'confirm'])->name('sales.confirm'); 
 Route::post('/sales/finalize', [SaleController::class, 'finalize'])->name('sales.finalize'); 
 
-
+Route::resource('suppliers', SuppliersController::class);
 
 Route::get('/reports', [ReportsController::class, 'index'])->name('reports.index');
 Route::get('/reports/print/{date}', [ReportsController::class, 'print'])->name('reports.print');
 
 Route::post('/products', [ProductController::class, 'store'])->name('products.store');
 
-Route::resource('products', ProductController::class)->only(['index','store']);
+Route::resource('products', ProductController::class)->only(['index','store', 'update', 'destroy']);
 
 
 Route::prefix('inventory')->group(function () {
