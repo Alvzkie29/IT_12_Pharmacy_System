@@ -4,7 +4,7 @@
 <div class="container-fluid">
     <h1 class="mb-4">Point of Sale</h1>
 
-    {{-- ✅ Flash Messages --}}
+    {{-- Flash Messages --}}
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             {{ session('success') }}
@@ -19,16 +19,14 @@
         </div>
     @endif
 
+    {{-- Main Form --}}
     <form method="POST" action="{{ route('sales.store') }}">
         @csrf
-
         <div class="row">
             {{-- LEFT: Cart --}}
             <div class="col-md-7">
                 <div class="card shadow-sm mb-3">
-                    <div class="card-header bg-primary text-white">
-                        Current Sale
-                    </div>
+                    <div class="card-header bg-primary text-white">Current Sale</div>
                     <div class="card-body p-0">
                         <table class="table table-bordered mb-0 align-middle text-center">
                             <thead class="table-light">
@@ -42,10 +40,10 @@
                             </thead>
                             <tbody>
                                 @php $subtotal = 0; @endphp
-                                @forelse(old('items', []) as $i => $item)
+                                @forelse($items ?? [] as $i => $item)
                                     @php
-                                        $stock = $stocks->firstWhere('stockID', $item['stockID'] ?? null);
-                                        $qty = $item['quantity'] ?? 1;
+                                        $stock = $stocks->firstWhere('stockID', $item['stockID']);
+                                        $qty = $item['quantity'];
                                     @endphp
                                     @if($stock)
                                         @php
@@ -54,27 +52,25 @@
                                         @endphp
                                         <tr>
                                             <td>{{ $stock->product->productName }}</td>
-                                            <td>₱{{ number_format($stock->selling_price, 2) }}</td>
+                                            <td>₱{{ number_format($stock->selling_price,2) }}</td>
                                             <td>
                                                 <div class="d-flex justify-content-center align-items-center">
-                                                    {{-- Decrease button --}}
-                                                    <button type="submit" name="update_item" value="dec-{{ $i }}" class="btn btn-sm btn-warning me-1">-</button>
+                                                    {{-- Decrease --}}
+                                                    <button type="submit" name="update_item" value="dec-{{ $stock->stockID }}" class="btn btn-sm btn-warning me-1">-</button>
 
                                                     <input type="number" 
-                                                           name="items[{{ $i }}][quantity]" 
+                                                           name="items[{{ $stock->stockID }}][quantity]" 
                                                            value="{{ $qty }}" 
                                                            min="1" 
                                                            class="form-control form-control-sm text-center w-50">
 
-                                                    {{-- Increase button --}}
-                                                    <button type="submit" name="update_item" value="inc-{{ $i }}" class="btn btn-sm btn-success ms-1">+</button>
+                                                    {{-- Increase --}}
+                                                    <button type="submit" name="update_item" value="inc-{{ $stock->stockID }}" class="btn btn-sm btn-success ms-1">+</button>
                                                 </div>
-                                                <input type="hidden" name="items[{{ $i }}][stockID]" value="{{ $stock->stockID }}">
                                             </td>
-                                            <td>₱{{ number_format($lineTotal, 2) }}</td>
+                                            <td>₱{{ number_format($lineTotal,2) }}</td>
                                             <td>
-                                                {{-- Remove button --}}
-                                                <button type="submit" name="remove_item" value="{{ $i }}" class="btn btn-danger btn-sm">x</button>
+                                                <button type="submit" name="remove_item" value="{{ $stock->stockID }}" class="btn btn-danger btn-sm">x</button>
                                             </td>
                                         </tr>
                                     @endif
@@ -94,15 +90,14 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <label>Cash Received</label>
-                                <input type="number" step="0.01" name="cash" class="form-control" value="{{ old('cash') }}">
+                                <input type="number" step="0.01" name="cash" class="form-control" value="{{ $cash ?? 0 }}">
                             </div>
                             <div class="col-md-6 text-end">
-                                <p><strong>Subtotal:</strong> ₱{{ number_format($subtotal, 2) }}</p>
+                                <p><strong>Subtotal:</strong> ₱{{ number_format($subtotal,2) }}</p>
                             </div>
                         </div>
                         <div class="text-end mt-3">
-                            {{-- Checkout goes to confirmation page --}}
-                            <button type="submit" class="btn btn-success">Proceed to Checkout</button>
+                            <button type="submit" formaction="{{ route('sales.confirm') }}" class="btn btn-success">Proceed to Checkout</button>
                         </div>
                     </div>
                 </div>
@@ -111,10 +106,8 @@
             {{-- RIGHT: Product List --}}
             <div class="col-md-5">
                 <div class="card shadow-sm">
-                    <div class="card-header bg-secondary text-white">
-                        Products
-                    </div>
-                    <div class="card-body" style="max-height: 75vh; overflow-y: auto;">
+                    <div class="card-header bg-secondary text-white">Products</div>
+                    <div class="card-body" style="max-height:75vh; overflow-y:auto;">
                         <div class="row row-cols-2 g-2">
                             @php $hasProducts = false; @endphp
                             @foreach($stocks as $stock)
@@ -126,24 +119,19 @@
                                                 <strong>{{ $stock->product->productName }}</strong>
                                                 <p class="small mb-1">{{ $stock->product->genericName }}</p>
                                                 <p class="small mb-1">{{ $stock->expiryDate }}</p>
-                                                <p class="small mb-1">₱{{ number_format($stock->selling_price, 2) }}</p>
+                                                <p class="small mb-1">₱{{ number_format($stock->selling_price,2) }}</p>
                                                 <p class="small text-muted">Stock: {{ $stock->quantity }}</p>
-                                                {{-- Add button --}}
-                                                <button type="submit" name="add_item" value="{{ $stock->stockID }}" class="btn btn-primary btn-sm w-100">
-                                                    Add
-                                                </button>
+
+                                                {{-- Add to Cart Button --}}
+                                                <button type="submit" name="add_item" value="{{ $stock->stockID }}" class="btn btn-primary btn-sm w-100">Add</button>
                                             </div>
                                         </div>
                                     </div>
                                 @endif
                             @endforeach
-
-                            {{-- Fallback --}}
                             @if(!$hasProducts)
                                 <div class="col-12">
-                                    <div class="alert alert-warning text-center m-2">
-                                        No products available.
-                                    </div>
+                                    <div class="alert alert-warning text-center m-2">No products available.</div>
                                 </div>
                             @endif
                         </div>
