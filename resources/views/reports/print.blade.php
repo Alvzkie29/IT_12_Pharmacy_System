@@ -68,7 +68,7 @@
                     <td>{{ $sale['quantity'] }}</td>
                     <td>₱{{ number_format($sale['purchasePrice'], 2) }}</td>
                     <td>₱{{ number_format($sale['sellingPrice'], 2) }}</td>
-                    <td>{{ \Carbon\Carbon::parse($sale['saleDate'])->timezone('Asia/Manila')->format('Y-m-d H:i') }}</td> {{-- Added --}}
+                    <td>{{ \Carbon\Carbon::parse($sale['saleDate'])->timezone('Asia/Manila')->format('Y-m-d H:i') }}</td> 
                     <td>₱{{ number_format($sale['total'], 2) }}</td>
                     <td>₱{{ number_format($sale['profit'], 2) }}</td>
                 </tr>
@@ -100,7 +100,6 @@
                         <th>Purchase Price</th>
                         <th>Selling Price</th>
                         <th>Total Value</th>
-                        <th>Profit</th>
                     @endif
                     @if($var == 'pulledOutReports')
                         <th>Reason</th>
@@ -117,7 +116,6 @@
                             <td>₱{{ number_format($report->purchase_price, 2) }}</td>
                             <td>₱{{ number_format($report->selling_price, 2) }}</td>
                             <td>₱{{ number_format($report->quantity * $report->selling_price, 2) }}</td>
-                            <td>₱{{ number_format($report->profit, 2) }}</td>
                         @endif
                         @if($var == 'pulledOutReports')
                             <td>{{ ucwords(str_replace(['pulled_out_', '_'], ['Pulled Out - ', ' '], $report->reason)) }}</td>

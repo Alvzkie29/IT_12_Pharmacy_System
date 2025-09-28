@@ -12,7 +12,7 @@
     <div class="flex justify-center mb-4">
       <img src="{{ asset('images/logo.png') }}" alt="Logo" class="h-20">
     </div>
-    <h2 class="text-2xl font-bold text-center text-green-700 mb-6">LM3 Pharmacy Login</h2>
+    <h2 class="text-2xl font-bold text-center text-green-700 mb-6">Login</h2>
 
 
 
