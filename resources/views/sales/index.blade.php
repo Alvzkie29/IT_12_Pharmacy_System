@@ -59,10 +59,11 @@
                                                     <button type="submit" name="update_item" value="dec-{{ $stock->stockID }}" class="btn btn-sm btn-warning me-1">-</button>
 
                                                     <input type="number" 
-                                                           name="items[{{ $stock->stockID }}][quantity]" 
-                                                           value="{{ $qty }}" 
-                                                           min="1" 
-                                                           class="form-control form-control-sm text-center w-50">
+                                                            name="items[{{ $stock->stockID }}][quantity]" 
+                                                            value="{{ $qty }}" 
+                                                            max="{{ $stock->quantity }}"
+                                                            min="1" 
+                                                            class="form-control form-control-sm text-center w-50">
 
                                                     {{-- Increase --}}
                                                     <button type="submit" name="update_item" value="inc-{{ $stock->stockID }}" class="btn btn-sm btn-success ms-1">+</button>
@@ -84,7 +85,7 @@
                     </div>
                 </div>
 
-                {{-- Totals + Cash --}}
+                {{-- TOTALS WITH TAX --}}
                 <div class="card shadow-sm">
                     <div class="card-body">
                         <div class="row">
@@ -93,15 +94,26 @@
                                 <input type="number" step="0.01" name="cash" class="form-control" value="{{ $cash ?? 0 }}">
                             </div>
                             <div class="col-md-6 text-end">
-                                <p><strong>Subtotal:</strong> ₱{{ number_format($subtotal,2) }}</p>
+                                @php
+                                    $taxRate = 0.12; // 12% tax
+                                    $tax = $subtotal * $taxRate;
+                                    $grandTotal = $subtotal + $tax;
+                                @endphp
+
+                                <p><strong>Subtotal:</strong> ₱{{ number_format($subtotal, 2) }}</p>
+                                <p><strong>Tax (12%):</strong> ₱{{ number_format($tax, 2) }}</p>
+                                <p class="fs-5"><strong>Grand Total:</strong> ₱{{ number_format($grandTotal, 2) }}</p>
                             </div>
                         </div>
                         <div class="text-end mt-3">
-                            <button type="submit" formaction="{{ route('sales.confirm') }}" class="btn btn-success">Proceed to Checkout</button>
+                            <button type="submit" formaction="{{ route('sales.confirm') }}" class="btn btn-success">
+                                Proceed to Checkout
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
+            
 
             {{-- RIGHT: Product List --}}
             <div class="col-md-5">
@@ -111,8 +123,7 @@
                         <div class="row row-cols-2 g-2">
                             @php $hasProducts = false; @endphp
                             @foreach($stocks as $stock)
-                                @if($stock->quantity > 0)
-                                    @php $hasProducts = true; @endphp
+                                @if($stock->quantity > 0 && $stock->availability && $stock->expiryDate > now())
                                     <div class="col">
                                         <div class="card h-100 border">
                                             <div class="card-body text-center p-2">
@@ -131,7 +142,7 @@
                             @endforeach
                             @if(!$hasProducts)
                                 <div class="col-12">
-                                    <div class="alert alert-warning text-center m-2">No products available.</div>
+                                    <div class="alert alert-warning text-center m-2">End of list.</div>
                                 </div>
                             @endif
                         </div>

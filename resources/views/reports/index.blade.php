@@ -21,47 +21,54 @@
     </div>
 
     {{-- Totals cards --}}
+    @php
+        $vatRate = 0.12;
+        $totalSalesWithVAT = $totalSales + ($totalSales * $vatRate);
+        $totalVAT = $totalSales * $vatRate;
+    @endphp
     <div class="row mb-4">
         <div class="col-md-3">
-            <div class="card text-white bg-success shadow-sm">
-                <div class="card-body text-center">
+            <div class="card text-white bg-success shadow-sm h-100">
+                <div class="card-body d-flex flex-column justify-content-center text-center">
                     <h5>Stocked In</h5>
                     <h2>{{ $totalStockIn }}</h2>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card text-white bg-warning shadow-sm">
-                <div class="card-body text-center">
+            <div class="card text-white bg-warning shadow-sm h-100">
+                <div class="card-body d-flex flex-column justify-content-center text-center">
                     <h5>Pulled Out</h5>
                     <h2>{{ $totalPulledOut }}</h2>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card text-white bg-danger shadow-sm">
-                <div class="card-body text-center">
+            <div class="card text-white bg-danger shadow-sm h-100">
+                <div class="card-body d-flex flex-column justify-content-center text-center">
                     <h5>Expired</h5>
                     <h2>{{ $totalExpired }}</h2>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card text-white bg-primary shadow-sm">
-                <div class="card-body text-center">
-                    <h5>Total Profit</h5>
-                    <h2>₱{{ number_format($totalProfit, 2) }}</h2>
+            <div class="card text-white bg-primary shadow-sm h-100">
+                <div class="card-body d-flex flex-column justify-content-center text-center">
+                    <h5>Total Sales (with VAT)</h5>
+                    <h2>₱{{ number_format($totalSalesWithVAT, 2) }}</h2>
+                    <small class="mt-1">VAT: ₱{{ number_format($totalVAT, 2) }}</small>
                 </div>
             </div>
         </div>
     </div>
 
 
+
     {{-- Sales Table --}}
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-info text-white">Sales</div>
         <div class="card-body table-responsive">
-            <table class="table table-hover align-middle">
+            <table class="table table-hover align-middle text-center">
                 <thead class="table-light">
                     <tr>
                         <th>Product</th>
@@ -71,33 +78,42 @@
                         <th>Selling Price</th>
                         <th>Date</th>
                         <th>Total</th>
-                        <th>Profit</th> 
+                        <th>VAT (12%)</th>
+                        <th>Profit</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($salesData as $sale)
+                        @php
+                            $lineTotal = $sale['sellingPrice'] * $sale['quantity'];
+                            $taxAmount = $lineTotal * 0.12; 
+                        @endphp
                         <tr>
-                            <td>{{ $sale['productName'] }}</td>
+                            <td class="text-start">{{ $sale['productName'] }}</td>
                             <td>{{ $sale['batchNo'] }}</td>
                             <td>{{ $sale['quantity'] }}</td>
                             <td>₱{{ number_format($sale['purchasePrice'], 2) }}</td>
                             <td>₱{{ number_format($sale['sellingPrice'], 2) }}</td>
                             <td>{{ \Carbon\Carbon::parse($sale['saleDate'])->timezone('Asia/Manila')->format('Y-m-d H:i') }}</td>
-                            <td>₱{{ number_format($sale['total'], 2) }}</td>
+                            <td>₱{{ number_format($lineTotal + $taxAmount, 2) }}</td>
+                            <td>₱{{ number_format($taxAmount, 2) }}</td>
                             <td>₱{{ number_format($sale['profit'], 2) }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center text-muted">No sales for this day.</td>
+                            <td colspan="9" class="text-center text-muted">No sales for this day.</td>
                         </tr>
                     @endforelse
                 </tbody>
                 <tfoot>
+                    @php
+                        $totalVAT = $totalSales * 0.12; 
+                    @endphp
                     <tr class="fw-bold">
                         <td colspan="6" class="text-end">Totals:</td>
-                        <td>₱{{ number_format($totalSales, 2) }}</td>
+                        <td>₱{{ number_format($totalSales + $totalVAT, 2) }}</td>
+                        <td>₱{{ number_format($totalVAT, 2) }}</td>
                         <td>₱{{ number_format($totalProfit, 2) }}</td>
-                        <td></td> 
                     </tr>
                 </tfoot>
             </table>

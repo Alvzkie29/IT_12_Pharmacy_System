@@ -1,3 +1,9 @@
+@php
+    $vatRate = 0.12;
+    $totalSalesWithVAT = $totalSales + ($totalSales * $vatRate);
+    $totalVAT = $totalSales * $vatRate;
+@endphp
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,6 +14,8 @@
         body { font-size: 14px; }
         .report-header { margin-bottom: 20px; }
         .table th, .table td { vertical-align: middle; }
+        .card-summary { padding: 10px; margin-bottom: 15px; color: white; text-align: center; }
+        .h-100 { height: 100%; }
     </style>
 </head>
 <body>
@@ -17,30 +25,39 @@
         <p>Date: {{ $date }}</p>
     </div>
 
-    {{-- Stock Summary --}}
+    {{-- Totals Cards --}}
     <div class="row mb-4">
         <div class="col-md-3">
-            <div class="border p-2 text-center bg-success text-white">
-                <h6>Stocked In</h6>
-                <h4>{{ $validReports->sum('quantity') }}</h4>
+            <div class="card bg-success shadow-sm h-100">
+                <div class="card-body d-flex flex-column justify-content-center text-center">
+                    <h6>Stocked In</h6>
+                    <h4>{{ $validReports->sum('quantity') }}</h4>
+                </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="border p-2 text-center bg-warning text-dark">
-                <h6>Pulled Out</h6>
-                <h4>{{ $pulledOutReports->sum('quantity') }}</h4>
+            <div class="card bg-warning shadow-sm h-100">
+                <div class="card-body d-flex flex-column justify-content-center text-center text-dark">
+                    <h6>Pulled Out</h6>
+                    <h4>{{ $pulledOutReports->sum('quantity') }}</h4>
+                </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="border p-2 text-center bg-danger text-white">
-                <h6>Expired</h6>
-                <h4>{{ $expiredReports->sum('quantity') }}</h4>
+            <div class="card bg-danger shadow-sm h-100">
+                <div class="card-body d-flex flex-column justify-content-center text-center">
+                    <h6>Expired</h6>
+                    <h4>{{ $expiredReports->sum('quantity') }}</h4>
+                </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="border p-2 text-center bg-primary text-white">
-                <h6>Total Profit</h6>
-                <h4>₱{{ number_format($totalProfit, 2) }}</h4>
+            <div class="card bg-primary shadow-sm h-100">
+                <div class="card-body d-flex flex-column justify-content-center text-center">
+                    <h6>Total Sales (with VAT)</h6>
+                    <h4>₱{{ number_format($totalSalesWithVAT, 2) }}</h4>
+                    <small>VAT: ₱{{ number_format($totalVAT, 2) }}</small>
+                </div>
             </div>
         </div>
     </div>
@@ -56,12 +73,17 @@
                 <th>Purchase Price</th>
                 <th>Selling Price</th>
                 <th>Date</th> 
-                <th>Total</th>
+                <th>Total (with VAT)</th>
+                <th>VAT (12%)</th>
                 <th>Profit</th>
             </tr>
         </thead>
         <tbody>
             @forelse($salesData as $sale)
+                @php
+                    $lineTotal = $sale['sellingPrice'] * $sale['quantity'];
+                    $taxAmount = $lineTotal * $vatRate;
+                @endphp
                 <tr>
                     <td>{{ $sale['productName'] }}</td>
                     <td>{{ $sale['batchNo'] }}</td>
@@ -69,21 +91,22 @@
                     <td>₱{{ number_format($sale['purchasePrice'], 2) }}</td>
                     <td>₱{{ number_format($sale['sellingPrice'], 2) }}</td>
                     <td>{{ \Carbon\Carbon::parse($sale['saleDate'])->timezone('Asia/Manila')->format('Y-m-d H:i') }}</td> 
-                    <td>₱{{ number_format($sale['total'], 2) }}</td>
+                    <td>₱{{ number_format($lineTotal + $taxAmount, 2) }}</td>
+                    <td>₱{{ number_format($taxAmount, 2) }}</td>
                     <td>₱{{ number_format($sale['profit'], 2) }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="8" class="text-center text-muted">No sales for this day.</td>
+                    <td colspan="9" class="text-center text-muted">No sales for this day.</td>
                 </tr>
             @endforelse
         </tbody>
         <tfoot>
             <tr class="fw-bold">
                 <td colspan="6" class="text-end">Totals:</td>
-                <td>₱{{ number_format($totalSales, 2) }}</td>
+                <td>₱{{ number_format($totalSalesWithVAT, 2) }}</td>
+                <td>₱{{ number_format($totalVAT, 2) }}</td>
                 <td>₱{{ number_format($totalProfit, 2) }}</td>
-                <td></td>
             </tr>
         </tfoot>
     </table>
@@ -132,8 +155,6 @@
             </tbody>
         </table>
     @endforeach
-
-    
 </div>
 </body>
 </html>
