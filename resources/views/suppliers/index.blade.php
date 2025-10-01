@@ -18,12 +18,20 @@
         </div>
     @endif
 
-    {{-- Search --}}
-    <form method="GET" action="{{ route('suppliers.index') }}" class="mb-3 d-flex justify-content-between">
-        <input type="text" name="search" class="form-control w-25" placeholder="Search suppliers..." value="{{ request('search') }}">
-        <button type="submit" class="btn btn-secondary ms-2">Search</button>
-        <button type="button" class="btn btn-primary ms-auto" data-bs-toggle="modal" data-bs-target="#addSupplierModal">Add Supplier</button>
-    </form>
+    {{-- Live Search --}}
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <div class="input-group mb-2" style="max-width: 500px;">
+        <input 
+            type="text" 
+            id="supplierSearch" 
+            class="form-control" 
+            placeholder="Search suppliers...">
+    </div>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSupplierModal">
+        Add Supplier
+    </button>
+</div>
+
 
     <div class="table-responsive">
         <table class="table table-bordered text-center">
@@ -141,4 +149,22 @@
     </div>
 </div>
 @endforeach
+<script>
+document.getElementById('supplierSearch').addEventListener('keyup', function () {
+    let query = this.value.toLowerCase();
+    let rows = document.querySelectorAll("table tbody tr");
+
+    rows.forEach(row => {
+        // Skip "No suppliers found" row
+        if (row.querySelector("td")?.classList.contains("text-muted")) {
+            row.style.display = query === "" ? "" : "none";
+            return;
+        }
+
+        let text = row.innerText.toLowerCase();
+        row.style.display = text.includes(query) ? "" : "none";
+    });
+});
+</script>
+
 @endsection

@@ -19,13 +19,15 @@
     @endif
 
     {{-- Search + Add Stock Button --}}
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <form method="GET" action="{{ route('inventory.index') }}" class="d-flex" style="max-width: 350px; flex: 1;">
-            <div class="input-group">
-                <input type="text" name="search" class="form-control" placeholder="Search inventory..." value="{{ request('search') }}">
-                <button class="btn btn-outline-secondary" type="submit">Search</button>
-            </div>
-        </form>
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="input-group mb-2" style="max-width: 500px;">
+            <input 
+                type="text" 
+                id="inventorySearch" 
+                class="form-control" 
+                placeholder="Search inventory...">
+        </div>
+
         <button class="btn btn-success ms-2" data-bs-toggle="modal" data-bs-target="#addStockModal">
             <i class="bi bi-plus-circle me-1"></i> Add Stock
         </button>
@@ -207,4 +209,23 @@
     </form>
   </div>
 </div>
+<script>
+document.getElementById('inventorySearch').addEventListener('keyup', function () {
+    let query = this.value.toLowerCase();
+    let rows = document.querySelectorAll("table tbody tr");
+
+    rows.forEach(row => {
+        // skip "No stock available" row
+        if (row.querySelector("td")?.classList.contains("text-muted")) {
+            row.style.display = query === "" ? "" : "none";
+            return;
+        }
+
+        let text = row.innerText.toLowerCase();
+        row.style.display = text.includes(query) ? "" : "none";
+    });
+});
+</script>
+
+
 @endsection

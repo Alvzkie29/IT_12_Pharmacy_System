@@ -18,7 +18,19 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     @endif
-
+        {{-- 🔍 Search Bar ABOVE the main form --}}
+    <div class="d-flex justify-content-end mb-3">
+        <form method="GET" action="{{ route('sales.index') }}" class="d-flex" style="max-width: 500px;">
+            <div class="input-group input-group-sm">
+                <input type="text" 
+                id="search-bar"  
+                name="search" 
+                class="form-control border-0 shadow-sm"
+                placeholder="Search product..."
+                value="{{ request('search') }}">
+            </div>
+        </form>
+    </div>
     {{-- Main Form --}}
     <form method="POST" action="{{ route('sales.store') }}">
         @csrf
@@ -85,7 +97,7 @@
                     </div>
                 </div>
 
-                {{-- TOTALS WITH TAX --}}
+                {{-- TOTALS --}}
                 <div class="card shadow-sm">
                     <div class="card-body">
                         <div class="row">
@@ -95,14 +107,11 @@
                             </div>
                             <div class="col-md-6 text-end">
                                 @php
-                                    $taxRate = 0.12; // 12% tax
-                                    $tax = $subtotal * $taxRate;
-                                    $grandTotal = $subtotal + $tax;
+                                    $grandTotal = $subtotal;
                                 @endphp
 
-                                <p><strong>Subtotal:</strong> ₱{{ number_format($subtotal, 2) }}</p>
-                                <p><strong>Tax (12%):</strong> ₱{{ number_format($tax, 2) }}</p>
-                                <p class="fs-5"><strong>Grand Total:</strong> ₱{{ number_format($grandTotal, 2) }}</p>
+                                <p class="fs-5"><strong>Total:</strong> ₱{{ number_format($grandTotal, 2) }}</p>
+
                             </div>
                         </div>
                         <div class="text-end mt-3">
@@ -114,42 +123,67 @@
                 </div>
             </div>
             
-
+            
             {{-- RIGHT: Product List --}}
             <div class="col-md-5">
                 <div class="card shadow-sm">
-                    <div class="card-header bg-secondary text-white">Products</div>
                     <div class="card-body" style="max-height:75vh; overflow-y:auto;">
-                        <div class="row row-cols-2 g-2">
-                            @php $hasProducts = false; @endphp
-                            @foreach($stocks as $stock)
-                                @if($stock->quantity > 0 && $stock->availability && $stock->expiryDate > now())
-                                    <div class="col">
-                                        <div class="card h-100 border">
-                                            <div class="card-body text-center p-2">
-                                                <strong>{{ $stock->product->productName }}</strong>
-                                                <p class="small mb-1">{{ $stock->product->genericName }}</p>
-                                                <p class="small mb-1">{{ $stock->expiryDate }}</p>
-                                                <p class="small mb-1">₱{{ number_format($stock->selling_price,2) }}</p>
-                                                <p class="small text-muted">Stock: {{ $stock->quantity }}</p>
+                        
+                        
+                        <div id="product-list">
+                            <div class="row row-cols-2 g-2">
+                                @php $hasProducts = false; @endphp
+                                @foreach($stocks as $stock)
+                                    @if($stock->quantity > 0 && $stock->availability && $stock->expiryDate > now())
+                                        <div class="col">
+                                            <div class="card h-100 border">
+                                                <div class="card-body text-center p-2">
+                                                    <strong>{{ $stock->product->productName }}</strong>
+                                                    <p class="small mb-1">{{ $stock->product->genericName }}</p>
+                                                    <p class="small mb-1">{{ $stock->expiryDate }}</p>
+                                                    <p class="small mb-1">₱{{ number_format($stock->selling_price,2) }}</p>
+                                                    <p class="small text-muted">Stock: {{ $stock->quantity }}</p>
 
-                                                {{-- Add to Cart Button --}}
-                                                <button type="submit" name="add_item" value="{{ $stock->stockID }}" class="btn btn-primary btn-sm w-100">Add</button>
+                                                    {{-- Add to Cart Button --}}
+                                                    <button type="submit" name="add_item" value="{{ $stock->stockID }}" class="btn btn-primary btn-sm w-100">Add</button>
+                                                </div>
                                             </div>
                                         </div>
+                                    @endif
+                                @endforeach
+                                @if(!$hasProducts)
+                                    <div class="col-12">
+                                        <div class="alert alert-warning text-center m-2">End of list.</div>
                                     </div>
                                 @endif
-                            @endforeach
-                            @if(!$hasProducts)
-                                <div class="col-12">
-                                    <div class="alert alert-warning text-center m-2">End of list.</div>
-                                </div>
-                            @endif
+                            </div>
                         </div>
+                        
+                        
                     </div>
                 </div>
             </div>
+
         </div>
     </form>
 </div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function () {
+    $('#search-bar').on('keyup', function () {
+        let query = $(this).val();
+
+        $.ajax({
+            url: "{{ route('sales.index') }}",
+            type: "GET",
+            data: { search: query },
+            success: function (response) {
+                let html = $(response).find('#product-list').html();
+                $('#product-list').html(html);
+            }
+        });
+    });
+});
+</script>
+
 @endsection

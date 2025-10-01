@@ -7,11 +7,41 @@
     {{-- Search + Print Row --}}
     <div class="row mb-4 align-items-center justify-content-between">
         <div class="col-md-6">
-            <form action="{{ route('reports.index') }}" method="GET" class="d-flex">
-                <input type="date" name="date" value="{{ $date ?? now()->toDateString() }}" class="form-control me-2">
-                <input type="text" name="search" value="{{ $search ?? '' }}" class="form-control me-2" placeholder="Search by product, batch, type...">
-                <button type="submit" class="btn btn-outline-primary">Filter</button>
-            </form>
+            <form action="{{ route('reports.index') }}" method="GET" class="d-flex align-items-center">
+
+    {{-- Period filter --}}
+    <select name="period" id="period" class="form-control me-2" onchange="toggleCustomDate()">
+        <option value="today" {{ request('period') === 'today' ? 'selected' : '' }}>Today</option>
+        <option value="monthly" {{ request('period') === 'monthly' ? 'selected' : '' }}>This Month</option>
+        <option value="yearly" {{ request('period') === 'yearly' ? 'selected' : '' }}>This Year</option>
+        <option value="custom" {{ request('period') === 'custom' ? 'selected' : '' }}>Custom Date</option>
+    </select>
+
+    {{-- Custom Date Input (hidden unless "custom" is selected) --}}
+    <input 
+        type="date" 
+        name="date" 
+        id="custom-date" 
+        value="{{ request('date') ?? now()->toDateString() }}" 
+        class="form-control me-2"
+        style="display: {{ request('period') === 'custom' ? 'block' : 'none' }};"
+    >
+
+    {{-- Search --}}
+    <input type="text" name="search" value="{{ $search ?? '' }}" class="form-control me-2" placeholder="Search by product, batch, type...">
+
+    {{-- Submit --}}
+    <button type="submit" class="btn btn-outline-primary">Filter</button>
+</form>
+
+<script>
+    function toggleCustomDate() {
+        let period = document.getElementById('period').value;
+        let customDate = document.getElementById('custom-date');
+        customDate.style.display = (period === 'custom') ? 'block' : 'none';
+    }
+</script>
+
         </div>
         <div class="col-md-3 text-end">
             <a href="{{ route('reports.print', ['date' => $date ?? now()->toDateString()]) }}" target="_blank" class="btn btn-primary">
@@ -22,10 +52,10 @@
 
     {{-- Totals cards --}}
     @php
-        $vatRate = 0.12;
-        $totalSalesWithVAT = $totalSales + ($totalSales * $vatRate);
-        $totalVAT = $totalSales * $vatRate;
+        $totalSalesWithVAT = $totalSales; // keep naming if used, but no VAT added
+        $totalVAT = 0;
     @endphp
+
     <div class="row mb-4">
         <div class="col-md-3">
             <div class="card text-white bg-success shadow-sm h-100">
@@ -54,12 +84,12 @@
         <div class="col-md-3">
             <div class="card text-white bg-primary shadow-sm h-100">
                 <div class="card-body d-flex flex-column justify-content-center text-center">
-                    <h5>Total Sales (with VAT)</h5>
-                    <h2>₱{{ number_format($totalSalesWithVAT, 2) }}</h2>
-                    <small class="mt-1">VAT: ₱{{ number_format($totalVAT, 2) }}</small>
+                    <h5>Total Profit (Today)</h5>
+                    <h2>₱{{ number_format($totalProfit, 2) }}</h2>
                 </div>
             </div>
         </div>
+
     </div>
 
 
@@ -78,7 +108,6 @@
                         <th>Selling Price</th>
                         <th>Date</th>
                         <th>Total</th>
-                        <th>VAT (12%)</th>
                         <th>Profit</th>
                     </tr>
                 </thead>
@@ -86,7 +115,7 @@
                     @forelse($salesData as $sale)
                         @php
                             $lineTotal = $sale['sellingPrice'] * $sale['quantity'];
-                            $taxAmount = $lineTotal * 0.12; 
+                            
                         @endphp
                         <tr>
                             <td class="text-start">{{ $sale['productName'] }}</td>
@@ -95,8 +124,7 @@
                             <td>₱{{ number_format($sale['purchasePrice'], 2) }}</td>
                             <td>₱{{ number_format($sale['sellingPrice'], 2) }}</td>
                             <td>{{ \Carbon\Carbon::parse($sale['saleDate'])->timezone('Asia/Manila')->format('Y-m-d H:i') }}</td>
-                            <td>₱{{ number_format($lineTotal + $taxAmount, 2) }}</td>
-                            <td>₱{{ number_format($taxAmount, 2) }}</td>
+                            <td>₱{{ number_format($lineTotal, 2) }}</td>
                             <td>₱{{ number_format($sale['profit'], 2) }}</td>
                         </tr>
                     @empty
@@ -106,15 +134,12 @@
                     @endforelse
                 </tbody>
                 <tfoot>
-                    @php
-                        $totalVAT = $totalSales * 0.12; 
-                    @endphp
                     <tr class="fw-bold">
                         <td colspan="6" class="text-end">Totals:</td>
-                        <td>₱{{ number_format($totalSales + $totalVAT, 2) }}</td>
-                        <td>₱{{ number_format($totalVAT, 2) }}</td>
+                        <td>₱{{ number_format($totalSales, 2) }}</td>
                         <td>₱{{ number_format($totalProfit, 2) }}</td>
                     </tr>
+
                 </tfoot>
             </table>
         </div>

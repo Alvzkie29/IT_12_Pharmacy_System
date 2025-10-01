@@ -51,11 +51,10 @@
                 </div>
                 <div class="card-body">
                     @php
-                        $taxRate = 0.12;
-                        $tax = $subtotal * $taxRate;
-                        $grandTotal = $subtotal + $tax;
+                        $grandTotal = $subtotal; // No VAT here
                         $change = $cash - $grandTotal;
                     @endphp
+
 
                     <div class="d-flex justify-content-between mb-2">
                         <span>Cash Received:</span>
@@ -64,10 +63,6 @@
                     <div class="d-flex justify-content-between mb-2">
                         <span>Subtotal:</span>
                         <span>₱{{ number_format($subtotal, 2) }}</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Tax (12%):</span>
-                        <span>₱{{ number_format($tax, 2) }}</span>
                     </div>
                     <div class="d-flex justify-content-between mb-2 fw-bold">
                         <span>Grand Total:</span>
@@ -109,9 +104,10 @@
                                     <td class="text-end">₱{{ number_format($subtotal,2) }}</td>
                                 </tr>
                                 <tr>
-                                    <td>Tax (12%)</td>
-                                    <td class="text-end">₱{{ number_format($tax,2) }}</td>
+                                    <td><strong>Grand Total</strong></td>
+                                    <td class="text-end">₱{{ number_format($subtotal,2) }}</td>
                                 </tr>
+
                                 <tr>
                                     <td><strong>Grand Total</strong></td>
                                     <td class="text-end">₱{{ number_format($grandTotal,2) }}</td>
@@ -133,4 +129,5 @@
         </div>
     </div>
 </div>
+
 @endsection

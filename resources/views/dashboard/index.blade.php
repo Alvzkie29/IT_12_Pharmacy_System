@@ -15,10 +15,10 @@
     {{-- Dashboard Cards --}}
     <div class="row">
         <div class="col-md-3">
-            <div class="card text-white bg-success mb-3">
+            <div class="card text-white bg-primary mb-3">
                 <div class="card-body">
-                    <h5 class="card-title">Sales</h5>
-                    <h3 class="fw-bold text">{{ number_format($salesTotal,2) }}</h3>
+                    <h5 class="card-title">Total Sales ({{ ucfirst($period) }})</h5>
+                    <h3 class="fw-bold textt">₱{{ number_format($salesTotal, 2) }}</h3>
                 </div>
             </div>
         </div>
@@ -128,30 +128,58 @@
 </div>
 
     {{-- Sales Summary Table --}}
-    <div class="card">
-        <div class="card-header">Sales Summary (Last 30 Days)</div>
+<div class="card mt-4">
+    <div class="card-header">Sales Summary (Last 30 Days)</div>
+    <div class="card-body">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Transactions</th>
+                    <th>Items Sold</th>
+                    <th>Total Sales</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach($salesSummary as $summary)
+                <tr>
+                    <td>{{ $summary->saleDate }}</td>
+                    <td>{{ $summary->transactions_count }}</td>
+                    <td>{{ $summary->items_sold }}</td>
+                    <td>₱{{ number_format($summary->total_sales, 2) }}</td>
+                </tr>
+            @endforeach
+            </tbody>
+        </table>
+    </div>
+</div>
+
+    {{-- Monthly Sales (with VAT deduction applied) --}}
+    <div class="card mt-4">
+        <div class="card-header">Monthly Sales (Net after VAT)</div>
         <div class="card-body">
-            <table class="table table-striped">
+            <table class="table table-bordered">
                 <thead>
                     <tr>
-                        <th>Date</th>
-                        <th>Transactions</th>
-                        <th>Items Sold</th>
-                        <th>Total Sales</th>
+                        <th>Month</th>
+                        <th>Year</th>
+                        <th>Gross Sales</th>
+                        <th>Net Sales (after 1% VAT)</th>
                     </tr>
                 </thead>
                 <tbody>
-                @foreach($salesSummary as $summary)
-                    <tr>
-                        <td>{{ $summary->saleDate }}</td>
-                        <td>{{ $summary->transactions_count }}</td>
-                        <td>{{ $summary->items_sold }}</td>
-                        <td>{{ number_format($summary->total_sales,2) }}</td>
-                    </tr>
-                @endforeach
+                    @foreach($monthlySales as $month)
+                        <tr>
+                            <td>{{ \Carbon\Carbon::create()->month($month->month)->format('F') }}</td>
+                            <td>{{ $month->year }}</td>
+                            <td>₱{{ number_format($month->total_sales, 2) }}</td>
+                            <td>₱{{ number_format($month->net_sales, 2) }}</td>
+                        </tr>
+                    @endforeach
                 </tbody>
             </table>
         </div>
     </div>
+
 </div>
 @endsection

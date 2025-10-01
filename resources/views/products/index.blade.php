@@ -23,13 +23,15 @@
     @endif
 
     {{-- Search + Add Button --}}
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <form method="GET" action="{{ route('products.index') }}" class="d-flex" style="max-width: 350px; flex: 1;">
-            <div class="input-group">
-                <input type="text" name="search" class="form-control" placeholder="Search products..." value="{{ request('search') }}">
-                <button class="btn btn-outline-secondary" type="submit">Search</button>
-            </div>
-        </form>
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="input-group mb-2" style="max-width: 500px;">
+    <input 
+        type="text" 
+        id="searchInput" 
+        class="form-control" 
+        placeholder="Search products...">
+</div>
+
         <button class="btn btn-success ms-2" data-bs-toggle="modal" data-bs-target="#addProductModal">
             <i class="bi bi-plus-circle me-1"></i> Add Product
         </button>
@@ -40,7 +42,7 @@
         <div class="card-header bg-dark text-white">Product List</div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-hover align-middle">
+                <table id = "productTable" class="table table-hover align-middle">
                     <thead class="table-light">
                         <tr>
                             <th>Brand Name</th>
@@ -222,4 +224,15 @@
     </div>
   </div>
 </div>
+<script>
+document.getElementById("searchInput").addEventListener("input", function () {
+    let filter = this.value.toLowerCase();
+    let rows = document.querySelectorAll("#productTable tbody tr");
+
+    rows.forEach(row => {
+        let text = row.textContent.toLowerCase();
+        row.style.display = text.includes(filter) ? "" : "none";
+    });
+});
+</script>
 @endsection

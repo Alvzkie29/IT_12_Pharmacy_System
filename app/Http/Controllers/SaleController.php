@@ -17,12 +17,13 @@ class SaleController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
-
+        
         // Products (stock list)
         $stocks = Stock::with('product')
             ->when($search, function ($query, $search) {
                 return $query->whereHas('product', function ($q) use ($search) {
-                    $q->where('productName', 'like', "%$search%");
+                    $q->where('productName', 'like', "%{$search}%")
+                    ->orWhere('genericName', 'like', "%{$search}%");
                 });
             })
             ->where('availability', true)
@@ -115,10 +116,8 @@ class SaleController extends Controller
         }
     }
 
-    // ✅ Tax + Total
-    $taxRate = 0.12; // 12% VAT
-    $tax = $subtotal * $taxRate;
-    $grandTotal = $subtotal + $tax;
+ 
+    $grandTotal = $subtotal;
 
     $cash = (float) $request->input('cash', 0);
 
@@ -133,7 +132,6 @@ class SaleController extends Controller
         'stocks'     => $stocks,
         'items'      => $cart,
         'subtotal'   => $subtotal,
-        'tax'        => $tax,
         'grandTotal' => $grandTotal,
         'cash'       => $cash,
     ]);
@@ -172,9 +170,7 @@ public function confirm(Request $request)
     }
 
     // ✅ Tax + Total
-    $taxRate = 0.12;
-    $tax = $subtotal * $taxRate;
-    $grandTotal = $subtotal + $tax;
+    $grandTotal = $subtotal;
 
     if ($cash < $grandTotal) {
         return back()->with('error', 'Insufficient cash received.');
@@ -193,7 +189,6 @@ public function confirm(Request $request)
             ->where('quantity', '>', 0)
             ->get(),
         'subtotal'   => $subtotal,
-        'tax'        => $tax,
         'grandTotal' => $grandTotal,
         'cash'       => $cash,
         'change'     => $change
@@ -228,10 +223,8 @@ public function finalize(Request $request)
         return redirect()->route('sales.index')->with('error', 'No valid items in cart.');
     }
 
-    // ✅ Tax + Total
-    $taxRate = 0.12;
-    $tax = $subtotal * $taxRate;
-    $grandTotal = $subtotal + $tax;
+    
+    $grandTotal = $subtotal;
 
     if ($cash < $grandTotal) {
         return back()->with('error', 'Insufficient cash received.');

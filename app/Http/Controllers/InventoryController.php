@@ -51,7 +51,7 @@ class InventoryController extends Controller
             'selling_price'  => 'required|numeric|min:0|gte:purchase_price', // selling must be >= purchase
             'quantity'       => 'required|integer|min:1',
             'batchNo'        => 'nullable|string|max:50',
-            'expiryDate'     => 'nullable|date|after:today',
+            'expiryDate'     => 'required|date|after:today',
         ]);
 
         Stock::create([

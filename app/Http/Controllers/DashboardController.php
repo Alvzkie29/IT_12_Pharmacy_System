@@ -12,10 +12,10 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
 {
-    
     // get selected period
     $period = $request->input('period', 'today');
     $date = $request->input('date', now()->toDateString());
+
     // query based on period
     $salesQuery = Sale::query();
     if ($period === 'today') {
@@ -30,6 +30,15 @@ class DashboardController extends Controller
     // sum of totalAmount for chosen period
     $salesTotal = $salesQuery->sum('totalAmount');
 
+    // ✅ VAT handling
+    $vatAmount = 0;
+    $netSales = $salesTotal;
+
+    if ($period === 'monthly') {
+        $vatAmount = $salesTotal * 0.01; // 1% monthly VAT
+        $netSales  = $salesTotal - $vatAmount;
+    }
+
     // Stocks
     $stockIn = Stock::where('type', 'IN')->count();
     $pulledOut = Stock::where('reason', 'pullout')->count();
@@ -39,16 +48,15 @@ class DashboardController extends Controller
     // Totals
     $totalProducts   = Product::count();
     $totalStocks     = Stock::count();
-    $lowStockCount   = Stock::where('quantity', '<', 10)->count(); // adjust column name
+    $lowStockCount   = Stock::where('quantity', '<', 10)->count(); 
     $latestStocks    = Stock::with('product')
-    ->orderBy('created_at','desc', $date)
-    ->latest('movementDate')->take(5)->get();
+        ->orderBy('created_at','desc', $date)
+        ->latest('movementDate')->take(5)->get();
 
     // Combined expired + damaged total
     $totalExpiredDamaged = Stock::whereIn('reason', ['expired', 'damaged'])->count();
 
-
-    // Top Products (via transactions)
+    // Top Products
     $topProductsData = \App\Models\Transaction::select('stockID', DB::raw('SUM(quantity) as total'))
         ->groupBy('stockID')
         ->orderByDesc('total')
@@ -68,30 +76,45 @@ class DashboardController extends Controller
         ->pluck('total', 'category');
 
     // Sales summary (last 7 days)
-   $salesSummary = DB::table('sales')
-    ->join('transactions', 'transactions.saleID', '=', 'sales.saleID')
-    ->select(
-        DB::raw('DATE(sales.saleDate) as saleDate'),
-        DB::raw('COUNT(DISTINCT sales.saleID) as transactions_count'),
-        DB::raw('SUM(transactions.quantity) as items_sold'),
-        DB::raw('SUM(sales.totalAmount) as total_sales')
-    )
-    ->groupBy(DB::raw('DATE(sales.saleDate)'))
-    ->orderByDesc(DB::raw('DATE(sales.saleDate)'))
-    ->take(7)
-    ->get();
+    $salesSummary = DB::table('sales')
+        ->join('transactions', 'transactions.saleID', '=', 'sales.saleID')
+        ->select(
+            DB::raw('DATE(sales.saleDate) as saleDate'),
+            DB::raw('COUNT(DISTINCT sales.saleID) as transactions_count'),
+            DB::raw('SUM(transactions.quantity) as items_sold'),
+            DB::raw('SUM(sales.totalAmount) as total_sales')
+        )
+        ->groupBy(DB::raw('DATE(sales.saleDate)'))
+        ->orderByDesc(DB::raw('DATE(sales.saleDate)'))
+        ->take(7)
+        ->get();
+
+    // Monthly sales with VAT already deducted
+    $monthlySales = DB::table('sales')
+        ->select(
+            DB::raw('MONTH(saleDate) as month'),
+            DB::raw('YEAR(saleDate) as year'),
+            DB::raw('SUM(totalAmount) as total_sales'),
+            DB::raw('SUM(totalAmount) - (SUM(totalAmount) * 0.01) as net_sales')
+        )
+        ->groupBy(DB::raw('YEAR(saleDate), MONTH(saleDate)'))
+        ->orderByDesc(DB::raw('YEAR(saleDate), MONTH(saleDate)'))
+        ->get();
 
     // Recent stock movements
     $recentActivities = Stock::latest('movementDate')->take(3)->get();
 
     return view('dashboard.index', compact(
         'salesTotal','period',
+        'vatAmount','netSales',   // ✅ added
         'stockIn','pulledOut','expiredItems','damagedItems',
         'topProductsData','inventoryData',
         'recentActivities','totalProducts','totalStocks','lowStockCount',
-        'latestStocks','salesSummary', 'date', 'totalExpiredDamaged'
+        'latestStocks','salesSummary','monthlySales', // ✅ added
+        'date','totalExpiredDamaged'
     ));
 }
+
 
 
 }
