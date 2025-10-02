@@ -11,14 +11,31 @@ use Illuminate\Support\Facades\DB;
 
 class SaleController extends Controller
 {
+
+    protected function cartHasPrescription(array $cart): bool
+    {
+        if (empty($cart)) return false;
+
+        foreach ($cart as $item) {
+            if (!isset($item['stockID'])) continue;
+
+            $stock = Stock::with('product')->find($item['stockID']);
+            if (!$stock || !$stock->product) continue;
+
+            if ($stock->product->category === 'Prescription') {
+                return true;
+            }
+        }
+
+        return false;
+    }
     /**
      * Show POS with cart
      */
     public function index(Request $request)
     {
         $search = $request->input('search');
-        
-        // Products (stock list)
+
         $stocks = Stock::with('product')
             ->when($search, function ($query, $search) {
                 return $query->whereHas('product', function ($q) use ($search) {
@@ -27,12 +44,15 @@ class SaleController extends Controller
                 });
             })
             ->where('availability', true)
-            ->whereDate('expiryDate', '>', now()) // not expired
-            ->where('quantity', '>', 0)            // has stock
+            ->whereDate('expiryDate', '>', now())
+            ->where('quantity', '>', 0)
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('sales.index', compact('stocks', 'search'));
+        $cart = session()->get('cart', []);
+        $hasPrescription = $this->cartHasPrescription($cart);
+
+        return view('sales.index', compact('stocks', 'search', 'hasPrescription'));
     }
 
     /**
@@ -116,6 +136,9 @@ class SaleController extends Controller
         }
     }
 
+    // Check if cart has prescription items
+    $hasPrescription = $this->cartHasPrescription($cart);
+
  
     $grandTotal = $subtotal;
 
@@ -134,9 +157,40 @@ class SaleController extends Controller
         'subtotal'   => $subtotal,
         'grandTotal' => $grandTotal,
         'cash'       => $cash,
+        'hasPrescription'=> $hasPrescription,
     ]);
 }
 
+public function updateCart(Request $request)
+{
+    $cart = session()->get('cart', []);
+    $stockID = $request->stockID;    
+    $qty = max(1, (int) $request->quantity);
+
+    if (isset($cart[$stockID])) {
+        $cart[$stockID]['quantity'] = $qty;
+        session()->put('cart', $cart);
+    }
+
+    // Get stock from DB
+    $stock = Stock::find($stockID);
+    $itemSubtotal = $stock ? $stock->selling_price * $qty : 0;
+
+    // Recalculate total
+    $total = 0;
+    foreach ($cart as $c) {
+        $s = Stock::find($c['stockID']); // Always use stockID
+        if ($s) {
+            $total += $s->selling_price * $c['quantity'];
+        }
+    }
+
+    return response()->json([
+        'success' => true,
+        'itemSubtotal' => number_format($itemSubtotal, 2),
+        'total' => number_format($total, 2)
+    ]);
+}
 /**
  * Finalize sale after confirmation
  */
@@ -148,7 +202,14 @@ public function confirm(Request $request)
         return back()->with('error', 'Cart is empty.');
     }
 
+    // Cash and discount flag (accept multiple possible field names for safety)
     $cash = (float) $request->input('cash', 0);
+    $isDiscounted = (int) (
+        $request->input('isDiscounted') ??
+        $request->input('discountApplied') ??
+        $request->input('discounted') ??
+        0
+    );
 
     $subtotal = 0;
     $validCart = [];
@@ -156,44 +217,55 @@ public function confirm(Request $request)
     foreach ($cart as $item) {
         $stock = Stock::with('product')->find($item['stockID']);
 
-        // ✅ Skip expired or unavailable
+        // Skip expired/unavailable
         if (!$stock || !$stock->availability || $stock->expiryDate <= now() || $stock->quantity <= 0) {
             continue;
         }
 
-        $subtotal += $stock->selling_price * $item['quantity'];
-        $validCart[$stock->stockID] = $item;
+        $lineTotal = $stock->selling_price * $item['quantity'];
+        $subtotal += $lineTotal;
+
+        // Enrich the cart item so blade can use price/name/quantity
+        $validCart[$stock->stockID] = [
+            'stockID'  => $stock->stockID,
+            'name'     => $stock->product->productName,
+            'quantity' => $item['quantity'],
+            'price'    => $stock->selling_price,
+        ];
     }
 
     if (empty($validCart)) {
         return back()->with('error', 'No valid items in cart.');
     }
 
-    // ✅ Tax + Total
-    $grandTotal = $subtotal;
+    // Apply discount if checked (20% off)
+    $grandTotal = $isDiscounted ? round($subtotal * 0.80, 2) : round($subtotal, 2);
 
     if ($cash < $grandTotal) {
         return back()->with('error', 'Insufficient cash received.');
     }
 
-    $change = $cash - $grandTotal;
+    $change = round($cash - $grandTotal, 2);
 
-    // Update session with only valid items
+    // Update session with only valid items (including price)
     session()->put('cart', $validCart);
 
     return view('sales.confirm', [
-        'items'      => $validCart,
-        'stocks'     => Stock::with('product')
+        'items'       => $validCart,
+        'stocks'      => Stock::with('product')
             ->where('availability', true)
             ->whereDate('expiryDate', '>', now())
             ->where('quantity', '>', 0)
             ->get(),
-        'subtotal'   => $subtotal,
-        'grandTotal' => $grandTotal,
-        'cash'       => $cash,
-        'change'     => $change
+        'subtotal'    => $subtotal,
+        'grandTotal'  => $grandTotal,
+        'cash'        => $cash,
+        'change'      => $change,
+        'isDiscounted'=> $isDiscounted,
     ]);
 }
+
+
 
 public function finalize(Request $request)
 {
@@ -203,6 +275,12 @@ public function finalize(Request $request)
     }
 
     $cash = (float) $request->input('cash', 0);
+    $isDiscounted = (int) (
+        $request->input('isDiscounted') ??
+        $request->input('discountApplied') ??
+        $request->input('discounted') ??
+        0
+    );
 
     $subtotal = 0;
     $validCart = [];
@@ -210,21 +288,28 @@ public function finalize(Request $request)
     foreach ($cart as $item) {
         $stock = Stock::with('product')->find($item['stockID']);
 
-        // ✅ Skip expired/unavailable before finalizing
+        // Skip expired/unavailable
         if (!$stock || !$stock->availability || $stock->expiryDate <= now() || $stock->quantity <= 0) {
             continue;
         }
 
-        $subtotal += $stock->selling_price * $item['quantity'];
-        $validCart[$stock->stockID] = $item;
+        $lineTotal = $stock->selling_price * $item['quantity'];
+        $subtotal += $lineTotal;
+
+        // Enrich item
+        $validCart[$stock->stockID] = [
+            'stockID'  => $stock->stockID,
+            'name'     => $stock->product->productName,
+            'quantity' => $item['quantity'],
+            'price'    => $stock->selling_price,
+        ];
     }
 
     if (empty($validCart)) {
         return redirect()->route('sales.index')->with('error', 'No valid items in cart.');
     }
 
-    
-    $grandTotal = $subtotal;
+    $grandTotal = $isDiscounted ? round($subtotal * 0.80, 2) : round($subtotal, 2);
 
     if ($cash < $grandTotal) {
         return back()->with('error', 'Insufficient cash received.');
@@ -232,7 +317,6 @@ public function finalize(Request $request)
 
     DB::beginTransaction();
     try {
-        // Create sale with TOTAL (including tax)
         $sale = Sale::create([
             'employeeID'  => Auth::user()->employeeID,
             'totalAmount' => $grandTotal,
@@ -259,7 +343,7 @@ public function finalize(Request $request)
         }
 
         DB::commit();
-        session()->forget('cart'); // clear cart
+        session()->forget('cart');
 
         return redirect()->route('sales.index')
             ->with('success', 'Sale recorded successfully! Change: ₱' . number_format($cash - $grandTotal, 2));

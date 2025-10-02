@@ -20,6 +20,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
 
 Route::resource('sales', SaleController::class)->only(['index', 'store']);
+Route::post('/sales/update-cart', [SaleController::class, 'updateCart'])->name('sales.updateCart');
 Route::post('/sales/confirm', [SaleController::class, 'confirm'])->name('sales.confirm'); 
 Route::post('/sales/finalize', [SaleController::class, 'finalize'])->name('sales.finalize'); 
 

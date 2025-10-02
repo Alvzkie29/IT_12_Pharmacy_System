@@ -46,8 +46,8 @@
             </a>
 
             <a href="{{ route('suppliers.index') }}" 
-               class="nav-link text-white mb-2 {{ request()->routeIs('supplier.index') ? 'active-link rounded' : '' }}">
-                <i class="fas fa-shopping-cart me-2"></i> Suppliers
+               class="nav-link text-white mb-2 {{ request()->routeIs('suppliers.index') ? 'active-link rounded' : '' }}">
+                <i class="fa-solid fa-truck-field"></i> Suppliers
             </a>
 
             <!-- Inventory Dropdown -->

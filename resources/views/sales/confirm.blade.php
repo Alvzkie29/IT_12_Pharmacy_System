@@ -4,130 +4,92 @@
 <div class="container">
     <h1 class="mb-4">Confirm Sale</h1>
 
-    <div class="row">
-        {{-- Left: Items Table --}}
-        <div class="col-md-8">
-            <div class="card shadow-sm mb-3">
-                <div class="card-header bg-primary text-white">
-                    Items in Cart
-                </div>
-                <div class="card-body p-0">
-                    <table class="table table-bordered mb-0 text-center align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Item</th>
-                                <th>Price</th>
-                                <th>Qty</th>
-                                <th>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @php $total = 0; @endphp
-                            @foreach($items as $item)
-                                @php
-                                    $stock = $stocks->firstWhere('stockID', $item['stockID']);
-                                    $qty = $item['quantity'];
-                                    $lineTotal = $stock->selling_price * $qty;
-                                    $total += $lineTotal;
-                                @endphp
-                                <tr @if($stock->quantity <= 30) class="table-warning" @endif>
-                                    <td>{{ $stock->product->productName }}</td>
-                                    <td>₱{{ number_format($stock->selling_price, 2) }}</td>
-                                    <td>{{ $qty }}</td>
-                                    <td>₱{{ number_format($lineTotal, 2) }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+    {{-- Flash Messages --}}
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
+    @endif
 
-        {{-- Right: Summary & Receipt --}}
-        <div class="col-md-4">
-            <div class="card shadow-sm mb-3">
-                <div class="card-header bg-secondary text-white">
-                    Payment Summary
-                </div>
-                <div class="card-body">
+    <div class="card shadow-sm">
+        <div class="card-header bg-secondary text-white">
+            Order Summary
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-bordered mb-0 text-center align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Item</th>
+                        <th>Qty</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @php $subtotal = 0; @endphp
+                    @foreach($items as $item)
+                        @php
+                            $stock = \App\Models\Stock::with('product')->find($item['stockID']);
+                            if (!$stock) continue;
+                            $lineTotal = $stock->selling_price * $item['quantity'];
+                            $subtotal += $lineTotal;
+                        @endphp
+                        <tr>
+                            <td>{{ $stock->product->productName }}</td>
+                            <td>{{ $item['quantity'] }}</td>
+                            <td>₱{{ number_format($lineTotal, 2) }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+                <tfoot>
+                    <tr class="fw-bold">
+                        <td colspan="2">Subtotal</td>
+                        <td>₱{{ number_format($subtotal, 2) }}</td>
+                    </tr>
+
+                    {{-- ✅ Discount row --}}
                     @php
-                        $grandTotal = $subtotal; // No VAT here
+                        $discount = 0;
+                        if($isDiscounted){
+                            $discount = $subtotal * 0.20; // 20% off
+                        }
+                        $grandTotal = $subtotal - $discount;
                         $change = $cash - $grandTotal;
                     @endphp
 
+                    @if($isDiscounted)
+                    <tr class="text-success fw-bold">
+                        <td colspan="2">Discount (20% - Senior/PWD)</td>
+                        <td>-₱{{ number_format($discount, 2) }}</td>
+                    </tr>
+                    @endif
 
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Cash Received:</span>
-                        <span>₱{{ number_format($cash, 2) }}</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Subtotal:</span>
-                        <span>₱{{ number_format($subtotal, 2) }}</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2 fw-bold">
-                        <span>Grand Total:</span>
-                        <span>₱{{ number_format($grandTotal, 2) }}</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-3 fw-bold fs-5">
-                        <span>Change:</span>
-                        <span>₱{{ number_format($change, 2) }}</span>
-                    </div>
+                    <tr class="fw-bold">
+                        <td colspan="2">Grand Total</td>
+                        <td>₱{{ number_format($grandTotal, 2) }}</td>
+                    </tr>
 
-                    <form method="POST" action="{{ route('sales.finalize') }}">
-                        @csrf
-                        @foreach($items as $item)
-                            <input type="hidden" name="items[{{ $loop->index }}][stockID]" value="{{ $item['stockID'] }}">
-                            <input type="hidden" name="items[{{ $loop->index }}][quantity]" value="{{ $item['quantity'] }}">
-                        @endforeach
-                        <input type="hidden" name="cash" value="{{ $cash }}">
-                        <button type="submit" class="btn btn-success w-100 mb-3">Confirm Sale</button>
-                    </form>
-
-                    {{-- Mini Receipt --}}
-                    <div class="card p-2" style="font-family: monospace; font-size: 0.9rem;">
-                        <h6 class="text-center mb-2">Receipt</h6>
-                        <table class="table table-borderless table-sm mb-2">
-                            <tbody>
-                                @foreach($items as $item)
-                                    @php
-                                        $stock = $stocks->firstWhere('stockID', $item['stockID']);
-                                        $qty = $item['quantity'];
-                                        $lineTotal = $stock->selling_price * $qty;
-                                    @endphp
-                                    <tr>
-                                        <td>{{ $stock->product->productName }} x{{ $qty }}</td>
-                                        <td class="text-end">₱{{ number_format($lineTotal,2) }}</td>
-                                    </tr>
-                                @endforeach
-                                <tr>
-                                    <td><strong>Subtotal</strong></td>
-                                    <td class="text-end">₱{{ number_format($subtotal,2) }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Grand Total</strong></td>
-                                    <td class="text-end">₱{{ number_format($subtotal,2) }}</td>
-                                </tr>
-
-                                <tr>
-                                    <td><strong>Grand Total</strong></td>
-                                    <td class="text-end">₱{{ number_format($grandTotal,2) }}</td>
-                                </tr>
-                                <tr>
-                                    <td>Cash</td>
-                                    <td class="text-end">₱{{ number_format($cash,2) }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Change</strong></td>
-                                    <td class="text-end">₱{{ number_format($change,2) }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <p class="text-center mb-0"><small>Thank you for your purchase!</small></p>
-                    </div>
-                </div>
-            </div>
+                    <tr>
+                        <td colspan="2">Cash Received</td>
+                        <td>₱{{ number_format($cash, 2) }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">Change</td>
+                        <td>₱{{ number_format($change, 2) }}</td>
+                    </tr>
+                </tfoot>
+            </table>
         </div>
     </div>
-</div>
 
+    {{-- ✅ Confirm Button --}}
+    <div class="mt-3">
+        <form method="POST" action="{{ route('sales.finalize') }}">
+            @csrf
+            <input type="hidden" name="cash" value="{{ $cash }}">
+            <input type="hidden" name="isDiscounted" value="{{ $isDiscounted }}">
+            <button type="submit" class="btn btn-success w-100">Confirm & Complete Sale</button>
+        </form>
+    </div>
+</div>
 @endsection
