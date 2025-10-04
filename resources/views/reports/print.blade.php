@@ -54,9 +54,9 @@
         <div class="col-md-3">
             <div class="card bg-primary shadow-sm h-100">
                 <div class="card-body d-flex flex-column justify-content-center text-center">
-                    <h6>Total Sales (with VAT)</h6>
-                    <h4>₱{{ number_format($totalSalesWithVAT, 2) }}</h4>
-                    <small>VAT: ₱{{ number_format($totalVAT, 2) }}</small>
+                    <h6>Total Sales</h6>
+                    <h4>₱{{ number_format($totalDiscountedSales, 2) }}</h4>
+                    <small>Discounts: -₱{{ number_format($totalDiscounts, 2) }}</small>
                 </div>
             </div>
         </div>
@@ -73,40 +73,64 @@
                 <th>Purchase Price</th>
                 <th>Selling Price</th>
                 <th>Date</th> 
-                <th>Total (with VAT)</th>
-                <th>VAT (12%)</th>
-                <th>Profit</th>
+                <th>Original Total</th>
+                <th>Discounted Total</th>
+                <th>Discount</th>
+                <th>Original Profit</th>
+                <th>Actual Profit</th>
             </tr>
         </thead>
         <tbody>
             @forelse($salesData as $sale)
                 @php
-                    $lineTotal = $sale['sellingPrice'] * $sale['quantity'];
-                    $taxAmount = $lineTotal * $vatRate;
+                    $lineTotal = $sale['total'];
+                    $discountedTotal = $sale['discountedTotal'];
+                    $itemDiscount = $lineTotal - $discountedTotal;
+                    $originalProfit = ($sale['sellingPrice'] - $sale['purchasePrice']) * $sale['quantity'];
+                    $actualProfit = $sale['profit'];
                 @endphp
                 <tr>
-                    <td>{{ $sale['productName'] }}</td>
+                    <td>
+                        {{ $sale['productName'] }}
+                        @if($sale['isDiscounted'])
+                            <span class="badge bg-warning text-dark">Discounted</span>
+                        @endif
+                    </td>
                     <td>{{ $sale['batchNo'] }}</td>
                     <td>{{ $sale['quantity'] }}</td>
                     <td>₱{{ number_format($sale['purchasePrice'], 2) }}</td>
                     <td>₱{{ number_format($sale['sellingPrice'], 2) }}</td>
                     <td>{{ \Carbon\Carbon::parse($sale['saleDate'])->timezone('Asia/Manila')->format('Y-m-d H:i') }}</td> 
-                    <td>₱{{ number_format($lineTotal + $taxAmount, 2) }}</td>
-                    <td>₱{{ number_format($taxAmount, 2) }}</td>
-                    <td>₱{{ number_format($sale['profit'], 2) }}</td>
+                    <td>₱{{ number_format($lineTotal, 2) }}</td>
+                    <td class="{{ $sale['isDiscounted'] ? 'text-success fw-bold' : '' }}">
+                        ₱{{ number_format($discountedTotal, 2) }}
+                    </td>
+                    <td class="{{ $sale['isDiscounted'] ? 'text-danger' : 'text-muted' }}">
+                        @if($sale['isDiscounted'])
+                            -₱{{ number_format($itemDiscount, 2) }}
+                        @else
+                            ₱0.00
+                        @endif
+                    </td>
+                    <td class="text-muted">₱{{ number_format($originalProfit, 2) }}</td>
+                    <td class="{{ $sale['isDiscounted'] ? 'text-warning fw-bold' : 'text-success' }}">
+                        ₱{{ number_format($actualProfit, 2) }}
+                    </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="9" class="text-center text-muted">No sales for this day.</td>
+                    <td colspan="11" class="text-center text-muted">No sales for this day.</td>
                 </tr>
             @endforelse
         </tbody>
         <tfoot>
             <tr class="fw-bold">
                 <td colspan="6" class="text-end">Totals:</td>
-                <td>₱{{ number_format($totalSalesWithVAT, 2) }}</td>
-                <td>₱{{ number_format($totalVAT, 2) }}</td>
-                <td>₱{{ number_format($totalProfit, 2) }}</td>
+                <td>₱{{ number_format($totalSales, 2) }}</td>
+                <td class="text-success">₱{{ number_format($totalDiscountedSales, 2) }}</td>
+                <td class="text-danger">-₱{{ number_format($totalDiscounts, 2) }}</td>
+                <td class="text-muted">₱{{ number_format($salesData->sum(function($s) { return ($s['sellingPrice'] - $s['purchasePrice']) * $s['quantity']; }), 2) }}</td>
+                <td class="text-warning">₱{{ number_format($totalProfit, 2) }}</td>
             </tr>
         </tfoot>
     </table>

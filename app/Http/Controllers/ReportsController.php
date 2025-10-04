@@ -40,16 +40,34 @@ class ReportsController extends Controller
         $reportsQuery->whereDate('created_at', $date);
     }
 
+    // 🔹 Get all reports first (without pagination for filtering)
+    $allReports = $reportsQuery->latest('movementDate')->get();
+
+    // 🔹 Filter categories and paginate each separately
+    $validReports = $allReports->filter(fn($r) =>
+        $r->type === 'IN' && 
+        !str_starts_with(strtolower($r->reason), 'pulled_out') && 
+        strtolower($r->reason) !== 'expired'
+    );
+    $expiredReports = $allReports->filter(fn($r) => 
+        $r->type === 'OUT' && strtolower($r->reason) === 'expired'
+    );
+    $pulledOutReports = $allReports->filter(fn($r) => 
+        $r->type === 'OUT' && str_starts_with(strtolower($r->reason), 'pulled_out')
+    );
+
+    // 🔹 Paginate each stock table separately (10 items per page)
+    $validReportsPaginated = $this->paginateCollection($validReports, 10, 'valid_page')
+        ->appends(['search' => $search, 'date' => $date, 'period' => $period]);
+    $expiredReportsPaginated = $this->paginateCollection($expiredReports, 10, 'expired_page')
+        ->appends(['search' => $search, 'date' => $date, 'period' => $period]);
+    $pulledOutReportsPaginated = $this->paginateCollection($pulledOutReports, 10, 'pulled_page')
+        ->appends(['search' => $search, 'date' => $date, 'period' => $period]);
+
+    // 🔹 Now paginate the main reports for display
     $reports = $reportsQuery->latest('movementDate')
         ->paginate(10)
         ->appends(['search' => $search, 'date' => $date, 'period' => $period]);
-
-    // 🔹 Filter categories
-    $validReports = $reports->filter(fn($r) =>
-        !str_starts_with(strtolower($r->reason), 'pulled_out') && strtolower($r->reason) !== 'expired'
-    );
-    $expiredReports = $reports->filter(fn($r) => strtolower($r->reason) === 'expired');
-    $pulledOutReports = $reports->filter(fn($r) => str_starts_with(strtolower($r->reason), 'pulled_out'));
 
     $totalStockIn   = $validReports->sum('quantity');
     $totalPulledOut = $pulledOutReports->sum('quantity');
@@ -84,27 +102,47 @@ class ReportsController extends Controller
 
     $sales = $salesQuery->get();
 
-    // 🔹 Map sales data
+    // 🔹 Map sales data with discount information
     $salesData = $sales->flatMap->transactions->map(function ($transaction) {
         $stock = $transaction->stock;
+        $sale = $transaction->sale;
         $sellingPrice = $stock->selling_price ?? 0;
         $purchasePrice = $stock->purchase_price ?? 0;
-        $profit = ($sellingPrice - $purchasePrice) * $transaction->quantity;
+        $lineTotal = $transaction->quantity * $sellingPrice;
+        
+        // If this sale had a discount, calculate the discounted amount for this line item
+        $discountedTotal = $lineTotal;
+        $itemDiscount = 0;
+        if ($sale->isDiscounted && $sale->subtotal > 0) {
+            // Calculate this item's share of the discount (proportional)
+            $discountRatio = $sale->discountAmount / $sale->subtotal;
+            $itemDiscount = $lineTotal * $discountRatio;
+            $discountedTotal = $lineTotal - $itemDiscount;
+        }
+        
+        // Calculate profit (reduced by discount if applicable)
+        $originalProfit = ($sellingPrice - $purchasePrice) * $transaction->quantity;
+        $profit = $originalProfit - $itemDiscount;
 
         return [
-            'productName'   => $stock->product->productName ?? 'N/A',
-            'batchNo'       => $stock->batchNo ?? 'N/A',
-            'quantity'      => $transaction->quantity,
-            'purchasePrice' => $purchasePrice,
-            'sellingPrice'  => $sellingPrice,
-            'total'         => $transaction->quantity * $sellingPrice,
-            'profit'        => $profit,
-            'saleDate'      => $transaction->sale->saleDate,
+            'productName'     => $stock->product->productName ?? 'N/A',
+            'batchNo'         => $stock->batchNo ?? 'N/A',
+            'quantity'        => $transaction->quantity,
+            'purchasePrice'   => $purchasePrice,
+            'sellingPrice'    => $sellingPrice,
+            'total'           => $lineTotal,
+            'discountedTotal' => $discountedTotal,
+            'profit'          => $profit,
+            'saleDate'        => $transaction->sale->saleDate,
+            'isDiscounted'    => $sale->isDiscounted,
+            'discountAmount'  => $sale->discountAmount,
         ];
     });
 
-    $totalSales  = $salesData->sum('total');
-    $totalProfit = $salesData->sum('profit');
+    $totalSales         = $salesData->sum('total');
+    $totalDiscountedSales = $salesData->sum('discountedTotal');
+    $totalProfit        = $salesData->sum('profit');
+    $totalDiscounts     = $salesData->where('isDiscounted', true)->sum('discountAmount');
 
     return view('reports.index', compact(
         'reports',
@@ -114,12 +152,17 @@ class ReportsController extends Controller
         'validReports',
         'expiredReports',
         'pulledOutReports',
+        'validReportsPaginated',
+        'expiredReportsPaginated',
+        'pulledOutReportsPaginated',
         'totalStockIn',
         'totalPulledOut',
         'totalExpired',
         'salesData',
         'totalSales',
-        'totalProfit'
+        'totalDiscountedSales',
+        'totalProfit',
+        'totalDiscounts'
     ));
 }
 
@@ -132,10 +175,16 @@ class ReportsController extends Controller
             ->get();
 
         $validReports = $reports->filter(fn($r) =>
-            !str_starts_with(strtolower($r->reason), 'pulled_out') && strtolower($r->reason) !== 'expired'
+            $r->type === 'IN' && 
+            !str_starts_with(strtolower($r->reason), 'pulled_out') && 
+            strtolower($r->reason) !== 'expired'
         );
-        $expiredReports = $reports->filter(fn($r) => strtolower($r->reason) === 'expired');
-        $pulledOutReports = $reports->filter(fn($r) => str_starts_with(strtolower($r->reason), 'pulled_out'));
+        $expiredReports = $reports->filter(fn($r) => 
+            $r->type === 'OUT' && strtolower($r->reason) === 'expired'
+        );
+        $pulledOutReports = $reports->filter(fn($r) => 
+            $r->type === 'OUT' && str_starts_with(strtolower($r->reason), 'pulled_out')
+        );
 
         // Sales reports
         $sales = Sale::with(['transactions.stock.product'])
@@ -144,24 +193,44 @@ class ReportsController extends Controller
 
         $salesData = $sales->flatMap->transactions->map(function ($transaction) {
             $stock = $transaction->stock;
+            $sale = $transaction->sale;
             $sellingPrice = $stock->selling_price ?? 0;
             $purchasePrice = $stock->purchase_price ?? 0;
-            $profit = ($sellingPrice - $purchasePrice) * $transaction->quantity;
+            $lineTotal = $transaction->quantity * $sellingPrice;
+            
+            // If this sale had a discount, calculate the discounted amount for this line item
+            $discountedTotal = $lineTotal;
+            $itemDiscount = 0;
+            if ($sale->isDiscounted && $sale->subtotal > 0) {
+                // Calculate this item's share of the discount (proportional)
+                $discountRatio = $sale->discountAmount / $sale->subtotal;
+                $itemDiscount = $lineTotal * $discountRatio;
+                $discountedTotal = $lineTotal - $itemDiscount;
+            }
+            
+            // Calculate profit (reduced by discount if applicable)
+            $originalProfit = ($sellingPrice - $purchasePrice) * $transaction->quantity;
+            $profit = $originalProfit - $itemDiscount;
 
             return [
-                'productName'   => $stock->product->productName ?? 'N/A',
-                'batchNo'       => $stock->batchNo ?? 'N/A',
-                'quantity'      => $transaction->quantity,
-                'purchasePrice' => $purchasePrice,
-                'sellingPrice'  => $sellingPrice,
-                'total'         => $transaction->quantity * $sellingPrice,
-                'profit'        => $profit,
-                'saleDate'      => $transaction->sale->saleDate,
+                'productName'     => $stock->product->productName ?? 'N/A',
+                'batchNo'         => $stock->batchNo ?? 'N/A',
+                'quantity'        => $transaction->quantity,
+                'purchasePrice'   => $purchasePrice,
+                'sellingPrice'    => $sellingPrice,
+                'total'           => $lineTotal,
+                'discountedTotal' => $discountedTotal,
+                'profit'          => $profit,
+                'saleDate'        => $transaction->sale->saleDate,
+                'isDiscounted'    => $sale->isDiscounted,
+                'discountAmount'  => $sale->discountAmount,
             ];
         });
 
         $totalSales = $salesData->sum('total');
+        $totalDiscountedSales = $salesData->sum('discountedTotal');
         $totalProfit = $salesData->sum('profit');
+        $totalDiscounts = $salesData->where('isDiscounted', true)->sum('discountAmount');
 
         return view('reports.print', compact(
             'validReports',
@@ -169,8 +238,31 @@ class ReportsController extends Controller
             'pulledOutReports',
             'salesData',
             'totalSales',
+            'totalDiscountedSales',
             'totalProfit',
+            'totalDiscounts',
             'date'
         ));
+    }
+
+    /**
+     * Paginate a collection manually
+     */
+    private function paginateCollection($items, $perPage, $pageName = 'page')
+    {
+        $currentPage = request()->get($pageName, 1);
+        $offset = ($currentPage - 1) * $perPage;
+        $itemsForCurrentPage = $items->slice($offset, $perPage)->values();
+        
+        return new \Illuminate\Pagination\LengthAwarePaginator(
+            $itemsForCurrentPage,
+            $items->count(),
+            $perPage,
+            $currentPage,
+            [
+                'path' => request()->url(),
+                'pageName' => $pageName,
+            ]
+        );
     }
 }

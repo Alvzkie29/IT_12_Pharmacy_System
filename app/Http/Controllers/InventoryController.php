@@ -83,14 +83,12 @@ class InventoryController extends Controller
 
         $stock = Stock::findOrFail($id);
 
-        if ($request->quantity > $stock->quantity) {
+        if ($request->quantity > $stock->available_quantity) {
             return back()->with('error', 'Not enough stock available.');
         }
 
-        // Reduce the available stock on the IN row
-        $stock->quantity -= $request->quantity;
-        $stock->availability = $stock->quantity > 0;
-        $stock->save();
+        // DO NOT modify the original stock-in record - it should remain as historical data
+        // The available quantity is calculated dynamically
 
         // Insert a separate OUT row (only for history)
         Stock::create([

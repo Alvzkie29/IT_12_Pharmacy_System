@@ -11,31 +11,203 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/feather-icons"></script>
     <style>
-        .active-link {
-            background-color: #14532d; 
-            color: #fff !important;
-        }
-        .active-link:hover {
-            background-color: #166534; 
-        }
+        /* Sidebar Base Styles */
         #sidebar {
             position: sticky; 
             top: 0;
             height: 100vh; 
-            overflow-y: auto; 
+            overflow-y: auto;
+            background: linear-gradient(180deg, #16a34a 0%, #15803d 100%);
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        /* Custom Scrollbar */
+        #sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        #sidebar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        #sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+        #sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Logo Section */
+        .sidebar-logo {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .sidebar-logo h4 {
+            margin: 0;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Navigation Links */
+        .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            padding: 12px 16px !important;
+            margin-bottom: 8px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.15) !important;
+            color: #fff !important;
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .nav-link i {
+            width: 20px;
+            text-align: center;
+            margin-right: 12px;
+            font-size: 16px;
+        }
+
+        /* Active Link */
+        .active-link {
+            background: linear-gradient(135deg, #14532d 0%, #166534 100%) !important;
+            color: #fff !important;
+            box-shadow: 0 4px 15px rgba(20, 83, 45, 0.4);
+            transform: translateX(5px);
+        }
+
+        .active-link::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background: #fff;
+            border-radius: 0 2px 2px 0;
+        }
+
+        .active-link:hover {
+            background: linear-gradient(135deg, #166534 0%, #14532d 100%) !important;
+            transform: translateX(8px);
+        }
+
+        /* Dropdown Styles */
+        .nav-link[data-bs-toggle="collapse"] {
+            position: relative;
+        }
+
+        .nav-link[data-bs-toggle="collapse"] .fas.fa-chevron-down {
+            transition: transform 0.3s ease;
+        }
+
+        .nav-link[data-bs-toggle="collapse"][aria-expanded="true"] .fas.fa-chevron-down {
+            transform: rotate(180deg);
+        }
+
+        .collapse .nav-link {
+            padding-left: 40px !important;
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+
+        .collapse .nav-link i {
+            font-size: 14px;
+        }
+
+        /* Logout Button */
+        .logout-btn {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 12px 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+        }
+
+        .logout-btn:hover {
+            background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
+        }
+
+        /* Mobile Toggle Button */
+        .sidebar-toggle {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 8px 12px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-toggle:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+
+        /* Hover effect for icons */
+        .nav-link:hover i {
+            transform: scale(1.1);
+            transition: transform 0.2s ease;
+        }
+
+        /* Focus states for accessibility */
+        .nav-link:focus {
+            outline: 2px solid rgba(255, 255, 255, 0.5);
+            outline-offset: 2px;
+        }
+
+        /* Better mobile responsiveness */
+        @media (max-width: 768px) {
+            #sidebar {
+                position: fixed;
+                z-index: 1000;
+                left: -250px;
+                transition: left 0.3s ease;
+            }
+            
+            #sidebar.show {
+                left: 0;
+            }
+            
+            .sidebar-toggle {
+                display: block !important;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .sidebar-toggle {
+                display: none !important;
+            }
         }
     </style>
 </head>
 <body class="bg-light d-flex">
 
     <!-- Sidebar -->
-    <aside id="sidebar" class="bg-success text-white p-3 d-flex flex-column shadow-lg" style="width: 250px;">
+    <aside id="sidebar" class="text-white p-4 d-flex flex-column" style="width: 250px;">
         <!-- Logo -->
-        <div class="d-flex align-items-center justify-content-between mb-4">
-            <span class="fw-bold fs-5">LM3</span>
-            <button class="btn btn-sm text-white d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
-                <i class="fas fa-bars"></i>
-            </button>
+        <div class="sidebar-logo">
+            <div class="d-flex align-items-center justify-content-between">
+                <h4 class="mb-0">LM3 Pharmacy</h4>
+                <button class="btn btn-sm text-white sidebar-toggle d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
         </div>
 
         <!-- Navigation -->
@@ -85,7 +257,7 @@
         <div class="mt-auto">
             <form action="{{ route('logout') }}" method="POST">
                 @csrf
-                <button type="submit" class="btn btn-danger w-100 d-flex align-items-center justify-content-center gap-2">
+                <button type="submit" class="btn logout-btn w-100 d-flex align-items-center justify-content-center gap-2">
                     <i class="fas fa-sign-out-alt"></i> Log Out
                 </button>
             </form>
@@ -96,5 +268,6 @@
     <main class="flex-grow-1 p-4">
         @yield('content')
     </main>
+
 </body>
 </html>

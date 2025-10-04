@@ -66,5 +66,62 @@ class Stock extends Model
     {
         return $this->hasMany(Transaction::class, 'stockID');
     }
+
+    // Calculate available quantity for a specific stock record
+    public function getAvailableQuantityAttribute()
+    {
+        if ($this->type !== 'IN') {
+            return 0; // Only IN records can have available quantity
+        }
+
+        // Get total quantity from this stock-in record
+        $totalIn = $this->quantity;
+
+        // Get total quantity sold from this specific stock batch
+        $totalSold = Stock::where('productID', $this->productID)
+            ->where('batchNo', $this->batchNo)
+            ->where('type', 'OUT')
+            ->where('reason', 'sold')
+            ->sum('quantity');
+
+        // Get total quantity pulled out from this specific stock batch
+        $totalPulledOut = Stock::where('productID', $this->productID)
+            ->where('batchNo', $this->batchNo)
+            ->where('type', 'OUT')
+            ->where('reason', 'expired')
+            ->sum('quantity');
+
+        // Get total quantity expired from this specific stock batch
+        $totalExpired = Stock::where('productID', $this->productID)
+            ->where('batchNo', $this->batchNo)
+            ->where('type', 'OUT')
+            ->where('reason', 'expired')
+            ->sum('quantity');
+
+        // Get total quantity pulled out (other reasons) from this specific stock batch
+        $totalOtherOut = Stock::where('productID', $this->productID)
+            ->where('batchNo', $this->batchNo)
+            ->where('type', 'OUT')
+            ->where('reason', '!=', 'sold')
+            ->where('reason', '!=', 'expired')
+            ->sum('quantity');
+
+        $available = $totalIn - $totalSold - $totalPulledOut - $totalExpired - $totalOtherOut;
+        
+        return max(0, $available); // Never return negative
+    }
+
+    // Static method to get available stock for sales
+    public static function getAvailableStock()
+    {
+        return self::with('product')
+            ->where('type', 'IN')
+            ->where('availability', true)
+            ->whereDate('expiryDate', '>', now())
+            ->get()
+            ->filter(function ($stock) {
+                return $stock->available_quantity > 0;
+            });
+    }
 }
 

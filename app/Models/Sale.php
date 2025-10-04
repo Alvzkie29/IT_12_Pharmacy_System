@@ -14,6 +14,9 @@ class Sale extends Model
     protected $fillable = [
         'employeeID',
         'totalAmount',
+        'isDiscounted',
+        'subtotal',
+        'discountAmount',
         'saleDate',
     ];
 

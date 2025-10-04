@@ -43,16 +43,28 @@ class SaleController extends Controller
                     ->orWhere('genericName', 'like', "%{$search}%");
                 });
             })
+            ->where('type', 'IN')
             ->where('availability', true)
             ->whereDate('expiryDate', '>', now())
-            ->where('quantity', '>', 0)
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->get()
+            ->filter(function ($stock) {
+                return $stock->available_quantity > 0;
+            });
 
         $cart = session()->get('cart', []);
         $hasPrescription = $this->cartHasPrescription($cart);
 
-        return view('sales.index', compact('stocks', 'search', 'hasPrescription'));
+        // Calculate subtotal for display
+        $subtotal = 0;
+        foreach ($cart as $item) {
+            $stock = Stock::find($item['stockID']);
+            if ($stock) {
+                $subtotal += $stock->selling_price * $item['quantity'];
+            }
+        }
+
+        return view('sales.index', compact('stocks', 'search', 'hasPrescription', 'cart', 'subtotal'));
     }
 
     /**
@@ -165,16 +177,26 @@ public function updateCart(Request $request)
 {
     $cart = session()->get('cart', []);
     $stockID = $request->stockID;    
-    $qty = max(1, (int) $request->quantity);
+    
+    // Get stock from DB first to validate quantity
+    $stock = Stock::find($stockID);
+    if (!$stock) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Product not found'
+        ]);
+    }
+
+    // Validate quantity against available stock
+    $requestedQty = (int) $request->quantity;
+    $qty = max(1, min($requestedQty, $stock->available_quantity)); // Clamp between 1 and available stock
 
     if (isset($cart[$stockID])) {
         $cart[$stockID]['quantity'] = $qty;
         session()->put('cart', $cart);
     }
 
-    // Get stock from DB
-    $stock = Stock::find($stockID);
-    $itemSubtotal = $stock ? $stock->selling_price * $qty : 0;
+    $itemSubtotal = $stock->selling_price * $qty;
 
     // Recalculate total
     $total = 0;
@@ -188,7 +210,9 @@ public function updateCart(Request $request)
     return response()->json([
         'success' => true,
         'itemSubtotal' => number_format($itemSubtotal, 2),
-        'total' => number_format($total, 2)
+        'total' => number_format($total, 2),
+        'quantity' => $qty, // Return the actual quantity set (in case it was clamped)
+        'maxQuantity' => $stock->available_quantity // Return max available for UI feedback
     ]);
 }
 /**
@@ -218,7 +242,7 @@ public function confirm(Request $request)
         $stock = Stock::with('product')->find($item['stockID']);
 
         // Skip expired/unavailable
-        if (!$stock || !$stock->availability || $stock->expiryDate <= now() || $stock->quantity <= 0) {
+        if (!$stock || !$stock->availability || $stock->expiryDate <= now() || $stock->available_quantity <= 0) {
             continue;
         }
 
@@ -242,21 +266,18 @@ public function confirm(Request $request)
     $grandTotal = $isDiscounted ? round($subtotal * 0.80, 2) : round($subtotal, 2);
 
     if ($cash < $grandTotal) {
-        return back()->with('error', 'Insufficient cash received.');
+        // Don't modify the cart when there's insufficient cash - preserve original cart
+        return back()->with('error', 'Insufficient cash received. Please enter at least ₱' . number_format($grandTotal, 2));
     }
 
     $change = round($cash - $grandTotal, 2);
 
-    // Update session with only valid items (including price)
+    // Update session with only valid items (including price) - only when cash is sufficient
     session()->put('cart', $validCart);
 
     return view('sales.confirm', [
         'items'       => $validCart,
-        'stocks'      => Stock::with('product')
-            ->where('availability', true)
-            ->whereDate('expiryDate', '>', now())
-            ->where('quantity', '>', 0)
-            ->get(),
+        'stocks'      => Stock::getAvailableStock(),
         'subtotal'    => $subtotal,
         'grandTotal'  => $grandTotal,
         'cash'        => $cash,
@@ -289,7 +310,7 @@ public function finalize(Request $request)
         $stock = Stock::with('product')->find($item['stockID']);
 
         // Skip expired/unavailable
-        if (!$stock || !$stock->availability || $stock->expiryDate <= now() || $stock->quantity <= 0) {
+        if (!$stock || !$stock->availability || $stock->expiryDate <= now() || $stock->available_quantity <= 0) {
             continue;
         }
 
@@ -318,16 +339,19 @@ public function finalize(Request $request)
     DB::beginTransaction();
     try {
         $sale = Sale::create([
-            'employeeID'  => Auth::user()->employeeID,
-            'totalAmount' => $grandTotal,
-            'saleDate'    => now(),
+            'employeeID'     => Auth::user()->employeeID,
+            'totalAmount'    => $grandTotal,
+            'isDiscounted'   => $isDiscounted,
+            'subtotal'       => $subtotal,
+            'discountAmount' => $isDiscounted ? round($subtotal * 0.20, 2) : 0,
+            'saleDate'       => now(),
         ]);
 
         foreach ($validCart as $item) {
             $stock = Stock::with('product')->find($item['stockID']);
             $quantity = $item['quantity'];
 
-            if ($quantity > $stock->quantity) {
+            if ($quantity > $stock->available_quantity) {
                 throw new \Exception("Not enough stock for {$stock->product->productName}");
             }
 
@@ -337,9 +361,21 @@ public function finalize(Request $request)
                 'quantity'=> $quantity,
             ]);
 
-            $stock->quantity -= $quantity;
-            if ($stock->quantity <= 0) $stock->availability = false;
-            $stock->save();
+            // Create a separate OUT row for sales (for reporting purposes)
+            // DO NOT modify the original stock-in record - it should remain as historical data
+            Stock::create([
+                'productID'      => $stock->productID,
+                'employeeID'     => Auth::user()->employeeID, 
+                'type'           => 'OUT',
+                'reason'         => 'sold',
+                'purchase_price' => $stock->purchase_price,
+                'selling_price'  => $stock->selling_price,
+                'quantity'       => $quantity,
+                'availability'   => false, 
+                'batchNo'        => $stock->batchNo,
+                'expiryDate'     => $stock->expiryDate,
+                'movementDate'   => now(),
+            ]);
         }
 
         DB::commit();
