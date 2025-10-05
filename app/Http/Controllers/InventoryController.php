@@ -7,6 +7,7 @@ use App\Models\Supplier;
 use App\Models\Stock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class InventoryController extends Controller
 {
@@ -22,17 +23,28 @@ class InventoryController extends Controller
             ->where('availability', true) 
             ->when($search, function ($query, $search) {
                 return $query->where('batchNo', 'like', "%{$search}%")
-                             ->orWhere('quantity', 'like', "%{$search}%")
-                             ->orWhereHas('product', function ($q) use ($search) {
-                                 $q->where('productName', 'like', "%{$search}%")
-                                   ->orWhere('genericName', 'like', "%{$search}%")
-                                   ->orWhere('productWeight', 'like', "%{$search}%")
-                                   ->orWhere('dosageForm', 'like', "%{$search}%");
-                             });
+                            ->orWhere('quantity', 'like', "%{$search}%")
+                            ->orWhereHas('product', function ($q) use ($search) {
+                                $q->where('productName', 'like', "%{$search}%")
+                                ->orWhere('genericName', 'like', "%{$search}%")
+                                ->orWhere('productWeight', 'like', "%{$search}%")
+                                ->orWhere('dosageForm', 'like', "%{$search}%");
+                            });
             })
             ->orderBy('expiryDate', 'asc')
-            ->paginate(10)
-            ->appends(['search' => $search]);
+            ->get()
+            ->filter(fn($stock) => $stock->available_quantity > 0); // 🚀 hide 0 qty
+
+        // Manual pagination
+        $page = $request->input('page', 1);
+        $perPage = 10;
+        $stocks = new LengthAwarePaginator(
+            $stocks->forPage($page, $perPage),
+            $stocks->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
 
         $products = Product::all();
         $suppliers = Supplier::all();
@@ -51,7 +63,7 @@ class InventoryController extends Controller
             'selling_price'  => 'required|numeric|min:0|gte:purchase_price', // selling must be >= purchase
             'quantity'       => 'required|integer|min:1',
             'batchNo'        => 'nullable|string|max:50',
-            'expiryDate'     => 'required|date|after:today',
+            'expiryDate'     => 'required|date',
         ]);
 
         Stock::create([

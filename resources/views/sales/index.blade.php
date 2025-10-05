@@ -266,8 +266,7 @@
                                                        title="Max available: {{ $stock->available_quantity }}">
                                             </form>
                                         </td>
-                                        <td class="fw-bold text-primary">₱{{ number_format($lineTotal, 2) }}</td>
-                                        <td>
+<td class="fw-bold text-primary item-subtotal">₱{{ number_format($lineTotal, 2) }}</td>                                        <td>
                                             <form method="POST" action="{{ route('sales.store') }}" class="d-inline">
                                                 @csrf
                                                 <button type="submit" name="remove_item" value="{{ $stock->stockID }}" 
@@ -295,7 +294,7 @@
                                 <td colspan="2" class="text-start">
                                     <strong>Subtotal:</strong>
                                 </td>
-                                <td class="fw-bold text-primary">₱{{ number_format($subtotal ?? 0, 2) }}</td>
+<td class="fw-bold text-primary" id="cart-subtotal">₱{{ number_format($subtotal ?? 0, 2) }}</td>
                                 <td></td>
                             </tr>
                         </tfoot>

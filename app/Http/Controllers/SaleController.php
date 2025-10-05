@@ -160,8 +160,10 @@ class SaleController extends Controller
     $stocks = Stock::with('product')
         ->where('availability', true)
         ->whereDate('expiryDate', '>', now())
-        ->where('quantity', '>', 0)
-        ->get();
+        ->get()
+        ->filter(function ($stock) {
+            return $stock->available_quantity > 0;
+        });
 
     return view('sales.index', [
         'stocks'     => $stocks,
