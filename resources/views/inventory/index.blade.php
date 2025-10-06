@@ -380,6 +380,92 @@ document.getElementById('inventorySearch').addEventListener('keyup', function ()
         row.style.display = text.includes(query) ? "" : "none";
     });
 });
+
+// Add Stock Form AJAX Submission
+document.addEventListener('DOMContentLoaded', function() {
+    const addStockForm = document.getElementById('addStockForm');
+    const modal = document.getElementById('addStockModal');
+    
+    // Create error alert div
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'alert alert-danger d-none';
+    errorDiv.id = 'stockErrorAlert';
+    errorDiv.role = 'alert';
+    
+    // Insert error div at the top of the form
+    addStockForm.parentNode.insertBefore(errorDiv, addStockForm);
+    
+    addStockForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Hide any existing error
+        errorDiv.classList.add('d-none');
+        
+        // Get form data
+        const formData = new FormData(addStockForm);
+        
+        // Send AJAX request
+        fetch(addStockForm.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Success - close modal and reload page
+                const bsModal = bootstrap.Modal.getInstance(modal);
+                bsModal.hide();
+                window.location.reload();
+            } else {
+                // Error - show in modal
+                errorDiv.innerHTML = `
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <strong>${data.message}</strong>
+                `;
+                
+                // If we have specific field mismatches, update the form fields
+                if (data.mismatches) {
+                    if (data.mismatches.expiryDate) {
+                        document.getElementById('expiryDate').value = data.mismatches.expiryDate;
+                        document.getElementById('expiryDate').classList.add('is-valid');
+                    }
+                    
+                    if (data.mismatches.purchase_price) {
+                        document.getElementById('purchase_price').value = data.mismatches.purchase_price;
+                        document.getElementById('purchase_price').classList.add('is-valid');
+                    }
+                    
+                    if (data.mismatches.selling_price) {
+                        document.getElementById('selling_price').value = data.mismatches.selling_price;
+                        document.getElementById('selling_price').classList.add('is-valid');
+                    }
+                }
+                
+                errorDiv.classList.remove('d-none');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            errorDiv.innerHTML = `
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <strong>An error occurred. Please try again.</strong>
+            `;
+            errorDiv.classList.remove('d-none');
+        });
+    });
+    
+    // Reset form and errors when modal is closed
+    modal.addEventListener('hidden.bs.modal', function() {
+        addStockForm.reset();
+        errorDiv.classList.add('d-none');
+        document.querySelectorAll('.is-valid').forEach(el => {
+            el.classList.remove('is-valid');
+        });
+    });
+});
 </script>
 
 @endsection

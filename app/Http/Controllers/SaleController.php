@@ -365,7 +365,6 @@ public function finalize(Request $request)
             ]);
 
             // Create a separate OUT row for sales (for reporting purposes)
-            // DO NOT modify the original stock-in record - it should remain as historical data
             Stock::create([
                 'productID'      => $stock->productID,
                 'employeeID'     => Auth::user()->employeeID, 
@@ -379,6 +378,12 @@ public function finalize(Request $request)
                 'expiryDate'     => $stock->expiryDate,
                 'movementDate'   => now(),
             ]);
+            
+            // Check if the available quantity is now zero and delete if necessary
+            if ($stock->available_quantity - $quantity <= 0) {
+                // Delete the stock record to avoid unique constraint violation
+                $stock->delete();
+            }
         }
 
         DB::commit();
