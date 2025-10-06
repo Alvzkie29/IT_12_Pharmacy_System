@@ -158,10 +158,13 @@ class SaleController extends Controller
 
     // Return POS view with updated cart
     $stocks = Stock::with('product')
+        ->where('type', 'IN')
         ->where('availability', true)
         ->whereDate('expiryDate', '>', now())
-        ->where('quantity', '>', 0)
-        ->get();
+        ->get()
+        ->filter(function ($stock) {
+            return $stock->available_quantity > 0;
+        });
 
     return view('sales.index', [
         'stocks'     => $stocks,

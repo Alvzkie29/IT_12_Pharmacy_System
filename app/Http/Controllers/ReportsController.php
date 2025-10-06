@@ -132,6 +132,8 @@ class ReportsController extends Controller
             'sellingPrice'    => $sellingPrice,
             'total'           => $lineTotal,
             'discountedTotal' => $discountedTotal,
+            // expose per-line discount for accurate totals
+            'itemDiscount'    => $lineTotal - $discountedTotal,
             'profit'          => $profit,
             'saleDate'        => $transaction->sale->saleDate,
             'isDiscounted'    => $sale->isDiscounted,
@@ -139,10 +141,11 @@ class ReportsController extends Controller
         ];
     });
 
-    $totalSales         = $salesData->sum('total');
+    $totalSales           = $salesData->sum('total');
     $totalDiscountedSales = $salesData->sum('discountedTotal');
-    $totalProfit        = $salesData->sum('profit');
-    $totalDiscounts     = $salesData->where('isDiscounted', true)->sum('discountAmount');
+    $totalProfit          = $salesData->sum('profit');
+    // Sum actual per-line discounts to avoid multiplying sale-level discount by number of lines
+    $totalDiscounts       = $salesData->sum('itemDiscount');
 
     return view('reports.index', compact(
         'reports',
@@ -220,6 +223,7 @@ class ReportsController extends Controller
                 'sellingPrice'    => $sellingPrice,
                 'total'           => $lineTotal,
                 'discountedTotal' => $discountedTotal,
+                'itemDiscount'    => $lineTotal - $discountedTotal,
                 'profit'          => $profit,
                 'saleDate'        => $transaction->sale->saleDate,
                 'isDiscounted'    => $sale->isDiscounted,
@@ -230,7 +234,7 @@ class ReportsController extends Controller
         $totalSales = $salesData->sum('total');
         $totalDiscountedSales = $salesData->sum('discountedTotal');
         $totalProfit = $salesData->sum('profit');
-        $totalDiscounts = $salesData->where('isDiscounted', true)->sum('discountAmount');
+        $totalDiscounts = $salesData->sum('itemDiscount');
 
         return view('reports.print', compact(
             'validReports',

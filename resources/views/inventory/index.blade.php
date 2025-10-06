@@ -167,6 +167,7 @@
                         <th style="width: 100px;">Purchase Price</th>
                         <th style="width: 100px;">Selling Price</th>
                         <th style="width: 100px;">Batch No</th>
+                        <th style="width: 120px;">Expiry Date</th>
                         <th style="width: 100px;">Expiry Status</th>
                         <th style="width: 120px;">Action</th>
                     </tr>
@@ -209,6 +210,9 @@
                                 <span class="price-badge">₱{{ number_format($stock->selling_price, 2) }}</span>
                             </td>
                             <td class="text-muted">{{ $stock->batchNo ?? 'N/A' }}</td>
+                            <td class="text-muted">
+                                {{ $stock->expiryDate ? \Carbon\Carbon::parse($stock->expiryDate)->format('Y-m-d') : 'N/A' }}
+                            </td>
                             <td class="text-center">
                                 <span class="expiry-status {{ $expiryStatus }}">{{ $expiryText }}</span>
                             </td>
@@ -268,7 +272,7 @@
                             </div>
                     @empty
                         <tr>
-                            <td colspan="10" class="text-center py-5">
+                            <td colspan="11" class="text-center py-5">
                                 <div class="text-muted">
                                     <i class="fas fa-boxes fa-3x mb-3"></i>
                                     <h5>No inventory found</h5>

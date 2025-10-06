@@ -7,6 +7,7 @@ use App\Models\Supplier;
 use App\Models\Stock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class InventoryController extends Controller
 {
@@ -17,22 +18,43 @@ class InventoryController extends Controller
     {
         $search = $request->input('search');
 
-        $stocks = Stock::with('product')
-            ->where('type', 'IN')          
-            ->where('availability', true) 
+        $stocksQuery = Stock::with('product')
+            ->where('type', 'IN')
+            ->where('availability', true)
             ->when($search, function ($query, $search) {
-                return $query->where('batchNo', 'like', "%{$search}%")
-                             ->orWhere('quantity', 'like', "%{$search}%")
-                             ->orWhereHas('product', function ($q) use ($search) {
-                                 $q->where('productName', 'like', "%{$search}%")
-                                   ->orWhere('genericName', 'like', "%{$search}%")
-                                   ->orWhere('productWeight', 'like', "%{$search}%")
-                                   ->orWhere('dosageForm', 'like', "%{$search}%");
-                             });
+                return $query->where(function ($q) use ($search) {
+                    $q->where('batchNo', 'like', "%{$search}%")
+                      ->orWhere('quantity', 'like', "%{$search}%");
+                })
+                ->orWhereHas('product', function ($q) use ($search) {
+                    $q->where('productName', 'like', "%{$search}%")
+                      ->orWhere('genericName', 'like', "%{$search}%")
+                      ->orWhere('productWeight', 'like', "%{$search}%")
+                      ->orWhere('dosageForm', 'like', "%{$search}%");
+                });
             })
-            ->orderBy('expiryDate', 'asc')
-            ->paginate(10)
-            ->appends(['search' => $search]);
+            ->orderBy('expiryDate', 'asc');
+
+        // Fetch, then filter out batches with no available quantity, then paginate manually
+        $stocksCollection = $stocksQuery->get()->filter(function ($stock) {
+            return $stock->available_quantity > 0;
+        })->values();
+
+        $perPage = 10;
+        $currentPage = (int) (request()->get('page', 1));
+        $offset = ($currentPage - 1) * $perPage;
+        $itemsForCurrentPage = $stocksCollection->slice($offset, $perPage)->values();
+
+        $stocks = new LengthAwarePaginator(
+            $itemsForCurrentPage,
+            $stocksCollection->count(),
+            $perPage,
+            $currentPage,
+            [
+                'path' => request()->url(),
+                'query' => ['search' => $search],
+            ]
+        );
 
         $products = Product::all();
         $suppliers = Supplier::all();
@@ -51,7 +73,7 @@ class InventoryController extends Controller
             'selling_price'  => 'required|numeric|min:0|gte:purchase_price', // selling must be >= purchase
             'quantity'       => 'required|integer|min:1',
             'batchNo'        => 'nullable|string|max:50',
-            'expiryDate'     => 'required|date|after:today',
+            'expiryDate'     => 'nullable|date|after:today',
         ]);
 
         Stock::create([
