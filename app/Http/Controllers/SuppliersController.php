@@ -18,7 +18,7 @@ class SuppliersController extends Controller
                 return $query->where('supplierName', 'like', "%$search%");
             })
             ->orderBy('supplierName')
-            ->paginate(10); // 10 suppliers per page
+            ->paginate(10); 
 
         // Keep the search query in pagination links
         $suppliers->appends($request->only('search'));

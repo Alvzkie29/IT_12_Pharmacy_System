@@ -199,7 +199,7 @@
 <body class="bg-light d-flex">
 
     <!-- Sidebar -->
-    <aside id="sidebar" class="text-white p-4 d-flex flex-column" style="width: 250px;">
+    <aside id="sidebar" class="text-white p-4 d-flex flex-column" style="width: 250px; min-width: 250px; background-color: #198754; min-height: 100vh;">
         <!-- Logo -->
         <div class="sidebar-logo">
             <div class="d-flex align-items-center justify-content-between">
@@ -265,7 +265,7 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-grow-1 p-4">
+    <main class="flex-grow-1 p-4" style="min-width: 0; overflow-x: hidden;">
         @yield('content')
     </main>
 

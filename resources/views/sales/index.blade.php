@@ -194,7 +194,9 @@
                                 <div class="card-body">
                                     <div class="d-flex align-items-center mb-2">
                                         <i class="me-2 text-primary"></i>
-                                        <h6 class="product-name mb-0">{{ $stock->product->productName }}</h6>
+                                        <h6 class="product-name mb-0">
+                                        {{ $stock->product->productName }} ({{ $stock->product->genericName }})
+                                    </h6>
                                     </div>
                                     <p class="product-price mb-1">₱{{ number_format($stock->selling_price, 2) }}</p>
                                     <p class="product-stock mb-1">

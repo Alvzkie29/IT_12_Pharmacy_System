@@ -7,7 +7,11 @@
     <title>Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="flex items-center justify-center h-screen bg-gradient-to-br from-green-400 to-green-700">
+<body class="flex items-center justify-center h-screen relative">
+    <!-- Blurry Background -->
+    <div class="absolute inset-0 bg-cover bg-center" 
+         style="background-image: url('{{ asset('images/lm3_pharmacy.jpg') }}'); filter: blur(5px); z-index: -1;">
+    </div>
   <div class="bg-white/90 p-8 rounded-2xl shadow-xl w-96">
     <div class="flex justify-center mb-4">
       <img src="{{ asset('images/logo.png') }}" alt="Logo" class="h-20">
