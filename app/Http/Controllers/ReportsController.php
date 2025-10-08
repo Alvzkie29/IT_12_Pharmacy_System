@@ -132,6 +132,8 @@ class ReportsController extends Controller
             'sellingPrice'    => $sellingPrice,
             'total'           => $lineTotal,
             'discountedTotal' => $discountedTotal,
+            // expose per-line discount for accurate totals
+            'itemDiscount'    => $lineTotal - $discountedTotal,
             'profit'          => $profit,
             'saleDate'        => $transaction->sale->saleDate,
             'isDiscounted'    => $sale->isDiscounted,
@@ -139,10 +141,11 @@ class ReportsController extends Controller
         ];
     });
 
-    $totalSales         = $salesData->sum('total');
+    $totalSales           = $salesData->sum('total');
     $totalDiscountedSales = $salesData->sum('discountedTotal');
-    $totalProfit        = $salesData->sum('profit');
-    $totalDiscounts     = $salesData->where('isDiscounted', true)->sum('discountAmount');
+    $totalProfit          = $salesData->sum('profit');
+    // Sum actual per-line discounts to avoid multiplying sale-level discount by number of lines
+    $totalDiscounts       = $salesData->sum('itemDiscount');
 
     return view('reports.index', compact(
         'reports',
@@ -167,13 +170,41 @@ class ReportsController extends Controller
 }
 
 
-    public function print($date)
+    public function print(Request $request)
     {
-        // Stock reports
-        $reports = Stock::with('product')
-            ->whereDate('created_at', $date)
-            ->get();
-
+        $date = $request->input('date', now()->toDateString());
+        $period = $request->input('period', 'specific_date');
+        
+        // Stock reports query
+        $reportsQuery = Stock::with('product');
+        
+        // Sales reports query
+        $salesQuery = Sale::with(['transactions.stock.product']);
+        
+        // Apply period filter to both queries
+        if ($period === 'today') {
+            $reportsQuery->whereDate('created_at', today());
+            $salesQuery->whereDate('saleDate', today());
+            $reportTitle = 'Daily Report - Today';
+        } elseif ($period === 'monthly') {
+            $reportsQuery->whereMonth('created_at', now()->month)
+                         ->whereYear('created_at', now()->year);
+            $salesQuery->whereMonth('saleDate', now()->month)
+                       ->whereYear('saleDate', now()->year);
+            $reportTitle = 'Monthly Report - ' . now()->format('F Y');
+        } elseif ($period === 'yearly') {
+            $reportsQuery->whereYear('created_at', now()->year);
+            $salesQuery->whereYear('saleDate', now()->year);
+            $reportTitle = 'Yearly Report - ' . now()->year;
+        } else {
+            $reportsQuery->whereDate('created_at', $date);
+            $salesQuery->whereDate('saleDate', $date);
+            $reportTitle = 'Daily Report - ' . $date;
+        }
+        
+        // Get the reports
+        $reports = $reportsQuery->get();
+        
         $validReports = $reports->filter(fn($r) =>
             $r->type === 'IN' && 
             !str_starts_with(strtolower($r->reason), 'pulled_out') && 
@@ -186,10 +217,8 @@ class ReportsController extends Controller
             $r->type === 'OUT' && str_starts_with(strtolower($r->reason), 'pulled_out')
         );
 
-        // Sales reports
-        $sales = Sale::with(['transactions.stock.product'])
-            ->whereDate('saleDate', $date)
-            ->get();
+        // Get the sales
+        $sales = $salesQuery->get();
 
         $salesData = $sales->flatMap->transactions->map(function ($transaction) {
             $stock = $transaction->stock;
@@ -220,6 +249,7 @@ class ReportsController extends Controller
                 'sellingPrice'    => $sellingPrice,
                 'total'           => $lineTotal,
                 'discountedTotal' => $discountedTotal,
+                'itemDiscount'    => $lineTotal - $discountedTotal,
                 'profit'          => $profit,
                 'saleDate'        => $transaction->sale->saleDate,
                 'isDiscounted'    => $sale->isDiscounted,
@@ -230,7 +260,7 @@ class ReportsController extends Controller
         $totalSales = $salesData->sum('total');
         $totalDiscountedSales = $salesData->sum('discountedTotal');
         $totalProfit = $salesData->sum('profit');
-        $totalDiscounts = $salesData->where('isDiscounted', true)->sum('discountAmount');
+        $totalDiscounts = $salesData->sum('itemDiscount');
 
         return view('reports.print', compact(
             'validReports',
@@ -241,7 +271,9 @@ class ReportsController extends Controller
             'totalDiscountedSales',
             'totalProfit',
             'totalDiscounts',
-            'date'
+            'date',
+            'period',
+            'reportTitle'
         ));
     }
 

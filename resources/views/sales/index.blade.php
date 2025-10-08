@@ -194,11 +194,16 @@
                                 <div class="card-body">
                                     <div class="d-flex align-items-center mb-2">
                                         <i class="me-2 text-primary"></i>
-                                        <h6 class="product-name mb-0">{{ $stock->product->productName }}</h6>
+                                        <h6 class="product-name mb-0">
+                                        {{ $stock->product->productName }} ({{ $stock->product->genericName }})
+                                    </h6>
                                     </div>
                                     <p class="product-price mb-1">₱{{ number_format($stock->selling_price, 2) }}</p>
-                                    <p class="product-stock mb-3">
+                                    <p class="product-stock mb-1">
                                         <i class="fas fa-boxes me-1"></i>Stock: {{ $stock->available_quantity }}
+                                    </p>
+                                    <p class="product-expiry mb-2">
+                                        <i class="fas fa-calendar-alt me-1"></i>Expires: {{ date('M d, Y', strtotime($stock->expiryDate)) }}
                                     </p>
                                     <form method="POST" action="{{ route('sales.store') }}">
                                         @csrf
@@ -262,11 +267,13 @@
                                             <form class="update-cart-form" data-id="{{ $stock->stockID }}">
                                                 <input type="number" class="form-control form-control-sm cart-qty-input"
                                                        value="{{ $item['quantity'] }}" min="1" max="{{ $stock->available_quantity }}" 
-                                                       style="width: 70px;"
+                                                       style="width: 70px;" onkeydown="return event.key !== '0' || this.value.length > 0"
+                                                       oninput="if(this.value == '0') this.value = '1';"
                                                        title="Max available: {{ $stock->available_quantity }}">
                                             </form>
                                         </td>
-<td class="fw-bold text-primary item-subtotal">₱{{ number_format($lineTotal, 2) }}</td>                                        <td>
+                                        <td class="fw-bold text-primary item-subtotal">₱{{ number_format($lineTotal, 2) }}</td>
+                                        <td>
                                             <form method="POST" action="{{ route('sales.store') }}" class="d-inline">
                                                 @csrf
                                                 <button type="submit" name="remove_item" value="{{ $stock->stockID }}" 
@@ -294,7 +301,7 @@
                                 <td colspan="2" class="text-start">
                                     <strong>Subtotal:</strong>
                                 </td>
-<td class="fw-bold text-primary" id="cart-subtotal">₱{{ number_format($subtotal ?? 0, 2) }}</td>
+                                <td id="cart-subtotal" class="fw-bold text-primary">₱{{ number_format($subtotal ?? 0, 2) }}</td>
                                 <td></td>
                             </tr>
                         </tfoot>
@@ -324,7 +331,8 @@
                     
                     {{-- Senior / PWD checkbox (visual) --}}
                     <div class="form-check mb-3 p-3 bg-light rounded">
-                        <input class="form-check-input" type="checkbox" id="discount-checkbox">
+                        <input class="form-check-input" type="checkbox" id="discount-checkbox" 
+                               {{ old('isDiscounted') == '1' ? 'checked' : '' }}>
                         <label class="form-check-label fw-semibold" for="discount-checkbox">
                             <i class="fas fa-percentage me-1 text-success"></i>
                             Senior Citizen or PWD (20% Discount)
@@ -332,7 +340,7 @@
                     </div>
 
                     {{-- Hidden field to send discount flag to controller --}}
-                    <input type="hidden" name="isDiscounted" id="isDiscountedInput" value="0">
+                    <input type="hidden" name="isDiscounted" id="isDiscountedInput" value="{{ old('isDiscounted', '0') }}">
 
                     <div class="mb-3">
                         <label for="cash" class="form-label fw-semibold">
@@ -371,11 +379,8 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
+        // Only use change event for better performance
         input.addEventListener("change", function () {
-            updateCart(this);
-        });
-
-        input.addEventListener("input", function () {
             updateCart(this);
         });
     });
@@ -383,13 +388,42 @@ document.addEventListener("DOMContentLoaded", function () {
     function updateCart(input) {
         let form = input.closest(".update-cart-form");
         let stockID = form.dataset.id;
-        let qty = input.value;
+        let qty = parseInt(input.value) || 1;
 
+        // Prevent zero or negative quantities
         if (qty < 1) {
             input.value = 1;
             qty = 1;
         }
 
+        // Calculate subtotal immediately for better UX
+        let row = form.closest("tr");
+        let subtotalElement = row.querySelector(".item-subtotal");
+        let priceText = row.querySelector(".text-muted").innerText;
+        let price = parseMoney(priceText);
+        
+        // Update subtotal immediately (client-side calculation)
+        if (subtotalElement) {
+            let newSubtotal = price * qty;
+            subtotalElement.innerText = "₱" + newSubtotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
+
+        // Update cart total (client-side calculation)
+        let total = 0;
+        document.querySelectorAll(".update-cart-form").forEach(form => {
+            let formRow = form.closest("tr");
+            let formQty = parseInt(formRow.querySelector(".cart-qty-input").value) || 1;
+            let formPriceText = formRow.querySelector(".text-muted").innerText;
+            let formPrice = parseMoney(formPriceText);
+            total += formPrice * formQty;
+        });
+        
+        let cartSubtotal = document.getElementById("cart-subtotal");
+        if (cartSubtotal) {
+            cartSubtotal.innerText = "₱" + total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
+
+        // Also update server-side (in background)
         fetch("{{ route('sales.updateCart') }}", {
             method: "POST",
             headers: {
@@ -404,19 +438,28 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                let row = form.closest("tr");
-                row.querySelector(".item-subtotal").innerText = "₱" + data.itemSubtotal;
-                document.getElementById("cart-subtotal").innerText = "₱" + data.total;
-
                 // Update the input value if it was clamped to max quantity
                 if (data.quantity !== qty) {
                     input.value = data.quantity;
+                    
+                    // Update subtotal with server value (in case of quantity adjustment)
+                    if (subtotalElement) {
+                        subtotalElement.innerText = "₱" + data.itemSubtotal;
+                    }
+                    
+                    // Update cart total with server value
+                    if (cartSubtotal) {
+                        cartSubtotal.innerText = "₱" + data.total;
+                    }
+                    
                     // Show a brief notification that quantity was adjusted
                     showNotification(`Quantity adjusted to ${data.quantity} (max available: ${data.maxQuantity})`, 'warning');
                 }
 
                 // Recompute discount/grand total if checkbox is checked
-                updateDiscountUI();
+                if (typeof updateDiscountUI === 'function') {
+                    updateDiscountUI();
+                }
             } else {
                 showNotification(data.message || 'Failed to update cart', 'error');
             }
@@ -465,11 +508,26 @@ document.addEventListener("DOMContentLoaded", function () {
     const grandTotalEl = document.getElementById("grand-total");
     const cartSubtotalEl = document.getElementById("cart-subtotal");
 
+    // Load saved checkbox state on page load
+    if (discountCheckbox) {
+        // Check if there's a saved state in localStorage
+        const savedState = localStorage.getItem('discountCheckboxState');
+        if (savedState === 'true') {
+            discountCheckbox.checked = true;
+            if (isDiscountedInput) {
+                isDiscountedInput.value = 1;
+            }
+        }
+    }
+
     // call once on load to set UI
     updateDiscountUI();
 
     if (discountCheckbox) {
         discountCheckbox.addEventListener("change", function () {
+            // Save state to localStorage
+            localStorage.setItem('discountCheckboxState', this.checked);
+            
             // set hidden input value so controller receives it on submit
             if (isDiscountedInput) {
                 isDiscountedInput.value = this.checked ? 1 : 0;

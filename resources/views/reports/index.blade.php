@@ -190,7 +190,7 @@
                 </form>
             </div>
             <div class="col-md-4 text-end">
-                <a href="{{ route('reports.print', ['date' => $date ?? now()->toDateString()]) }}" target="_blank" class="btn btn-success btn-lg">
+                <a href="{{ route('reports.print', ['date' => $date ?? now()->toDateString(), 'period' => $period ?? 'today']) }}" target="_blank" class="btn btn-success btn-lg">
                     <i class="fas fa-print me-2"></i>Print Report
                 </a>
             </div>

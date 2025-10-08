@@ -21,8 +21,14 @@
 <body>
 <div class="container">
     <div class="report-header text-center">
-        <h2>Daily Report</h2>
-        <p>Date: {{ $date }}</p>
+        <h2>{{ $reportTitle ?? 'Daily Report' }}</h2>
+        @if($period == 'specific_date' || $period == 'today')
+            <p>Date: {{ $date }}</p>
+        @elseif($period == 'monthly')
+            <p>Month: {{ \Carbon\Carbon::parse($date)->format('F Y') }}</p>
+        @elseif($period == 'yearly')
+            <p>Year: {{ \Carbon\Carbon::parse($date)->format('Y') }}</p>
+        @endif
     </div>
 
     {{-- Totals Cards --}}

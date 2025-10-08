@@ -1,34 +1,47 @@
 <?php
+
 namespace Database\Seeders;
+
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
 class SuppliersTableSeeder extends Seeder
 {
-    public function run()
+    public function run(): void
     {
-        DB::table('suppliers')->insert([
+        $suppliers = [
             [
-                'supplierName' => 'MediPharma Distributors',
-                'contactInfo'  => 'medipharma@example.com | +63 912 345 6789',
-                'address'      => '123 Health St, Quezon City',
-                'created_at'   => now(),
-                'updated_at'   => now(),
+                'supplierName' => 'Mercury Drug Distributors Inc.',
+                'contactInfo' => '02-8888-0001',
+                'address' => 'Quezon City, Metro Manila',
             ],
             [
-                'supplierName' => 'HealthFirst Supplies',
-                'contactInfo'  => 'healthfirst@example.com | +63 923 456 7890',
-                'address'      => '456 Wellness Ave, Makati',
-                'created_at'   => now(),
-                'updated_at'   => now(),
+                'supplierName' => 'United Laboratories (Unilab)',
+                'contactInfo' => '02-8888-8888',
+                'address' => 'Mandaluyong City, Metro Manila',
             ],
             [
-                'supplierName' => 'Global Pharma Imports',
-                'contactInfo'  => 'globalpharma@example.com | +63 934 567 8901',
-                'address'      => '789 Medical Blvd, Cebu City',
-                'created_at'   => now(),
-                'updated_at'   => now(),
+                'supplierName' => 'Pfizer Philippines',
+                'contactInfo' => '02-7777-7777',
+                'address' => 'Bonifacio Global City, Taguig',
             ],
-        ]);
+            [
+                'supplierName' => 'GSK Pharmaceuticals',
+                'contactInfo' => '02-9123-4567',
+                'address' => 'Makati City, Metro Manila',
+            ],
+            [
+                'supplierName' => 'RiteMed',
+                'contactInfo' => '02-8989-1234',
+                'address' => 'Pasig City, Metro Manila',
+            ],
+        ];
+
+        foreach ($suppliers as &$supplier) {
+            $supplier['created_at'] = now();
+            $supplier['updated_at'] = now();
+        }
+
+        DB::table('suppliers')->insert($suppliers);
     }
 }
