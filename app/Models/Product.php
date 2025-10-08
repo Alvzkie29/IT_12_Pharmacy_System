@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\ProductBatch;
 
 class Product extends Model
 {
@@ -32,4 +33,10 @@ class Product extends Model
     {
         return $this->hasMany(Stock::class, 'productID');
     }
+
+    public function batches()
+    {
+        return $this->hasMany(ProductBatch::class, 'productID', 'productID');
+    }
+    
 }
