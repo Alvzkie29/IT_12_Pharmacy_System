@@ -13,25 +13,14 @@ return new class extends Migration
     {
         Schema::create('transactions', function (Blueprint $table) {
             $table->id('transactionID');
-
             $table->unsignedBigInteger('saleID');
             $table->unsignedBigInteger('stockID');
-
-            $table->foreign('saleID')
-                ->references('saleID')
-                ->on('sales')
-                ->cascadeOnDelete();
-
-            $table->foreign('stockID')
-                ->references('stockID')
-                ->on('stocks')
-                ->cascadeOnDelete();
-
+            $table->foreign('saleID')->references('saleID')->on('sales')->cascadeOnDelete();
+            $table->foreign('stockID')->references('stockID')->on('stocks')->cascadeOnDelete();
             $table->integer('quantity');
-            $table->decimal('unitPrice', 10, 2);
+            // unitPrice column is omitted based on your recent update
             $table->timestamps();
         });
-
     }
 
     /**

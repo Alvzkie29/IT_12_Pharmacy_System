@@ -12,10 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('suppliers', function (Blueprint $table) {
-            $table->id('supplierID'); 
+            $table->id('supplierID');
             $table->string('supplierName');
             $table->string('contactInfo')->nullable();
             $table->string('address')->nullable();
+            $table->boolean('is_active')->default(true); // New field for active/inactive status
             $table->timestamps();
         });
     }
@@ -25,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('supplier');
+        Schema::dropIfExists('suppliers');
     }
 };

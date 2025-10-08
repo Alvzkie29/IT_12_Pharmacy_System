@@ -13,16 +13,17 @@ return new class extends Migration
     {
         Schema::create('sales', function (Blueprint $table) {
             $table->id('saleID');
-
             $table->unsignedBigInteger('employeeID');
-            $table->foreign('employeeID')
-                ->references('employeeID')
-                ->on('employees')
-                ->cascadeOnDelete();
-
             $table->decimal('totalAmount', 10, 2);
+            $table->decimal('cash_received', 10, 2);   // New column
+            $table->decimal('change_given', 10, 2);    // New column
+            $table->boolean('isDiscounted')->default(false);
+            $table->decimal('subtotal', 10, 2)->nullable();
+            $table->decimal('discountAmount', 10, 2)->default(0);
             $table->dateTime('saleDate');
             $table->timestamps();
+
+            $table->foreign('employeeID')->references('employeeID')->on('employees')->onDelete('cascade');
         });
     }
 

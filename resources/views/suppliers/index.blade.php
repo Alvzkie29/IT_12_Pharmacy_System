@@ -160,7 +160,6 @@
         </div>
     </div>
 
-
     <!-- Suppliers Table -->
     <div class="suppliers-card">
         <div class="table-responsive">
@@ -171,7 +170,8 @@
                         <th>Supplier Name</th>
                         <th>Contact Information</th>
                         <th>Address</th>
-                        <th style="width: 150px;">Actions</th>
+                        <th>Status</th>
+                        <th style="width: 200px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -188,23 +188,38 @@
                             <i class="fas fa-map-marker-alt me-2 text-muted"></i>{{ $supplier->address }}
                         </td>
                         <td>
+                            @if($supplier->is_active)
+                                <span class="badge bg-success">Active</span>
+                            @else
+                                <span class="badge bg-secondary">Inactive</span>
+                            @endif
+                        </td>
+                        <td>
                             <div class="action-buttons">
                                 <button class="btn btn-warning btn-action" data-bs-toggle="modal" data-bs-target="#editSupplierModal{{ $supplier->supplierID }}" title="Edit Supplier">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <form action="{{ route('suppliers.destroy', $supplier->supplierID) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button class="btn btn-danger btn-action" onclick="return confirm('Are you sure you want to delete this supplier?')" title="Delete Supplier">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
+                                @if ($supplier->is_active)
+                                    <form action="{{ route('suppliers.deactivate', $supplier->supplierID) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        <button class="btn btn-secondary btn-action" title="Deactivate Supplier" type="submit">
+                                            <i class="fas fa-times-circle"></i> Deactivate
+                                        </button>
+                                    </form>
+                                @else
+                                    <form action="{{ route('suppliers.activate', $supplier->supplierID) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        <button class="btn btn-success btn-action" title="Activate Supplier" type="submit">
+                                            <i class="fas fa-check-circle"></i> Activate
+                                        </button>
+                                    </form>
+                                @endif
                             </div>
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" class="text-center py-5">
+                        <td colspan="6" class="text-center py-5">
                             <div class="text-muted">
                                 <i class="fas fa-inbox fa-3x mb-3"></i>
                                 <h5>No suppliers found</h5>
@@ -217,7 +232,6 @@
             </table>
         </div>
     </div>
-</div>
 
     <!-- Pagination -->
     <div class="d-flex justify-content-center mt-4">
@@ -326,14 +340,12 @@
 document.getElementById('supplierSearch').addEventListener('keyup', function () {
     let query = this.value.toLowerCase();
     let rows = document.querySelectorAll("table tbody tr");
-
     rows.forEach(row => {
         // skip "No suppliers found" row
         if (row.querySelector("td")?.classList.contains("text-muted")) {
             row.style.display = query === "" ? "" : "none";
             return;
         }
-
         let text = row.innerText.toLowerCase();
         row.style.display = text.includes(query) ? "" : "none";
     });

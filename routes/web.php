@@ -39,3 +39,6 @@ Route::prefix('inventory')->group(function () {
     Route::post('/stock-in', [InventoryController::class, 'stockIn'])->name('inventory.stockIn');
     Route::put('/inventory/stock-out/{id}', [InventoryController::class, 'stockOut'])->name('inventory.stockOut');
 });
+
+Route::post('/suppliers/{id}/deactivate', [SuppliersController::class, 'deactivate'])->name('suppliers.deactivate');
+Route::post('/suppliers/{id}/activate', [SuppliersController::class, 'activate'])->name('suppliers.activate');

@@ -12,23 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('stocks', function (Blueprint $table) {
-            $table->id('stockID'); // UNSIGNED BIGINT PRIMARY KEY
-
+            $table->id('stockID');
             $table->unsignedBigInteger('productID');
             $table->unsignedBigInteger('employeeID');
-
-            $table->foreign('productID')
-                ->references('productID')
-                ->on('products')
-                ->cascadeOnDelete();
-
-            $table->foreign('employeeID')
-                ->references('employeeID')
-                ->on('employees')
-                ->cascadeOnDelete();
-
+            $table->foreign('productID')->references('productID')->on('products')->cascadeOnDelete();
+            $table->foreign('employeeID')->references('employeeID')->on('employees')->cascadeOnDelete();
             $table->enum('type', ['IN', 'OUT']);
-            $table->decimal('price', 10, 2); 
+            $table->string('reason')->nullable(); // For stock movement details
+            $table->decimal('purchase_price', 10, 2); // Price bought from supplier
+            $table->decimal('selling_price', 10, 2); // Price sold to customers
             $table->integer('quantity');
             $table->boolean('availability')->default(true);
             $table->string('batchNo')->nullable();
