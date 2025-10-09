@@ -198,12 +198,12 @@
                                         {{ $stock->product->productName }} ({{ $stock->product->genericName }})
                                     </h6>
                                     </div>
+                                    <p class="product-expiry mb-2">
+                                        <i class="fas fa-calendar-alt me-1"></i>Expires: {{ date('M d, Y', strtotime($stock->expiryDate)) }}
+                                    </p>
                                     <p class="product-price mb-1">₱{{ number_format($stock->selling_price, 2) }}</p>
                                     <p class="product-stock mb-1">
                                         <i class="fas fa-boxes me-1"></i>Stock: {{ $stock->available_quantity }}
-                                    </p>
-                                    <p class="product-expiry mb-2">
-                                        <i class="fas fa-calendar-alt me-1"></i>Expires: {{ date('M d, Y', strtotime($stock->expiryDate)) }}
                                     </p>
                                     <form method="POST" action="{{ route('sales.store') }}">
                                         @csrf

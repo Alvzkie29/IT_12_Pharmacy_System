@@ -38,4 +38,11 @@ Route::prefix('inventory')->group(function () {
     Route::get('/', [InventoryController::class, 'index'])->name('inventory.index');
     Route::post('/stock-in', [InventoryController::class, 'stockIn'])->name('inventory.stockIn');
     Route::put('/inventory/stock-out/{id}', [InventoryController::class, 'stockOut'])->name('inventory.stockOut');
+    // Near expiry module
+    Route::get('/near-expiry', [InventoryController::class, 'nearExpiry'])->name('inventory.nearExpiry');
+    // Helper: fetch last prices for selected product
+    Route::get('/last-price', [InventoryController::class, 'lastPrice'])->name('inventory.lastPrice');
 });
+
+Route::post('/suppliers/{id}/deactivate', [SuppliersController::class, 'deactivate'])->name('suppliers.deactivate');
+Route::post('/suppliers/{id}/activate', [SuppliersController::class, 'activate'])->name('suppliers.activate');

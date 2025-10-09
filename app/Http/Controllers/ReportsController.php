@@ -13,6 +13,8 @@ class ReportsController extends Controller
     $search = $request->input('search');
     $period = $request->input('period', 'today'); // same as dashboard
     $date   = $request->input('date', now()->toDateString());
+    $from   = $request->input('from_date');
+    $to     = $request->input('to_date');
 
     // 🔹 Stocks Query
     $reportsQuery = Stock::with('product')
@@ -36,6 +38,11 @@ class ReportsController extends Controller
                      ->whereYear('created_at', now()->year);
     } elseif ($period === 'yearly') {
         $reportsQuery->whereYear('created_at', now()->year);
+    } elseif ($period === 'custom_range' && $from && $to) {
+        $reportsQuery->whereBetween('created_at', [
+            \Carbon\Carbon::parse($from)->startOfDay(),
+            \Carbon\Carbon::parse($to)->endOfDay()
+        ]);
     } else {
         $reportsQuery->whereDate('created_at', $date);
     }
@@ -96,11 +103,16 @@ class ReportsController extends Controller
                    ->whereYear('saleDate', now()->year);
     } elseif ($period === 'yearly') {
         $salesQuery->whereYear('saleDate', now()->year);
+    } elseif ($period === 'custom_range' && $from && $to) {
+        $salesQuery->whereBetween('saleDate', [
+            \Carbon\Carbon::parse($from)->startOfDay(),
+            \Carbon\Carbon::parse($to)->endOfDay()
+        ]);
     } else {
         $salesQuery->whereDate('saleDate', $date);
     }
 
-    $sales = $salesQuery->get();
+    $sales = $salesQuery->orderByDesc('saleDate')->get();
 
     // 🔹 Map sales data with discount information
     $salesData = $sales->flatMap->transactions->map(function ($transaction) {

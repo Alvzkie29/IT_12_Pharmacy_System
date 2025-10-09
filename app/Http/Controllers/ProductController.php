@@ -26,7 +26,8 @@ class ProductController extends Controller
             ->paginate(10)
             ->appends(['search' => $search]);
 
-        $suppliers = Supplier::all();
+        // Only get active suppliers
+        $suppliers = Supplier::where('is_active', true)->get();
 
         return view('products.index', compact('products', 'suppliers', 'search'));
     }

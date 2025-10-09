@@ -165,14 +165,20 @@
                                 <option value="today" {{ request('period') === 'today' ? 'selected' : '' }}>Today</option>
                                 <option value="monthly" {{ request('period') === 'monthly' ? 'selected' : '' }}>This Month</option>
                                 <option value="yearly" {{ request('period') === 'yearly' ? 'selected' : '' }}>This Year</option>
-                                <option value="custom" {{ request('period') === 'custom' ? 'selected' : '' }}>Custom Date</option>
+                                <option value="custom_range" {{ request('period') === 'custom_range' ? 'selected' : '' }}>Custom Range</option>
                             </select>
                         </div>
-                        <div class="col-md-3" id="custom-date-container" style="display: {{ request('period') === 'custom' ? 'block' : 'none' }};">
-                            <label for="custom-date" class="form-label fw-semibold">
-                                <i class="fas fa-calendar-alt me-2 text-primary"></i>Custom Date
+                        <div class="col-md-3" id="from-date-container" style="display: {{ request('period') === 'custom_range' ? 'block' : 'none' }};">
+                            <label for="from_date" class="form-label fw-semibold">
+                                <i class="fas fa-calendar-alt me-2 text-primary"></i>From
                             </label>
-                            <input type="date" name="date" id="custom-date" value="{{ request('date') ?? now()->toDateString() }}" class="form-control">
+                            <input type="date" name="from_date" id="from_date" value="{{ request('from_date') ?? now()->toDateString() }}" class="form-control">
+                        </div>
+                        <div class="col-md-3" id="to-date-container" style="display: {{ request('period') === 'custom_range' ? 'block' : 'none' }};">
+                            <label for="to_date" class="form-label fw-semibold">
+                                <i class="fas fa-calendar-alt me-2 text-primary"></i>To
+                            </label>
+                            <input type="date" name="to_date" id="to_date" value="{{ request('to_date') ?? now()->toDateString() }}" class="form-control">
                         </div>
                         <div class="col-md-4">
                             <label for="search" class="form-label fw-semibold">

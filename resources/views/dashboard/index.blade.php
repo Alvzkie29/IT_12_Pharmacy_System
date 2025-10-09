@@ -175,13 +175,15 @@
         </div>
 
         <div class="col-lg-3 col-md-6">
-            <div class="dashboard-card text-white" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); color: #8b0000;">
-                <div class="card-body text-center">
-                    <div class="stat-icon">❌</div>
-                    <div class="stat-value">{{ $totalExpiredDamaged }}</div>
-                    <div class="stat-label">Expired & Damaged</div>
+            <a class="text-decoration-none" href="{{ route('inventory.nearExpiry') }}">
+                <div class="dashboard-card text-white" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); color: #8b0000;">
+                    <div class="card-body text-center">
+                        <div class="stat-icon">⏳</div>
+                        <div class="stat-value" style="text-align: right;">{{ \App\Models\Stock::where('type','IN')->where('availability', true)->whereDate('expiryDate','>', now())->whereDate('expiryDate','<=', now()->addMonths(6))->count() }}</div>
+                        <div class="stat-label">Near Expiry (≤ 6 mo)</div>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
     </div>
 

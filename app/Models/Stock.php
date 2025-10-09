@@ -18,6 +18,7 @@ class Stock extends Model
         'reason',
         'purchase_price',
         'selling_price',
+        'package_total_cost',
         'quantity',
         'availability',
         'batchNo',

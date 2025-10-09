@@ -13,6 +13,8 @@ class Sale extends Model
 
     protected $fillable = [
         'employeeID',
+        'cash_received',
+        'change_given',
         'totalAmount',
         'isDiscounted',
         'subtotal',

@@ -46,7 +46,8 @@ class SaleController extends Controller
             ->where('type', 'IN')
             ->where('availability', true)
             ->whereDate('expiryDate', '>', now())
-            ->orderBy('created_at', 'desc')
+            ->orderBy('expiryDate', 'asc')
+            ->orderBy('created_at', 'asc')
             ->get()
             ->filter(function ($stock) {
                 return $stock->available_quantity > 0;
@@ -161,6 +162,8 @@ class SaleController extends Controller
         ->where('type', 'IN')
         ->where('availability', true)
         ->whereDate('expiryDate', '>', now())
+        ->orderBy('expiryDate', 'asc')
+        ->orderBy('created_at', 'asc')
         ->get()
         ->filter(function ($stock) {
             return $stock->available_quantity > 0;
@@ -338,11 +341,14 @@ public function finalize(Request $request)
     if ($cash < $grandTotal) {
         return back()->with('error', 'Insufficient cash received.');
     }
+    $change = round($cash - $grandTotal, 2);
 
     DB::beginTransaction();
     try {
         $sale = Sale::create([
             'employeeID'     => Auth::user()->employeeID,
+            'cash_received'  => $cash,
+            'change_given'   => $change,
             'totalAmount'    => $grandTotal,
             'isDiscounted'   => $isDiscounted,
             'subtotal'       => $subtotal,
@@ -390,7 +396,7 @@ public function finalize(Request $request)
         session()->forget('cart');
 
         return redirect()->route('sales.index')
-            ->with('success', 'Sale recorded successfully! Change: ₱' . number_format($cash - $grandTotal, 2));
+            ->with('success', 'Sale recorded successfully! Change: ₱' . number_format($change, 2));
     } catch (\Exception $e) {
         DB::rollBack();
         return back()->with('error', 'Sale failed: ' . $e->getMessage());

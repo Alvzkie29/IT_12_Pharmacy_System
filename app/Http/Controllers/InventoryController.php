@@ -21,6 +21,8 @@ class InventoryController extends Controller
         $stocksQuery = Stock::with('product')
             ->where('type', 'IN')
             ->where('availability', true)
+            // Exclude near-expiry (<=6 months) from main list; they are shown in Near Expiry page
+            ->whereDate('expiryDate', '>', now()->addMonths(6))
             ->when($search, function ($query, $search) {
                 return $query->where(function ($q) use ($search) {
                     $q->where('batchNo', 'like', "%{$search}%")
@@ -56,10 +58,61 @@ class InventoryController extends Controller
             ]
         );
 
-        $products = Product::all();
+        // Only get products with active suppliers
+        $products = Product::whereHas('supplier', function($query) {
+            $query->where('is_active', true);
+        })->get();
         $suppliers = Supplier::all();
 
         return view('inventory.index', compact('stocks', 'products', 'suppliers', 'search'));
+    }
+
+    /**
+     * Near Expiry listing
+     */
+    public function nearExpiry(Request $request)
+    {
+        $months = (int) ($request->input('months', 6));
+        $thresholdDate = now()->addMonths($months)->startOfDay();
+
+        $stocks = Stock::with('product')
+            ->where('type', 'IN')
+            ->where('availability', true)
+            ->whereDate('expiryDate', '>', now())
+            ->whereDate('expiryDate', '<=', $thresholdDate)
+            ->orderBy('expiryDate', 'asc')
+            ->get()
+            ->filter(function ($stock) {
+                return $stock->available_quantity > 0;
+            });
+
+        return view('inventory.near_expiry', compact('stocks', 'months'));
+    }
+
+    /**
+     * Helper: fetch last known purchase/selling price for a product from recent stock-ins
+     */
+    public function lastPrice(Request $request)
+    {
+        $productID = $request->input('productID');
+        if (!$productID) {
+            return response()->json(['success' => false, 'message' => 'Missing productID'], 422);
+        }
+
+        $last = Stock::where('productID', $productID)
+            ->where('type', 'IN')
+            ->orderByDesc('created_at')
+            ->first(['purchase_price', 'selling_price']);
+
+        if (!$last) {
+            return response()->json(['success' => true, 'purchase_price' => null, 'selling_price' => null]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'purchase_price' => (float) $last->purchase_price,
+            'selling_price' => (float) $last->selling_price,
+        ]);
     }
 
     /**
@@ -68,13 +121,19 @@ class InventoryController extends Controller
     public function stockIn(Request $request)
     {
         $request->validate([
-            'productID'      => 'required|exists:products,productID',
-            'purchase_price' => 'required|numeric|min:0',
-            'selling_price'  => 'required|numeric|min:0|gte:purchase_price', // selling must be >= purchase
-            'quantity'       => 'required|integer|min:1',
-            'batchNo'        => 'nullable|string|max:50',
-            'expiryDate'     => 'nullable|date|after:today',
+            'productID'          => 'required|exists:products,productID',
+            'selling_price'      => 'required|numeric|min:0',
+            'package_total_cost' => 'nullable|numeric|min:0',
+            'quantity'           => 'required|integer|min:1',
+            'batchNo'            => 'nullable|string|max:50',
+            'expiryDate'         => 'nullable|date|after:today',
         ]);
+        
+        // Check if the product's supplier is active
+        $product = Product::with('supplier')->findOrFail($request->productID);
+        if (!$product->supplier || !$product->supplier->is_active) {
+            return back()->with('error', 'Cannot add stock for products with inactive suppliers.');
+        }
 
         // Check if there's an existing stock with the same product and batch number
         $existingStock = Stock::where('productID', $request->productID)
@@ -102,8 +161,13 @@ class InventoryController extends Controller
                 $mismatchDetails['expiryDate'] = $existingExpiryDate;
             }
             
-            // Check purchase price
-            if ((float)$existingStock->purchase_price != (float)$request->purchase_price) {
+            // Compute intended purchase price per piece from package total / quantity
+            $computedPurchasePrice = null;
+            if ($request->filled('package_total_cost') && (int)$request->quantity > 0) {
+                $computedPurchasePrice = round(((float)$request->package_total_cost) / (int)$request->quantity, 2);
+            }
+            // Check purchase price against computed
+            if (!is_null($computedPurchasePrice) && (float)$existingStock->purchase_price != (float)$computedPurchasePrice) {
                 $mismatches[] = "purchase price (should be: ₱" . number_format($existingStock->purchase_price, 2) . ")";
                 $mismatchDetails['purchase_price'] = $existingStock->purchase_price;
             }
@@ -151,17 +215,24 @@ class InventoryController extends Controller
                 ->with('success', 'Stock quantity updated successfully!');
         } else {
             // Create a new stock entry
+            // Compute purchase price per piece (from package_total_cost / quantity) if provided
+            $purchasePerPiece = 0;
+            if ($request->filled('package_total_cost') && (int)$request->quantity > 0) {
+                $purchasePerPiece = round(((float)$request->package_total_cost) / (int)$request->quantity, 2);
+            }
+
             Stock::create([
-                'productID'      => $request->productID,
-                'employeeID'     => Auth::user()->employeeID,
-                'type'           => 'IN',
-                'purchase_price' => $request->purchase_price,
-                'selling_price'  => $request->selling_price,
-                'quantity'       => $request->quantity,
-                'availability'   => true,
-                'batchNo'        => $request->batchNo,
-                'expiryDate'     => $request->expiryDate,
-                'movementDate'   => now(),
+                'productID'          => $request->productID,
+                'employeeID'         => Auth::user()->employeeID,
+                'type'               => 'IN',
+                'purchase_price'     => $purchasePerPiece,
+                'selling_price'      => $request->selling_price,
+                'package_total_cost' => $request->package_total_cost,
+                'quantity'           => $request->quantity,
+                'availability'       => true,
+                'batchNo'            => $request->batchNo,
+                'expiryDate'         => $request->expiryDate,
+                'movementDate'       => now(),
             ]);
 
             if ($isAjax) {

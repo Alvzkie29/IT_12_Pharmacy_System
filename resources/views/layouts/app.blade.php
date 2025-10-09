@@ -224,7 +224,7 @@
 
             <!-- Inventory Dropdown -->
             @php
-                $inventoryActive = request()->routeIs('products.index') || request()->routeIs('inventory.index');
+                $inventoryActive = request()->routeIs('products.index') || request()->routeIs('inventory.index') || request()->routeIs('inventory.nearExpiry');
             @endphp
             <a class="nav-link text-white mb-2 d-flex justify-content-between align-items-center {{ $inventoryActive ? 'active-link rounded' : '' }}" 
                data-bs-toggle="collapse" href="#inventoryMenu" role="button" 
@@ -240,6 +240,10 @@
                 <a href="{{ route('inventory.index') }}" 
                    class="nav-link text-white mb-1 {{ request()->routeIs('inventory.index') ? 'active-link rounded' : '' }}">
                     <i class="fas fa-warehouse me-2"></i> Stocks
+                </a>
+                <a href="{{ route('inventory.nearExpiry') }}" 
+                   class="nav-link text-white mb-1 {{ request()->routeIs('inventory.nearExpiry') ? 'active-link rounded' : '' }}">
+                    <i class="fas fa-hourglass-end me-2"></i> Near Expiry
                 </a>
             </div>
 

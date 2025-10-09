@@ -4,7 +4,7 @@
 <style>
     .page-header {
         background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-        border-radius: 15px;
+        border-radius: 0;
         padding: 2rem;
         margin-bottom: 2rem;
         color: white;
@@ -12,15 +12,15 @@
     
     .search-section {
         background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        border-radius: 15px;
+        border-radius: 0;
         padding: 1.5rem;
         margin-bottom: 2rem;
-        border: 1px solid #dee2e6;
+        border: none; /* No border on non-buttons */
     }
     
     .inventory-card {
         border: none;
-        border-radius: 15px;
+        border-radius: 0;
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
         overflow: hidden;
     }
@@ -44,6 +44,22 @@
         vertical-align: middle;
         text-align: center;
     }
+
+    /* Globally remove borders from non-button UI elements on this page */
+    .inventory-card .table thead th,
+    .inventory-card .table tbody td,
+    .inventory-card .table tfoot td,
+    .inventory-card .table,
+    .modal-content,
+    .card,
+    .form-control,
+    .form-select,
+    .input-group-text {
+        border: none !important;
+    }
+
+    /* Keep buttons prominent */
+    .btn { border-width: 1px; border-radius: 0; }
     
     .inventory-table tbody tr {
         border-bottom: 1px solid #f1f3f4;
@@ -58,7 +74,7 @@
     
     .expiry-status {
         padding: 0.375rem 0.75rem;
-        border-radius: 20px;
+        border-radius: 0;
         font-size: 0.75rem;
         font-weight: 600;
     }
@@ -82,21 +98,21 @@
         background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
         color: white;
         padding: 0.25rem 0.5rem;
-        border-radius: 10px;
+        border-radius: 0;
         font-size: 0.8rem;
         font-weight: 600;
     }
     
     .modal-content {
         border: none;
-        border-radius: 15px;
+        border-radius: 0;
         box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
     }
     
     .modal-header {
         background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
         color: white;
-        border-radius: 15px 15px 0 0;
+        border-radius: 0;
         border: none;
     }
     
@@ -163,9 +179,10 @@
                         <th style="width: 120px;">Generic</th>
                         <th style="width: 80px;">Weight</th>
                         <th style="width: 80px;">Type</th>
-                        <th style="width: 80px;">Quantity</th>
-                        <th style="width: 100px;">Purchase Price</th>
-                        <th style="width: 100px;">Selling Price</th>
+                        <th style="width: 100px;">Qty (pcs)</th>
+                        <th style="width: 140px;">Purchase Price / Piece</th>
+                        <th style="width: 140px;">Selling Price / Piece</th>
+                        <th style="width: 140px;">Package Total Cost</th>
                         <th style="width: 100px;">Batch No</th>
                         <th style="width: 120px;">Expiry Date</th>
                         <th style="width: 100px;">Expiry Status</th>
@@ -197,17 +214,23 @@
                                 <div class="d-flex align-items-center">
                                     <i class="me-2 text-primary"></i>
                                     {{ $stock->product->productName }}
+                                    @if(!$stock->product->supplier || !$stock->product->supplier->is_active)
+                                        <span class="badge bg-danger ms-2" title="This product's supplier is inactive">Inactive Supplier</span>
+                                    @endif
                                 </div>
                             </td>
                             <td class="text-start text-muted">{{ $stock->product->genericName }}</td>
                             <td class="text-muted">{{ $stock->product->productWeight }}</td>
                             <td class="text-muted">{{ $stock->product->dosageForm }}</td>
-                            <td class="fw-bold text-primary">{{ $stock->available_quantity }}</td>
-                            <td class="text-center">
-                                <span class="price-badge">₱{{ number_format($stock->purchase_price, 2) }}</span>
+                            <td class="text-end fw-bold text-primary">{{ $stock->available_quantity }}</td>
+                            <td class="text-end">
+                                <span class="price-badge">₱{{ number_format($stock->purchase_price, 2) }} / pc</span>
                             </td>
-                            <td class="text-center">
-                                <span class="price-badge">₱{{ number_format($stock->selling_price, 2) }}</span>
+                            <td class="text-end">
+                                <span class="price-badge">₱{{ number_format($stock->selling_price, 2) }} / pc</span>
+                            </td>
+                            <td class="text-end">
+                                <span class="price-badge">₱{{ number_format($stock->package_total_cost ?? 0, 2) }}</span>
                             </td>
                             <td class="text-muted">{{ $stock->batchNo ?? 'N/A' }}</td>
                             <td class="text-muted">
@@ -319,21 +342,23 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-6">
-                            <label for="purchase_price" class="form-label fw-semibold">
-                                <i class="fas fa-dollar-sign me-2 text-primary"></i>Purchase Price
-                            </label>
-                            <input type="number" step="0.01" name="purchase_price" id="purchase_price" class="form-control form-control-lg" placeholder="0.00" required>
-                        </div>
+                        
                         <div class="col-md-6">
                             <label for="selling_price" class="form-label fw-semibold">
-                                <i class="fas fa-tag me-2 text-primary"></i>Selling Price
+                                <i class="fas a-tag me-2 text-primary"></i>Selling Price / Piece
                             </label>
                             <input type="number" step="0.01" name="selling_price" id="selling_price" class="form-control form-control-lg" placeholder="0.00" required>
                         </div>
                         <div class="col-md-6">
+                            <label for="package_total_cost" class="form-label fw-semibold">
+                                <i class="fas fa-boxes me-2 text-primary"></i>Package Total (incl. delivery)
+                            </label>
+                            <input type="number" step="0.01" name="package_total_cost" id="package_total_cost" class="form-control form-control-lg" placeholder="0.00">
+                            <div class="form-text">Purchase price per piece will auto-calc: package total / quantity per piece.</div>
+                        </div>
+                        <div class="col-md-6">
                             <label for="quantity_in" class="form-label fw-semibold">
-                                <i class="fas fa-boxes me-2 text-primary"></i>Quantity
+                                <i class="fas fa-boxes me-2 text-primary"></i>Quantity per Piece
                             </label>
                             <input type="number" name="quantity" id="quantity_in" class="form-control form-control-lg" min="1" placeholder="Enter quantity" required>
                         </div>
@@ -354,10 +379,10 @@
             </div>
             <div class="modal-footer bg-light">
                 <button type="button" class="btn btn-secondary btn-lg" data-bs-dismiss="modal">
-                    <i class="fas fa-times me-2"></i>Cancel
+                    Cancel
                 </button>
                 <button type="submit" form="addStockForm" class="btn btn-success btn-lg">
-                    <i class="fas fa-save me-2"></i>Add Stock
+                    Save
                 </button>
             </div>
         </div>
@@ -383,6 +408,28 @@ document.getElementById('inventorySearch').addEventListener('keyup', function ()
 
 // Add Stock Form AJAX Submission
 document.addEventListener('DOMContentLoaded', function() {
+    // Auto-fill last known prices when product changes
+    const productSelect = document.getElementById('productID');
+    const purchaseInput = document.getElementById('purchase_price');
+    const sellingInput = document.getElementById('selling_price');
+
+    if (productSelect) {
+        productSelect.addEventListener('change', function() {
+            const pid = this.value;
+            if (!pid) return;
+            fetch(`{{ route('inventory.lastPrice') }}?productID=${encodeURIComponent(pid)}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.purchase_price !== null) purchaseInput.value = data.purchase_price;
+                    if (data.selling_price !== null) sellingInput.value = data.selling_price;
+                }
+            })
+            .catch(() => {});
+        });
+    }
     const addStockForm = document.getElementById('addStockForm');
     const modal = document.getElementById('addStockModal');
     

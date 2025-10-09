@@ -19,10 +19,12 @@ return new class extends Migration
                 ->references('employeeID')
                 ->on('employees')
                 ->cascadeOnDelete();
-
+            $table->decimal('cash_received', 10, 2);   // New column
+            $table->decimal('change_given', 10, 2);    // New column
             $table->decimal('totalAmount', 10, 2);
             $table->dateTime('saleDate');
             $table->timestamps();
+            
         });
     }
 

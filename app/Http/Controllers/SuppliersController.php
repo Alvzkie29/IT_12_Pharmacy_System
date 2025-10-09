@@ -68,14 +68,35 @@ class SuppliersController extends Controller
         return redirect()->route('suppliers.index')->with('success', 'Supplier updated successfully.');
     }
 
+    public function deactivate($id)
+    {
+        $supplier = Suppliers::findOrFail($id);
+        $supplier->is_active = false;
+        $supplier->save();
+
+        return redirect()->route('suppliers.index')->with('success', 'Supplier deactivated.');
+    }
+
+    /**
+     * Activate a previously inactive supplier.
+     */
+    public function activate($id)
+    {
+        $supplier = Suppliers::findOrFail($id);
+        $supplier->is_active = true;
+        $supplier->save();
+
+        return redirect()->route('suppliers.index')->with('success', 'Supplier activated.');
+    }
+
     /**
      * Remove the specified supplier from storage.
      */
     public function destroy($id)
     {
         $supplier = Suppliers::findOrFail($id);
-        $supplier->delete();
+        $supplier->delete(); // soft delete -> archived
 
-        return redirect()->route('suppliers.index')->with('success', 'Supplier deleted successfully.');
+        return redirect()->route('suppliers.index')->with('success', 'Supplier archived successfully.');
     }
 }
