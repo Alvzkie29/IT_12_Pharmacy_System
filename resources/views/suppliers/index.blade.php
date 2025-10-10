@@ -15,7 +15,7 @@
         border-radius: 15px;
         padding: 1.5rem;
         margin-bottom: 2rem;
-        border: 1px solid #dee2e6;
+        border: none;
     }
     
     .suppliers-card {
@@ -155,7 +155,7 @@
                     placeholder="Search suppliers by name, contact, or address...">
             </div>
             <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#addSupplierModal">
-                <i class="fas fa-plus me-2"></i>Add New Supplier
+                <i class="fas fa-plus me-2"></i>Add Supplier
             </button>
         </div>
     </div>
@@ -247,7 +247,7 @@
                 @csrf
                 <div class="modal-header">
                     <h5 class="modal-title">
-                        <i class="fas fa-plus-circle me-2"></i>Add New Supplier
+                        <i class="fas fa-plus-circle me-2"></i>Add Supplier
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>

@@ -15,79 +15,93 @@ class InventoryController extends Controller
      * Show inventory page with products and stock info
      */
     public function index(Request $request)
-    {
-        $search = $request->input('search');
+{
+    $search = $request->input('search');
+    $lowStockThreshold = 30;
 
-        $stocksQuery = Stock::with('product')
-            ->where('type', 'IN')
-            ->where('availability', true)
-            // Exclude near-expiry (<=6 months) from main list; they are shown in Near Expiry page
-            ->whereDate('expiryDate', '>', now()->addMonths(6))
-            ->when($search, function ($query, $search) {
-                return $query->where(function ($q) use ($search) {
-                    $q->where('batchNo', 'like', "%{$search}%")
-                      ->orWhere('quantity', 'like', "%{$search}%");
-                })
-                ->orWhereHas('product', function ($q) use ($search) {
-                    $q->where('productName', 'like', "%{$search}%")
-                      ->orWhere('genericName', 'like', "%{$search}%")
-                      ->orWhere('productWeight', 'like', "%{$search}%")
-                      ->orWhere('dosageForm', 'like', "%{$search}%");
-                });
+    $stocksQuery = Stock::with(['product', 'supplier'])
+        ->where('type', 'IN')
+        ->where('availability', true)
+        // Exclude near-expiry (<=6 months)
+        ->whereDate('expiryDate', '>', now()->addMonths(6))
+        // Exclude low stock items
+        ->where('quantity', '>', $lowStockThreshold)
+        ->when($search, function ($query, $search) {
+            return $query->where(function ($q) use ($search) {
+                $q->where('batchNo', 'like', "%{$search}%")
+                  ->orWhere('quantity', 'like', "%{$search}%");
             })
-            ->orderBy('expiryDate', 'asc');
+            ->orWhereHas('product', function ($q) use ($search) {
+                $q->where('productName', 'like', "%{$search}%")
+                  ->orWhere('genericName', 'like', "%{$search}%")
+                  ->orWhere('productWeight', 'like', "%{$search}%")
+                  ->orWhere('dosageForm', 'like', "%{$search}%");
+            });
+        })
+        ->orderBy('expiryDate', 'asc');
 
-        // Fetch, then filter out batches with no available quantity, then paginate manually
-        $stocksCollection = $stocksQuery->get()->filter(function ($stock) {
-            return $stock->available_quantity > 0;
-        })->values();
+    // Fetch, then filter out batches with no available quantity, then paginate manually
+    $stocksCollection = $stocksQuery->get()->filter(function ($stock) {
+        return $stock->available_quantity > 0;
+    })->values();
 
-        $perPage = 10;
-        $currentPage = (int) (request()->get('page', 1));
-        $offset = ($currentPage - 1) * $perPage;
-        $itemsForCurrentPage = $stocksCollection->slice($offset, $perPage)->values();
+    $perPage = 10;
+    $currentPage = (int) (request()->get('page', 1));
+    $offset = ($currentPage - 1) * $perPage;
+    $itemsForCurrentPage = $stocksCollection->slice($offset, $perPage)->values();
 
-        $stocks = new LengthAwarePaginator(
-            $itemsForCurrentPage,
-            $stocksCollection->count(),
-            $perPage,
-            $currentPage,
-            [
-                'path' => request()->url(),
-                'query' => ['search' => $search],
-            ]
-        );
+    $stocks = new LengthAwarePaginator(
+        $itemsForCurrentPage,
+        $stocksCollection->count(),
+        $perPage,
+        $currentPage,
+        [
+            'path' => request()->url(),
+            'query' => ['search' => $search],
+        ]
+    );
 
-        // Only get products with active suppliers
-        $products = Product::whereHas('supplier', function($query) {
-            $query->where('is_active', true);
-        })->get();
-        $suppliers = Supplier::all();
+    // Get all products and active suppliers
+    $products = Product::all();
+    $suppliers = Supplier::where('is_active', true)->get();
 
-        return view('inventory.index', compact('stocks', 'products', 'suppliers', 'search'));
-    }
+    return view('inventory.index', compact('stocks', 'products', 'suppliers', 'search'));
+}
 
     /**
      * Near Expiry listing
      */
     public function nearExpiry(Request $request)
-    {
-        $months = (int) ($request->input('months', 6));
-        $thresholdDate = now()->addMonths($months)->startOfDay();
+{
+    $months = 6; // Fixed threshold
+    $lowStockThreshold = 30; // Fixed threshold
+    $thresholdDate = now()->addMonths($months)->startOfDay();
 
-        $stocks = Stock::with('product')
-            ->where('type', 'IN')
-            ->where('availability', true)
-            ->whereDate('expiryDate', '>', now())
-            ->whereDate('expiryDate', '<=', $thresholdDate)
-            ->orderBy('expiryDate', 'asc')
-            ->get()
-            ->filter(function ($stock) {
-                return $stock->available_quantity > 0;
-            });
+    // Get near-expiry stocks ONLY (regardless of stock quantity)
+    $nearExpiryStocks = Stock::with('product')
+        ->where('type', 'IN')
+        ->where('availability', true)
+        ->whereDate('expiryDate', '>', now()) // Not expired yet
+        ->whereDate('expiryDate', '<=', $thresholdDate) // Expiring within 6 months
+        ->orderBy('expiryDate', 'asc')
+        ->get()
+        ->filter(function ($stock) {
+            return $stock->available_quantity > 0;
+        });
 
-        return view('inventory.near_expiry', compact('stocks', 'months'));
-    }
+    // Get low stock items ONLY (regardless of expiry date)
+    $lowStocks = Stock::with('product')
+        ->where('type', 'IN')
+        ->where('availability', true)
+        ->where('quantity', '<=', $lowStockThreshold) // Low stock only (<= 10)
+        ->orderBy('quantity', 'asc')
+        ->get()
+        ->filter(function ($stock) {
+            return $stock->available_quantity > 0;
+        });
+
+    return view('inventory.near_expiry', compact('nearExpiryStocks', 'lowStocks', 'months', 'lowStockThreshold'));
+}
 
     /**
      * Helper: fetch last known purchase/selling price for a product from recent stock-ins
@@ -121,6 +135,7 @@ class InventoryController extends Controller
     public function stockIn(Request $request)
     {
         $request->validate([
+            'supplierID'         => 'required|exists:suppliers,supplierID',
             'productID'          => 'required|exists:products,productID',
             'selling_price'      => 'required|numeric|min:0',
             'package_total_cost' => 'nullable|numeric|min:0',
@@ -129,10 +144,10 @@ class InventoryController extends Controller
             'expiryDate'         => 'nullable|date|after:today',
         ]);
         
-        // Check if the product's supplier is active
-        $product = Product::with('supplier')->findOrFail($request->productID);
-        if (!$product->supplier || !$product->supplier->is_active) {
-            return back()->with('error', 'Cannot add stock for products with inactive suppliers.');
+        // Check if the supplier is active
+        $supplier = Supplier::findOrFail($request->supplierID);
+        if (!$supplier->is_active) {
+            return back()->with('error', 'Cannot add stock for inactive suppliers.');
         }
 
         // Check if there's an existing stock with the same product and batch number
@@ -222,6 +237,7 @@ class InventoryController extends Controller
             }
 
             Stock::create([
+                'supplierID'         => $request->supplierID,
                 'productID'          => $request->productID,
                 'employeeID'         => Auth::user()->employeeID,
                 'type'               => 'IN',
@@ -247,43 +263,189 @@ class InventoryController extends Controller
                 ->with('success', 'Stock added successfully!');
         }
     }
-    /**
-     * Stock Out - Reduce quantity and log movement
-     */
-    public function stockOut(Request $request, $id)
-    {
-        $request->validate([
-            'quantity' => 'required|integer|min:1',
-            'reason'   => 'required|string',
-        ]);
+/**
+ * Stock Out - Reduce quantity and log movement
+ * Now supports bulk pull-out of all near-expiry items
+ */
+public function stockOut(Request $request, $id = null)
+{
+    // Check if this is a bulk pull-out of all near-expiry items
+    if ($request->has('pull_all_near_expiry') && $request->pull_all_near_expiry == '1') {
+        return $this->pullOutAllNearExpiry($request);
+    }
 
-        $stock = Stock::findOrFail($id);
+    $request->validate([
+        'quantity' => 'required|integer|min:1',
+        'reason'   => 'required|string',
+    ]);
 
-        if ($request->quantity > $stock->available_quantity) {
-            return back()->with('error', 'Not enough stock available.');
-        }
+    $stock = Stock::findOrFail($id);
 
-        // Insert a separate OUT row (only for history)
+    if ($request->quantity > $stock->available_quantity) {
+        return back()->with('error', 'Not enough stock available.');
+    }
+
+    // Map reason to consistent format
+    $mappedReason = $request->reason;
+    if ($request->reason === 'pulled_out_expired') {
+        $mappedReason = 'pulled_out_near_expiry';
+    }
+
+    // Insert a separate OUT row (only for history)
+    Stock::create([
+        'supplierID'     => $stock->supplierID,
+        'productID'      => $stock->productID,
+        'employeeID'     => Auth::user()->employeeID, 
+        'type'           => 'OUT',
+        'reason'         => $mappedReason, // Use mapped reason
+        'purchase_price' => $stock->purchase_price,
+        'selling_price'  => $stock->selling_price,
+        'quantity'       => $request->quantity,
+        'availability'   => false, 
+        'batchNo'        => $stock->batchNo,
+        'expiryDate'     => $stock->expiryDate,
+        'movementDate'   => now(),
+    ]);
+
+    // Check if the available quantity is now zero and delete if necessary
+    if ($stock->available_quantity - $request->quantity <= 0) {
+        // Delete the stock record to avoid unique constraint violation
+        $stock->delete();
+    }
+
+    return redirect()->route('reports.index')->with('success', 'Stock out recorded successfully.');
+}
+
+/**
+ * Helper method to pull out all near-expiry items
+ */
+/**
+ * Helper method to pull out all near-expiry items
+ */
+private function pullOutAllNearExpiry(Request $request)
+{
+    $months = (int) ($request->input('months', 6));
+    $thresholdDate = now()->addMonths($months)->startOfDay();
+
+    // Get all near-expiry stocks
+    $nearExpiryStocks = Stock::with('product')
+        ->where('type', 'IN')
+        ->where('availability', true)
+        ->whereDate('expiryDate', '>', now())
+        ->whereDate('expiryDate', '<=', $thresholdDate)
+        ->get()
+        ->filter(function ($stock) {
+            return $stock->available_quantity > 0;
+        });
+
+    if ($nearExpiryStocks->isEmpty()) {
+        return redirect()
+            ->route('inventory.near-expiry')
+            ->with('error', 'No near-expiry items found to pull out.');
+    }
+
+    $pulledCount = 0;
+
+    foreach ($nearExpiryStocks as $stock) {
+        // Create OUT record for each near-expiry stock with correct reason
         Stock::create([
+            'supplierID'     => $stock->supplierID,
             'productID'      => $stock->productID,
-            'employeeID'     => Auth::user()->employeeID, 
+            'employeeID'     => Auth::user()->employeeID,
             'type'           => 'OUT',
-            'reason'         => $request->reason,
+            'reason'         => 'pulled_out_near_expiry', // Use specific reason
             'purchase_price' => $stock->purchase_price,
             'selling_price'  => $stock->selling_price,
-            'quantity'       => $request->quantity,
-            'availability'   => false, 
+            'quantity'       => $stock->available_quantity,
+            'availability'   => false,
             'batchNo'        => $stock->batchNo,
             'expiryDate'     => $stock->expiryDate,
             'movementDate'   => now(),
         ]);
 
-        // Check if the available quantity is now zero and delete if necessary
-        if ($stock->available_quantity - $request->quantity <= 0) {
-            // Delete the stock record to avoid unique constraint violation
-            $stock->delete();
+        // Delete the original stock record since we've pulled out all available quantity
+        $stock->delete();
+
+        $pulledCount++;
+    }
+
+    return redirect()
+        ->route('inventory.nearExpiry')
+        ->with('success', "Successfully pulled out {$pulledCount} near-expiry items.");
+}
+
+/**
+ * Restock low stock items
+ */
+public function restock(Request $request, $id)
+{
+    $request->validate([
+        'additional_quantity' => 'required|integer|min:1',
+        'purchase_price' => 'required|numeric|min:0',
+        'selling_price' => 'required|numeric|min:0',
+        'batchNo' => 'nullable|string|max:50',
+        'expiryDate' => 'required|date|after:today',
+    ]);
+
+    $originalStock = Stock::findOrFail($id);
+    $lowStockThreshold = 30; // Same threshold
+    
+    // Check if there's an existing stock with the same product and batch number
+    $existingStock = Stock::where('productID', $originalStock->productID)
+        ->where('batchNo', $request->batchNo)
+        ->where('type', 'IN')
+        ->where('availability', true)
+        ->first();
+
+    if ($existingStock && $request->batchNo) {
+        // Check if prices match
+        if ((float)$existingStock->purchase_price != (float)$request->purchase_price || 
+            (float)$existingStock->selling_price != (float)$request->selling_price) {
+            return back()->with('error', 'Prices do not match existing batch. Please use the same prices or create a new batch.');
         }
 
-        return redirect()->route('reports.index')->with('success', 'Stock out recorded successfully.');
+        // Update existing stock quantity
+        $existingStock->quantity += $request->additional_quantity;
+        $existingStock->save();
+
+        $message = 'Stock restocked successfully!';
+        
+        // Check if item should move back to main inventory
+        if ($existingStock->available_quantity > $lowStockThreshold) {
+            $message .= ' Item has been moved back to main inventory.';
+        }
+
+        return redirect()
+            ->route('inventory.nearExpiry')
+            ->with('success', $message);
+    } else {
+        // Create new stock entry
+        Stock::create([
+            'supplierID'     => $originalStock->supplierID,
+            'productID'      => $originalStock->productID,
+            'employeeID'     => Auth::user()->employeeID,
+            'type'           => 'IN',
+            'purchase_price' => $request->purchase_price,
+            'selling_price'  => $request->selling_price,
+            'quantity'       => $request->additional_quantity,
+            'availability'   => true,
+            'batchNo'        => $request->batchNo,
+            'expiryDate'     => $request->expiryDate,
+            'movementDate'   => now(),
+        ]);
+
+        $message = 'New stock added successfully!';
+        
+        // If the new stock quantity is above threshold, it will automatically appear in main inventory
+        if ($request->additional_quantity > $lowStockThreshold) {
+            $message .= ' Item will appear in main inventory.';
+        } else {
+            $message .= ' Item remains in low stock.';
+        }
+
+        return redirect()
+            ->route('inventory.nearExpiry')
+            ->with('success', $message);
     }
+}
 }

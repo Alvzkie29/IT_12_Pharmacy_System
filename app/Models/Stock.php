@@ -12,6 +12,7 @@ class Stock extends Model
     protected $primaryKey = 'stockID';
 
     protected $fillable = [
+        'supplierID',
         'productID',
         'employeeID',
         'type',
@@ -28,6 +29,10 @@ class Stock extends Model
 
     protected $casts = [
         'movementDate' => 'datetime',
+        'purchase_price' => 'decimal:2',
+        'selling_price' => 'decimal:2',
+        'package_total_cost' => 'decimal:2',
+        'quantity' => 'integer',
     ];
 
     public function getStatusBadgeAttribute()
@@ -53,6 +58,11 @@ class Stock extends Model
     }
 
     // Relationships
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class, 'supplierID');
+    }
+
     public function product()
     {
         return $this->belongsTo(Product::class, 'productID');

@@ -166,7 +166,7 @@
                     placeholder="Search products by name, generic name, or category...">
             </div>
             <button class="btn btn-success btn-lg" data-bs-toggle="modal" data-bs-target="#addProductModal">
-                <i class="fas fa-plus me-2"></i>Add New Product
+                <i class="fas fa-plus me-2"></i>Add Product
             </button>
         </div>
     </div>
@@ -181,7 +181,6 @@
                         <th style="width: 150px;">Generic Name</th>
                         <th style="width: 100px;">Weight</th>
                         <th style="width: 100px;">Type</th>
-                        <th style="width: 150px;">Supplier</th>
                         <th style="width: 120px;">Category</th>
                         <th>Description</th>
                         <th style="width: 120px;">Actions</th>
@@ -194,9 +193,6 @@
                             <td class="text-start">{{ $product->genericName ?? 'N/A' }}</td>
                             <td class="text-muted">{{ $product->productWeight ?? 'N/A' }}</td>
                             <td class="text-muted">{{ $product->dosageForm ?? 'N/A' }}</td>
-                            <td class="text-start">
-                                <i class="fas fa-truck me-2 text-muted"></i>{{ $product->supplier->supplierName }}
-                            </td>
                             <td class="text-center">
                                 <span class="category-badge {{ $product->category }}">{{ $product->category }}</span>
                             </td>
@@ -229,17 +225,6 @@
                                             <form action="{{ route('products.update', $product->productID) }}" method="POST" onsubmit="return confirm('Confirm updating this product?');">
                                                 @csrf
                                                 @method('PUT')
-                                                <div class="mb-3">
-                                                    <label for="supplierID{{ $product->productID }}" class="form-label">Supplier</label>
-                                                    <select name="supplierID" class="form-select" required>
-                                                        <option value="" disabled>Select supplier</option>
-                                                        @foreach($suppliers as $supplier)
-                                                            <option value="{{ $supplier->supplierID }}" {{ $product->supplierID == $supplier->supplierID ? 'selected' : '' }}>
-                                                                {{ $supplier->supplierName }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
                                                 <div class="mb-3">
                                                     <label for="productName{{ $product->productID }}" class="form-label">Product Name</label>
                                                     <input type="text" name="productName" class="form-control" value="{{ $product->productName }}" required>
@@ -283,7 +268,7 @@
                             </div>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center py-5">
+                            <td colspan="7" class="text-center py-5">
                                 <div class="text-muted">
                                     <i class="fas fa-pills fa-3x mb-3"></i>
                                     <h5>No products found</h5>
@@ -309,7 +294,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="addProductModalLabel">
-                    <i class="fas fa-plus-circle me-2"></i>Add New Product
+                    <i class="fas fa-plus-circle me-2"></i>Add Product
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -317,17 +302,6 @@
                 <form id="addProductForm" action="{{ route('products.store') }}" method="POST">
                     @csrf
                     <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="supplierID" class="form-label fw-semibold">
-                                <i class="fas fa-truck me-2 text-primary"></i>Supplier
-                            </label>
-                            <select name="supplierID" class="form-select form-select-lg" required>
-                                <option value="" disabled selected>Select supplier</option>
-                                @foreach($suppliers as $supplier)
-                                    <option value="{{ $supplier->supplierID }}">{{ $supplier->supplierName }}</option>
-                                @endforeach
-                            </select>
-                        </div>
                         <div class="col-md-6">
                             <label for="productName" class="form-label fw-semibold">
                                 <i class="fas fa-pills me-2 text-primary"></i>Product Name

@@ -17,6 +17,10 @@ class Transaction extends Model
         'quantity',
     ];
 
+    protected $casts = [
+        'quantity' => 'integer',
+    ];
+
     // Relationships
     public function sale()
     {

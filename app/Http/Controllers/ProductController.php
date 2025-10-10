@@ -12,30 +12,22 @@ class ProductController extends Controller
     {
         $search = $request->input('search');
 
-        $products = Product::with('supplier')
-            ->when($search, function ($query, $search) {
+        $products = Product::when($search, function ($query, $search) {
                 return $query->where('productName', 'like', "%{$search}%")
                              ->orWhere('genericName', 'like', "%{$search}%")
                              ->orWhere('productWeight', 'like', "%{$search}%")
                              ->orWhere('dosageForm', 'like', "%{$search}%")
-                             ->orWhere('category', 'like', "%{$search}%")
-                             ->orWhereHas('supplier', function ($q) use ($search) {
-                                 $q->where('supplierName', 'like', "%{$search}%");
-                             });
+                             ->orWhere('category', 'like', "%{$search}%");
             })
             ->paginate(10)
             ->appends(['search' => $search]);
 
-        // Only get active suppliers
-        $suppliers = Supplier::where('is_active', true)->get();
-
-        return view('products.index', compact('products', 'suppliers', 'search'));
+        return view('products.index', compact('products', 'search'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'supplierID' => 'required|exists:suppliers,supplierID',
             'productName' => 'required|string|max:255',
             'genericName' => 'nullable|string|max:255',
             'productWeight' => 'nullable|string|max:100',
@@ -55,7 +47,6 @@ class ProductController extends Controller
         $product = Product::findOrFail($id);
 
         $request->validate([
-            'supplierID' => 'required|exists:suppliers,supplierID',
             'productName' => 'required|string|max:255',
             'genericName' => 'nullable|string|max:255',
             'productWeight' => 'nullable|string|max:100',

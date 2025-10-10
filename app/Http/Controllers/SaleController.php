@@ -221,8 +221,71 @@ public function updateCart(Request $request)
         'maxQuantity' => $stock->available_quantity // Return max available for UI feedback
     ]);
 }
+
 /**
- * Finalize sale after confirmation
+ * Show confirm page (GET request)
+ */
+public function showConfirm(Request $request)
+{
+    $cart = session()->get('cart', []);
+
+    if (empty($cart)) {
+        return redirect()->route('sales.index')->with('error', 'Cart is empty.');
+    }
+
+    // Get cash and discount from session or request
+    $cash = (float) ($request->input('cash') ?? session('confirm_cash', 0));
+    $isDiscounted = (int) ($request->input('isDiscounted') ?? session('confirm_discount', 0));
+
+    $subtotal = 0;
+    $validCart = [];
+
+    foreach ($cart as $item) {
+        $stock = Stock::with('product')->find($item['stockID']);
+
+        // Skip expired/unavailable
+        if (!$stock || !$stock->availability || $stock->expiryDate <= now() || $stock->available_quantity <= 0) {
+            continue;
+        }
+
+        $lineTotal = $stock->selling_price * $item['quantity'];
+        $subtotal += $lineTotal;
+
+        // Enrich the cart item so blade can use price/name/quantity
+        $validCart[$stock->stockID] = [
+            'stockID'  => $stock->stockID,
+            'name'     => $stock->product->productName,
+            'quantity' => $item['quantity'],
+            'price'    => $stock->selling_price,
+        ];
+    }
+
+    if (empty($validCart)) {
+        return redirect()->route('sales.index')->with('error', 'No valid items in cart.');
+    }
+
+    // Apply discount if checked (20% off)
+    $grandTotal = $isDiscounted ? round($subtotal * 0.80, 2) : round($subtotal, 2);
+
+    if ($cash < $grandTotal) {
+        return redirect()->route('sales.index')->with('error', 'Insufficient cash received. Please enter at least ₱' . number_format($grandTotal, 2));
+    }
+
+    $change = round($cash - $grandTotal, 2);
+
+    return view('sales.confirm', [
+        'items'       => $validCart,
+        'stocks'      => Stock::getAvailableStock(),
+        'subtotal'    => $subtotal,
+        'grandTotal'  => $grandTotal,
+        'cash'        => $cash,
+        'change'      => $change,
+        'isDiscounted'=> $isDiscounted,
+    ]);
+}
+
+/**
+ * Process confirm request (POST request)
  */
 public function confirm(Request $request)
 {
@@ -277,6 +340,10 @@ public function confirm(Request $request)
     }
 
     $change = round($cash - $grandTotal, 2);
+
+    // Store cash and discount in session for GET access
+    session()->put('confirm_cash', $cash);
+    session()->put('confirm_discount', $isDiscounted);
 
     // Update session with only valid items (including price) - only when cash is sufficient
     session()->put('cart', $validCart);
@@ -372,6 +439,7 @@ public function finalize(Request $request)
 
             // Create a separate OUT row for sales (for reporting purposes)
             Stock::create([
+                'supplierID'     => $stock->supplierID,
                 'productID'      => $stock->productID,
                 'employeeID'     => Auth::user()->employeeID, 
                 'type'           => 'OUT',
@@ -394,6 +462,8 @@ public function finalize(Request $request)
 
         DB::commit();
         session()->forget('cart');
+        session()->forget('confirm_cash');
+        session()->forget('confirm_discount');
 
         return redirect()->route('sales.index')
             ->with('success', 'Sale recorded successfully! Change: ₱' . number_format($change, 2));

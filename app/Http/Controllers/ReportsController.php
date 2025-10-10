@@ -76,9 +76,9 @@ class ReportsController extends Controller
         ->paginate(10)
         ->appends(['search' => $search, 'date' => $date, 'period' => $period]);
 
-    $totalStockIn   = $validReports->sum('quantity');
-    $totalPulledOut = $pulledOutReports->sum('quantity');
-    $totalExpired   = $expiredReports->sum('quantity');
+    $totalStockIn   = (int) $validReports->sum('quantity');
+    $totalPulledOut = (int) $pulledOutReports->sum('quantity');
+    $totalExpired   = (int) $expiredReports->sum('quantity');
 
     // 🔹 Sales Query
     $salesQuery = Sale::with(['transactions.stock.product'])
@@ -116,48 +116,49 @@ class ReportsController extends Controller
 
     // 🔹 Map sales data with discount information
     $salesData = $sales->flatMap->transactions->map(function ($transaction) {
-        $stock = $transaction->stock;
-        $sale = $transaction->sale;
-        $sellingPrice = $stock->selling_price ?? 0;
-        $purchasePrice = $stock->purchase_price ?? 0;
-        $lineTotal = $transaction->quantity * $sellingPrice;
-        
-        // If this sale had a discount, calculate the discounted amount for this line item
-        $discountedTotal = $lineTotal;
-        $itemDiscount = 0;
-        if ($sale->isDiscounted && $sale->subtotal > 0) {
-            // Calculate this item's share of the discount (proportional)
-            $discountRatio = $sale->discountAmount / $sale->subtotal;
-            $itemDiscount = $lineTotal * $discountRatio;
-            $discountedTotal = $lineTotal - $itemDiscount;
-        }
-        
-        // Calculate profit (reduced by discount if applicable)
-        $originalProfit = ($sellingPrice - $purchasePrice) * $transaction->quantity;
-        $profit = $originalProfit - $itemDiscount;
+    $stock = $transaction->stock;
+    $sale = $transaction->sale;
+    $sellingPrice = (float) ($stock->selling_price ?? 0);
+    $purchasePrice = (float) ($stock->purchase_price ?? 0);
+    $quantity = (int) ($transaction->quantity ?? 0);
+    $lineTotal = $quantity * $sellingPrice;
+    
+    // If this sale had a discount, calculate the discounted amount for this line item
+    $discountedTotal = $lineTotal;
+    $itemDiscount = 0;
+    if ($sale->isDiscounted && $sale->subtotal > 0) {
+        // Calculate this item's share of the discount (proportional)
+        $discountRatio = (float) $sale->discountAmount / (float) $sale->subtotal;
+        $itemDiscount = $lineTotal * $discountRatio;
+        $discountedTotal = $lineTotal - $itemDiscount;
+    }
+    
+    // Calculate profit (reduced by discount if applicable)
+    $originalProfit = ($sellingPrice - $purchasePrice) * $quantity;
+    $profit = $originalProfit - $itemDiscount;
 
-        return [
-            'productName'     => $stock->product->productName ?? 'N/A',
-            'batchNo'         => $stock->batchNo ?? 'N/A',
-            'quantity'        => $transaction->quantity,
-            'purchasePrice'   => $purchasePrice,
-            'sellingPrice'    => $sellingPrice,
-            'total'           => $lineTotal,
-            'discountedTotal' => $discountedTotal,
-            // expose per-line discount for accurate totals
-            'itemDiscount'    => $lineTotal - $discountedTotal,
-            'profit'          => $profit,
-            'saleDate'        => $transaction->sale->saleDate,
-            'isDiscounted'    => $sale->isDiscounted,
-            'discountAmount'  => $sale->discountAmount,
-        ];
-    });
+    return [
+        'productName'     => $stock->product->productName ?? 'N/A',
+        'genericName'     => $stock->product->genericName ?? 'N/A', // ADD THIS LINE
+        'batchNo'         => $stock->batchNo ?? 'N/A',
+        'quantity'        => $quantity,
+        'purchasePrice'   => $purchasePrice,
+        'sellingPrice'    => $sellingPrice,
+        'total'           => $lineTotal,
+        'discountedTotal' => $discountedTotal,
+        'itemDiscount'    => $lineTotal - $discountedTotal,
+        'profit'          => $profit,
+        'saleDate'        => $transaction->sale->saleDate,
+        'isDiscounted'    => $sale->isDiscounted,
+        'discountAmount'  => (float) $sale->discountAmount,
+    ];
+});
 
-    $totalSales           = $salesData->sum('total');
-    $totalDiscountedSales = $salesData->sum('discountedTotal');
-    $totalProfit          = $salesData->sum('profit');
+    $totalSales           = (float) $salesData->sum('total');
+    $totalDiscountedSales = (float) $salesData->sum('discountedTotal');
+    $totalProfit          = (float) $salesData->sum('profit');
     // Sum actual per-line discounts to avoid multiplying sale-level discount by number of lines
-    $totalDiscounts       = $salesData->sum('itemDiscount');
+    $totalDiscounts       = (float) $salesData->sum('itemDiscount');
 
     return view('reports.index', compact(
         'reports',
@@ -218,56 +219,64 @@ class ReportsController extends Controller
         $reports = $reportsQuery->get();
         
         $validReports = $reports->filter(fn($r) =>
-            $r->type === 'IN' && 
-            !str_starts_with(strtolower($r->reason), 'pulled_out') && 
-            strtolower($r->reason) !== 'expired'
-        );
-        $expiredReports = $reports->filter(fn($r) => 
-            $r->type === 'OUT' && strtolower($r->reason) === 'expired'
-        );
-        $pulledOutReports = $reports->filter(fn($r) => 
-            $r->type === 'OUT' && str_starts_with(strtolower($r->reason), 'pulled_out')
-        );
+        $r->type === 'IN' && 
+        !str_starts_with(strtolower($r->reason ?? ''), 'pulled_out') && 
+        strtolower($r->reason ?? '') !== 'expired'
+    );
+
+    $expiredReports = $reports->filter(fn($r) => 
+        $r->type === 'OUT' && strtolower($r->reason ?? '') === 'expired'
+    );
+
+    $pulledOutReports = $reports->filter(fn($r) => 
+        $r->type === 'OUT' && (
+            str_starts_with(strtolower($r->reason ?? ''), 'pulled_out') ||
+            strtolower($r->reason ?? '') === 'pulled_out_expired' || // Add this line
+            strtolower($r->reason ?? '') === 'pulled_out_low_stock'  // Add this for future use
+        )
+    );
 
         // Get the sales
         $sales = $salesQuery->get();
 
         $salesData = $sales->flatMap->transactions->map(function ($transaction) {
-            $stock = $transaction->stock;
-            $sale = $transaction->sale;
-            $sellingPrice = $stock->selling_price ?? 0;
-            $purchasePrice = $stock->purchase_price ?? 0;
-            $lineTotal = $transaction->quantity * $sellingPrice;
-            
-            // If this sale had a discount, calculate the discounted amount for this line item
-            $discountedTotal = $lineTotal;
-            $itemDiscount = 0;
-            if ($sale->isDiscounted && $sale->subtotal > 0) {
-                // Calculate this item's share of the discount (proportional)
-                $discountRatio = $sale->discountAmount / $sale->subtotal;
-                $itemDiscount = $lineTotal * $discountRatio;
-                $discountedTotal = $lineTotal - $itemDiscount;
-            }
-            
-            // Calculate profit (reduced by discount if applicable)
-            $originalProfit = ($sellingPrice - $purchasePrice) * $transaction->quantity;
-            $profit = $originalProfit - $itemDiscount;
+    $stock = $transaction->stock;
+    $sale = $transaction->sale;
+    $sellingPrice = (float) ($stock->selling_price ?? 0);
+    $purchasePrice = (float) ($stock->purchase_price ?? 0);
+    $quantity = (int) ($transaction->quantity ?? 0);
+    $lineTotal = $quantity * $sellingPrice;
+    
+    // If this sale had a discount, calculate the discounted amount for this line item
+    $discountedTotal = $lineTotal;
+    $itemDiscount = 0;
+    if ($sale->isDiscounted && $sale->subtotal > 0) {
+        // Calculate this item's share of the discount (proportional)
+        $discountRatio = (float) $sale->discountAmount / (float) $sale->subtotal;
+        $itemDiscount = $lineTotal * $discountRatio;
+        $discountedTotal = $lineTotal - $itemDiscount;
+    }
+    
+    // Calculate profit (reduced by discount if applicable)
+    $originalProfit = ($sellingPrice - $purchasePrice) * $quantity;
+    $profit = $originalProfit - $itemDiscount;
 
-            return [
-                'productName'     => $stock->product->productName ?? 'N/A',
-                'batchNo'         => $stock->batchNo ?? 'N/A',
-                'quantity'        => $transaction->quantity,
-                'purchasePrice'   => $purchasePrice,
-                'sellingPrice'    => $sellingPrice,
-                'total'           => $lineTotal,
-                'discountedTotal' => $discountedTotal,
-                'itemDiscount'    => $lineTotal - $discountedTotal,
-                'profit'          => $profit,
-                'saleDate'        => $transaction->sale->saleDate,
-                'isDiscounted'    => $sale->isDiscounted,
-                'discountAmount'  => $sale->discountAmount,
-            ];
-        });
+    return [
+        'productName'     => $stock->product->productName ?? 'N/A',
+        'genericName'     => $stock->product->genericName ?? 'N/A', // ADD THIS LINE
+        'batchNo'         => $stock->batchNo ?? 'N/A',
+        'quantity'        => $quantity,
+        'purchasePrice'   => $purchasePrice,
+        'sellingPrice'    => $sellingPrice,
+        'total'           => $lineTotal,
+        'discountedTotal' => $discountedTotal,
+        'itemDiscount'    => $lineTotal - $discountedTotal,
+        'profit'          => $profit,
+        'saleDate'        => $transaction->sale->saleDate,
+        'isDiscounted'    => $sale->isDiscounted,
+        'discountAmount'  => (float) $sale->discountAmount,
+    ];
+});
 
         $totalSales = $salesData->sum('total');
         $totalDiscountedSales = $salesData->sum('discountedTotal');

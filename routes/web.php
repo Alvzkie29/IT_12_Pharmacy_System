@@ -22,6 +22,7 @@ Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard
 Route::resource('sales', SaleController::class)->only(['index', 'store']);
 Route::post('/sales/update-cart', [SaleController::class, 'updateCart'])->name('sales.updateCart');
 Route::post('/sales/confirm', [SaleController::class, 'confirm'])->name('sales.confirm'); 
+Route::get('/sales/confirm', [SaleController::class, 'showConfirm'])->name('sales.showConfirm');
 Route::post('/sales/finalize', [SaleController::class, 'finalize'])->name('sales.finalize'); 
 
 Route::resource('suppliers', SuppliersController::class);
@@ -37,11 +38,11 @@ Route::resource('products', ProductController::class)->only(['index','store', 'u
 Route::prefix('inventory')->group(function () {
     Route::get('/', [InventoryController::class, 'index'])->name('inventory.index');
     Route::post('/stock-in', [InventoryController::class, 'stockIn'])->name('inventory.stockIn');
-    Route::put('/inventory/stock-out/{id}', [InventoryController::class, 'stockOut'])->name('inventory.stockOut');
-    // Near expiry module
+    Route::post('/stock-out/{id?}', [InventoryController::class, 'stockOut'])->name('inventory.stock-out'); // Fixed this line
     Route::get('/near-expiry', [InventoryController::class, 'nearExpiry'])->name('inventory.nearExpiry');
-    // Helper: fetch last prices for selected product
     Route::get('/last-price', [InventoryController::class, 'lastPrice'])->name('inventory.lastPrice');
+    Route::post('/bulk-pull-out', [InventoryController::class, 'bulkPullOut'])->name('inventory.bulk-pull-out');
+    Route::post('/restock/{id}', [InventoryController::class, 'restock'])->name('inventory.restock');
 });
 
 Route::post('/suppliers/{id}/deactivate', [SuppliersController::class, 'deactivate'])->name('suppliers.deactivate');
