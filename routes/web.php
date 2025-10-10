@@ -7,6 +7,7 @@ use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SuppliersController;
+use App\Http\Controllers\TransactionDetailsController;
 use Illuminate\Support\Facades\Route;
 
 // Landing page = Login form
@@ -29,6 +30,7 @@ Route::resource('suppliers', SuppliersController::class);
 
 Route::get('/reports', [ReportsController::class, 'index'])->name('reports.index');
 Route::get('/reports/print/{date}', [ReportsController::class, 'print'])->name('reports.print');
+Route::get('/reports/transaction-details', [TransactionDetailsController::class, 'index'])->name('reports.transaction_details');
 
 Route::post('/products', [ProductController::class, 'store'])->name('products.store');
 
@@ -43,6 +45,7 @@ Route::prefix('inventory')->group(function () {
     Route::get('/last-price', [InventoryController::class, 'lastPrice'])->name('inventory.lastPrice');
     Route::post('/bulk-pull-out', [InventoryController::class, 'bulkPullOut'])->name('inventory.bulk-pull-out');
     Route::post('/restock/{id}', [InventoryController::class, 'restock'])->name('inventory.restock');
+    // Route for manual expiry status update removed as it's now handled automatically
 });
 
 Route::post('/suppliers/{id}/deactivate', [SuppliersController::class, 'deactivate'])->name('suppliers.deactivate');

@@ -53,20 +53,27 @@ class ReportsController extends Controller
     // 🔹 Filter categories and paginate each separately
     $validReports = $allReports->filter(fn($r) =>
         $r->type === 'IN' && 
-        !str_starts_with(strtolower($r->reason), 'pulled_out') && 
-        strtolower($r->reason) !== 'expired'
+        !str_starts_with(strtolower($r->reason ?? ''), 'pulled_out') && 
+        strtolower($r->reason ?? '') !== 'expired' &&
+        strtolower($r->reason ?? '') !== 'near_expiry'
     );
     $expiredReports = $allReports->filter(fn($r) => 
-        $r->type === 'OUT' && strtolower($r->reason) === 'expired'
+        ($r->type === 'OUT' && strtolower($r->reason ?? '') === 'expired') ||
+        ($r->type === 'IN' && strtolower($r->reason ?? '') === 'expired')
+    );
+    $nearExpiryReports = $allReports->filter(fn($r) => 
+        $r->type === 'IN' && strtolower($r->reason ?? '') === 'near_expiry'
     );
     $pulledOutReports = $allReports->filter(fn($r) => 
-        $r->type === 'OUT' && str_starts_with(strtolower($r->reason), 'pulled_out')
+        $r->type === 'OUT' && str_starts_with(strtolower($r->reason ?? ''), 'pulled_out')
     );
 
     // 🔹 Paginate each stock table separately (10 items per page)
     $validReportsPaginated = $this->paginateCollection($validReports, 10, 'valid_page')
         ->appends(['search' => $search, 'date' => $date, 'period' => $period]);
     $expiredReportsPaginated = $this->paginateCollection($expiredReports, 10, 'expired_page')
+        ->appends(['search' => $search, 'date' => $date, 'period' => $period]);
+    $nearExpiryReportsPaginated = $this->paginateCollection($nearExpiryReports, 10, 'near_expiry_page')
         ->appends(['search' => $search, 'date' => $date, 'period' => $period]);
     $pulledOutReportsPaginated = $this->paginateCollection($pulledOutReports, 10, 'pulled_page')
         ->appends(['search' => $search, 'date' => $date, 'period' => $period]);
@@ -170,6 +177,7 @@ class ReportsController extends Controller
         'pulledOutReports',
         'validReportsPaginated',
         'expiredReportsPaginated',
+        'nearExpiryReportsPaginated',
         'pulledOutReportsPaginated',
         'totalStockIn',
         'totalPulledOut',
@@ -187,6 +195,8 @@ class ReportsController extends Controller
     {
         $date = $request->input('date', now()->toDateString());
         $period = $request->input('period', 'specific_date');
+        $from   = $request->input('from_date');
+        $to     = $request->input('to_date');
         
         // Stock reports query
         $reportsQuery = Stock::with('product');
@@ -209,32 +219,65 @@ class ReportsController extends Controller
             $reportsQuery->whereYear('created_at', now()->year);
             $salesQuery->whereYear('saleDate', now()->year);
             $reportTitle = 'Yearly Report - ' . now()->year;
-        } else {
+        }elseif ($period === 'custom_range' && $from && $to) {
+        $reportsQuery->whereBetween('created_at', [
+            \Carbon\Carbon::parse($from)->startOfDay(),
+            \Carbon\Carbon::parse($to)->endOfDay()
+        ]);
+        }
+         else {
             $reportsQuery->whereDate('created_at', $date);
             $salesQuery->whereDate('saleDate', $date);
             $reportTitle = 'Daily Report - ' . $date;
         }
         
-        // Get the reports
-        $reports = $reportsQuery->get();
-        
-        $validReports = $reports->filter(fn($r) =>
-        $r->type === 'IN' && 
-        !str_starts_with(strtolower($r->reason ?? ''), 'pulled_out') && 
-        strtolower($r->reason ?? '') !== 'expired'
-    );
+        // Get valid reports directly from database
+        $validReports = Stock::with('product')
+            ->where('type', 'IN')
+            ->where(function($query) {
+                $query->whereNull('reason')
+                      ->orWhere(function($q) {
+                          $q->where('reason', 'not like', 'pulled_out%')
+                            ->where('reason', '!=', 'expired')
+                            ->where('reason', '!=', 'near_expiry');
+                      });
+            })
+            ->when($period === 'today', fn($q) => $q->whereDate('created_at', today()))
+            ->when($period === 'monthly', fn($q) => $q->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year))
+            ->when($period === 'yearly', fn($q) => $q->whereYear('created_at', now()->year))
+            ->when($period === 'custom_range', fn($q) => $q->whereDate('created_at', $date))
+            ->get();
 
-    $expiredReports = $reports->filter(fn($r) => 
-        $r->type === 'OUT' && strtolower($r->reason ?? '') === 'expired'
-    );
+    $expiredReports = Stock::with('product')
+        ->where('reason', 'expired')
+        ->when($period === 'today', fn($q) => $q->whereDate('created_at', today()))
+        ->when($period === 'monthly', fn($q) => $q->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year))
+        ->when($period === 'yearly', fn($q) => $q->whereYear('created_at', now()->year))
+        ->when($period === 'custom_range', fn($q) => $q->whereDate('created_at', $date))
+        ->where('type', 'IN')
+        ->where('quantity', '>', 0)
+        ->get();
+    
+    $nearExpiryReports = Stock::with('product')
+        ->where('type', 'IN')
+        ->where('reason', 'near_expiry')
+        ->when($period === 'today', fn($q) => $q->whereDate('created_at', today()))
+        ->when($period === 'monthly', fn($q) => $q->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year))
+        ->when($period === 'yearly', fn($q) => $q->whereYear('created_at', now()->year))
+        ->when($period === 'custom_range', fn($q) => $q->whereDate('created_at', $date))
+        ->get();
 
-    $pulledOutReports = $reports->filter(fn($r) => 
-        $r->type === 'OUT' && (
-            str_starts_with(strtolower($r->reason ?? ''), 'pulled_out') ||
-            strtolower($r->reason ?? '') === 'pulled_out_expired' || // Add this line
-            strtolower($r->reason ?? '') === 'pulled_out_low_stock'  // Add this for future use
-        )
-    );
+    $pulledOutReports = Stock::with('product')
+        ->where('type', 'OUT')
+        ->where(function($query) {
+            $query->where('reason', 'like', 'pulled_out%')
+                  ->orWhere('reason', 'pulled_out_low_stock');
+        })
+        ->when($period === 'today', fn($q) => $q->whereDate('created_at', today()))
+        ->when($period === 'monthly', fn($q) => $q->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year))
+        ->when($period === 'yearly', fn($q) => $q->whereYear('created_at', now()->year))
+        ->when($period === 'custom_range', fn($q) => $q->whereDate('created_at', $date))
+        ->get();
 
         // Get the sales
         $sales = $salesQuery->get();
@@ -286,6 +329,7 @@ class ReportsController extends Controller
         return view('reports.print', compact(
             'validReports',
             'expiredReports',
+            'nearExpiryReports',
             'pulledOutReports',
             'salesData',
             'totalSales',

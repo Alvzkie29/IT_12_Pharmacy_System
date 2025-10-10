@@ -128,7 +128,7 @@ class Stock extends Model
         return self::with('product')
             ->where('type', 'IN')
             ->where('availability', true)
-            ->whereDate('expiryDate', '>', now())
+            ->whereDate('expiryDate', '>', now()->startOfDay()) // Exclude today's date
             ->get()
             ->filter(function ($stock) {
                 return $stock->available_quantity > 0;

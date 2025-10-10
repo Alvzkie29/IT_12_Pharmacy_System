@@ -251,10 +251,27 @@
                class="nav-link text-white mb-2 {{ request()->routeIs('sales.index') ? 'active-link rounded' : '' }}">
                 <i class="fas fa-shopping-cart me-2"></i> Sales
             </a>
-            <a href="{{ route('reports.index') }}" 
-               class="nav-link text-white mb-2 {{ request()->routeIs('reports.index') ? 'active-link rounded' : '' }}">
-                <i class="fas fa-chart-line me-2"></i> Reports
+            
+            <!-- Reports Dropdown -->
+            @php
+                $reportsActive = request()->routeIs('reports.index') || request()->routeIs('reports.transaction_details');
+            @endphp
+            <a class="nav-link text-white mb-2 d-flex justify-content-between align-items-center {{ $reportsActive ? 'active-link rounded' : '' }}" 
+               data-bs-toggle="collapse" href="#reportsMenu" role="button" 
+               aria-expanded="{{ $reportsActive ? 'true' : 'false' }}" aria-controls="reportsMenu">
+                <span><i class="fas fa-chart-line me-2"></i> Reports</span>
+                <i class="fas fa-chevron-down small"></i>
             </a>
+            <div class="collapse ps-3 {{ $reportsActive ? 'show' : '' }}" id="reportsMenu">
+                <a href="{{ route('reports.index') }}" 
+                   class="nav-link text-white mb-1 {{ request()->routeIs('reports.index') ? 'active-link rounded' : '' }}">
+                    <i class="fas fa-file-alt me-2"></i> Summary Reports
+                </a>
+                <a href="{{ route('reports.transaction_details') }}" 
+                   class="nav-link text-white mb-1 {{ request()->routeIs('reports.transaction_details') ? 'active-link rounded' : '' }}">
+                    <i class="fas fa-receipt me-2"></i> Transaction Details
+                </a>
+            </div>
         </nav>
 
         <!-- Logout -->

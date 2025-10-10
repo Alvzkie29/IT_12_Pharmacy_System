@@ -22,10 +22,15 @@ class InventoryController extends Controller
     $stocksQuery = Stock::with(['product', 'supplier'])
         ->where('type', 'IN')
         ->where('availability', true)
-        // Exclude near-expiry (<=6 months)
-        ->whereDate('expiryDate', '>', now()->addMonths(6))
-        // Exclude low stock items
-        ->where('quantity', '>', $lowStockThreshold)
+        ->where(function($query) use ($lowStockThreshold) {
+            // Include expired products (regardless of stock level)
+            $query->whereDate('expiryDate', '<=', now()->startOfDay())
+                  // OR include safe products (beyond 6 months) that are not low stock
+                  ->orWhere(function($q) use ($lowStockThreshold) {
+                      $q->whereDate('expiryDate', '>', now()->addMonths(6))
+                        ->where('quantity', '>', $lowStockThreshold);
+                  });
+        })
         ->when($search, function ($query, $search) {
             return $query->where(function ($q) use ($search) {
                 $q->where('batchNo', 'like', "%{$search}%")
@@ -81,7 +86,7 @@ class InventoryController extends Controller
     $nearExpiryStocks = Stock::with('product')
         ->where('type', 'IN')
         ->where('availability', true)
-        ->whereDate('expiryDate', '>', now()) // Not expired yet
+        ->whereDate('expiryDate', '>', now()->startOfDay()) // Exclude today's date
         ->whereDate('expiryDate', '<=', $thresholdDate) // Expiring within 6 months
         ->orderBy('expiryDate', 'asc')
         ->get()
@@ -89,11 +94,12 @@ class InventoryController extends Controller
             return $stock->available_quantity > 0;
         });
 
-    // Get low stock items ONLY (regardless of expiry date)
+    // Get low stock items ONLY (excluding expired products)
     $lowStocks = Stock::with('product')
         ->where('type', 'IN')
         ->where('availability', true)
         ->where('quantity', '<=', $lowStockThreshold) // Low stock only (<= 10)
+        ->whereDate('expiryDate', '>', now()->startOfDay()) // Exclude expired products (today or earlier)
         ->orderBy('quantity', 'asc')
         ->get()
         ->filter(function ($stock) {
@@ -287,7 +293,7 @@ public function stockOut(Request $request, $id = null)
 
     // Map reason to consistent format
     $mappedReason = $request->reason;
-    if ($request->reason === 'pulled_out_expired') {
+    if (false) { // Removed pulled_out_expired option
         $mappedReason = 'pulled_out_near_expiry';
     }
 
@@ -331,7 +337,7 @@ private function pullOutAllNearExpiry(Request $request)
     $nearExpiryStocks = Stock::with('product')
         ->where('type', 'IN')
         ->where('availability', true)
-        ->whereDate('expiryDate', '>', now())
+        ->whereDate('expiryDate', '>', now()->startOfDay()) // Exclude today's date
         ->whereDate('expiryDate', '<=', $thresholdDate)
         ->get()
         ->filter(function ($stock) {
@@ -373,6 +379,8 @@ private function pullOutAllNearExpiry(Request $request)
         ->route('inventory.nearExpiry')
         ->with('success', "Successfully pulled out {$pulledCount} near-expiry items.");
 }
+
+// Method for manual expiry status update removed as it's now handled automatically in AppServiceProvider
 
 /**
  * Restock low stock items

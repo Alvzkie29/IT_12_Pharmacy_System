@@ -123,7 +123,7 @@
                                placeholder="Search products...">
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <select id="expiryFilter" class="form-select">
                         <option value="">All Expiry Status</option>
                         <option value="expired">Expired</option>
@@ -131,7 +131,7 @@
                         <option value="safe">Safe</option>
                     </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <select id="quantityFilter" class="form-select">
                         <option value="">All Stock Levels</option>
                         <option value="low">Low Stock</option>
@@ -139,6 +139,7 @@
                         <option value="high">High Stock</option>
                     </select>
                 </div>
+                <!-- Manual update button removed as expiry status is now updated automatically -->
                 <div class="col-md-2">
                     <button class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#addStockModal">
                         <i class="fas fa-plus me-2"></i>Add Stock
@@ -172,12 +173,12 @@
                             if ($stock->expiryDate) {
                                 $expiry = \Carbon\Carbon::parse($stock->expiryDate);
                                 $today = \Carbon\Carbon::today();
-                                $monthsDiff = $today->diffInMonths($expiry, false);
-
-                                if ($monthsDiff < 0) {
+                                
+                                // Mark as expired if today or earlier
+                                if ($expiry->lte($today)) {
                                     $expiryStatus = 'expired';
                                     $expiryText = 'Expired';
-                                } elseif ($monthsDiff <= 6) {
+                                } elseif ($expiry->lte($today->copy()->addMonths(6))) {
                                     $expiryStatus = 'warning';
                                     $expiryText = 'Near Expiry';
                                 }
