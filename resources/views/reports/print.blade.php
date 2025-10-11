@@ -1,8 +1,4 @@
 @php
-    $vatRate = 0.12;
-    $totalSalesWithVAT = $totalSales + ($totalSales * $vatRate);
-    $totalVAT = $totalSales * $vatRate;
-    
     // Group sales data by sale for Sales Report
     $groupedSales = [];
     foreach($salesData as $saleItem) {
@@ -15,7 +11,9 @@
                 'totalDiscount' => 0,
                 'finalTotal' => 0,
                 'totalProfit' => 0,
-                'isDiscounted' => false
+                'isDiscounted' => false,
+                'cashReceived' => $saleItem['cashReceived'] ?? 0,
+                'changeGiven' => $saleItem['changeGiven'] ?? 0
             ];
         }
         $groupedSales[$saleDate]['items'][] = $saleItem;
@@ -54,6 +52,7 @@
         .badge { font-size: 0.7em; }
         .page-break { page-break-before: always; }
         .summary-table th { background-color: #f8f9fa; }
+        .compact-table td { padding: 2px 4px; }
         @media print {
             .container { max-width: 100% !important; }
             .table { border: 1px solid #000 !important; }
@@ -145,17 +144,16 @@
     {{-- SALES REPORT (Grouped by Sale) --}}
     <div class="section-title">SALES REPORT - BY TRANSACTION</div>
     <div class="table-responsive">
-        <table class="table table-bordered table-sm">
+        <table class="table table-bordered table-sm compact-table">
             <thead class="table-dark">
                 <tr>
-                    <th>#</th>
-                    <th>Transaction Date & Time</th>
-                    <th>Number of Items</th>
-                    <th>Subtotal</th>
-                    <th>Total Discount</th>
-                    <th>Final Total</th>
-                    <th>Total Profit</th>
-                    <th>Status</th>
+                    <th style="width: 40px;">#</th>
+                    <th style="width: 120px;">Date & Time</th>
+                    <th style="width: 60px;">Items</th>
+                    <th style="width: 80px;">Transaction</th>
+                    <th style="width: 80px;">Payment</th>
+                    <th style="width: 70px;">Profit</th>
+                    <th style="width: 70px;">Status</th>
                 </tr>
             </thead>
             <tbody>
@@ -165,9 +163,15 @@
                         <td class="fw-bold">{{ $saleCount++ }}</td>
                         <td class="fw-bold">{{ \Carbon\Carbon::parse($sale['saleDate'])->timezone('Asia/Manila')->format('M d, Y h:i A') }}</td>
                         <td class="text-center">{{ count($sale['items']) }}</td>
-                        <td>₱{{ number_format($sale['subtotal'], 2) }}</td>
-                        <td class="text-danger">-₱{{ number_format($sale['totalDiscount'], 2) }}</td>
-                        <td class="text-success fw-bold">₱{{ number_format($sale['finalTotal'], 2) }}</td>
+                        <td>
+                            <div class="small">Orig: ₱{{ number_format($sale['subtotal'], 2) }}</div>
+                            <div class="small text-success">Disc: -₱{{ number_format($sale['totalDiscount'], 2) }}</div>
+                            <div class="small fw-bold text-primary">Net: ₱{{ number_format($sale['finalTotal'], 2) }}</div>
+                        </td>
+                        <td>
+                            <div class="small text-success">Cash: ₱{{ number_format($sale['cashReceived'], 2) }}</div>
+                            <div class="small text-info">Change: ₱{{ number_format($sale['changeGiven'], 2) }}</div>
+                        </td>
                         <td class="text-warning fw-bold">₱{{ number_format($sale['totalProfit'], 2) }}</td>
                         <td>
                             @if($sale['isDiscounted'])
@@ -179,18 +183,23 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="text-center text-muted py-2">No sales recorded for this period.</td>
+                        <td colspan="7" class="text-center text-muted py-2">No sales recorded for this period.</td>
                     </tr>
                 @endforelse
             </tbody>
             @if(count($groupedSales) > 0)
             <tfoot class="table-light">
                 <tr class="fw-bold">
-                    <td colspan="2" class="text-end">TOTALS:</td>
-                    <td class="text-center">{{ $salesData->count() }} items</td>
-                    <td>₱{{ number_format($totalSales, 2) }}</td>
-                    <td class="text-danger">-₱{{ number_format($totalDiscounts, 2) }}</td>
-                    <td class="text-success">₱{{ number_format($totalDiscountedSales, 2) }}</td>
+                    <td colspan="3" class="text-end">TOTALS:</td>
+                    <td>
+                        <div class="small">₱{{ number_format($totalSales, 2) }}</div>
+                        <div class="small">-₱{{ number_format($totalDiscounts, 2) }}</div>
+                        <div class="small">₱{{ number_format($totalDiscountedSales, 2) }}</div>
+                    </td>
+                    <td>
+                        <div class="small">₱{{ number_format($totalCashReceived ?? 0, 2) }}</div>
+                        <div class="small">₱{{ number_format($totalChangeGiven ?? 0, 2) }}</div>
+                    </td>
                     <td class="text-warning">₱{{ number_format($totalProfit, 2) }}</td>
                     <td></td>
                 </tr>
@@ -202,21 +211,18 @@
     {{-- TRANSACTION REPORT (All Line Items) --}}
     <div class="section-title page-break">TRANSACTION REPORT - ALL LINE ITEMS</div>
     <div class="table-responsive">
-        <table class="table table-bordered table-sm">
+        <table class="table table-bordered table-sm compact-table">
             <thead class="table-primary">
                 <tr>
-                    <th>#</th>
-                    <th>Transaction Date</th>
-                    <th>Product Name</th>
-                    <th>Generic Name</th>
-                    <th>Batch No</th>
-                    <th>Qty</th>
-                    <th>Purchase Price</th>
-                    <th>Selling Price</th>
-                    <th>Original Total</th>
-                    <th>Discounted Total</th>
-                    <th>Discount</th>
-                    <th>Profit</th>
+                    <th style="width: 40px;">#</th>
+                    <th style="width: 100px;">Date</th>
+                    <th style="width: 120px;">Product</th>
+                    <th style="width: 80px;">Batch</th>
+                    <th style="width: 40px;">Qty</th>
+                    <th style="width: 80px;">Price</th>
+                    <th style="width: 100px;">Transaction</th>
+                    <th style="width: 80px;">Payment</th>
+                    <th style="width: 60px;">Profit</th>
                 </tr>
             </thead>
             <tbody>
@@ -232,26 +238,23 @@
                         <td class="fw-bold">{{ $transactionCount++ }}</td>
                         <td>{{ \Carbon\Carbon::parse($sale['saleDate'])->timezone('Asia/Manila')->format('M d, Y h:i A') }}</td>
                         <td>
-                            <div class="fw-bold">{{ $sale['productName'] }}</div>
-                            @if($sale['isDiscounted'])
-                                <span class="badge bg-warning text-dark">Discounted</span>
-                            @endif
+                            <div class="fw-bold small">{{ $sale['productName'] }}</div>
+                            <div class="text-muted x-small">{{ $sale['genericName'] ?? 'N/A' }}</div>
                         </td>
-                        <td>{{ $sale['genericName'] ?? 'N/A' }}</td>
                         <td><span class="badge bg-secondary">{{ $sale['batchNo'] }}</span></td>
                         <td class="text-center">{{ $sale['quantity'] }}</td>
-                        <td>₱{{ number_format($sale['purchasePrice'], 2) }}</td>
-                        <td>₱{{ number_format($sale['sellingPrice'], 2) }}</td>
-                        <td>₱{{ number_format($lineTotal, 2) }}</td>
-                        <td class="{{ $sale['isDiscounted'] ? 'text-success fw-bold' : '' }}">
-                            ₱{{ number_format($discountedTotal, 2) }}
+                        <td>
+                            <div class="small">Buy: ₱{{ number_format($sale['purchasePrice'], 2) }}</div>
+                            <div class="small">Sell: ₱{{ number_format($sale['sellingPrice'], 2) }}</div>
                         </td>
-                        <td class="{{ $sale['isDiscounted'] ? 'text-danger' : 'text-muted' }}">
-                            @if($sale['isDiscounted'])
-                                -₱{{ number_format($itemDiscount, 2) }}
-                            @else
-                                ₱0.00
-                            @endif
+                        <td>
+                            <div class="small">Orig: ₱{{ number_format($lineTotal, 2) }}</div>
+                            <div class="small text-success">Disc: -₱{{ number_format($itemDiscount, 2) }}</div>
+                            <div class="small fw-bold text-primary">Net: ₱{{ number_format($discountedTotal, 2) }}</div>
+                        </td>
+                        <td>
+                            <div class="small text-success">Cash: ₱{{ number_format($sale['cashReceived'] ?? 0, 2) }}</div>
+                            <div class="small text-info">Change: ₱{{ number_format($sale['changeGiven'] ?? 0, 2) }}</div>
                         </td>
                         <td class="{{ $sale['isDiscounted'] ? 'text-warning fw-bold' : 'text-success fw-bold' }}">
                             ₱{{ number_format($actualProfit, 2) }}
@@ -259,17 +262,23 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="12" class="text-center text-muted py-2">No transactions recorded for this period.</td>
+                        <td colspan="9" class="text-center text-muted py-2">No transactions recorded for this period.</td>
                     </tr>
                 @endforelse
             </tbody>
             @if($salesData->count() > 0)
             <tfoot class="table-light">
                 <tr class="fw-bold">
-                    <td colspan="8" class="text-end">TOTALS:</td>
-                    <td>₱{{ number_format($totalSales, 2) }}</td>
-                    <td class="text-success">₱{{ number_format($totalDiscountedSales, 2) }}</td>
-                    <td class="text-danger">-₱{{ number_format($totalDiscounts, 2) }}</td>
+                    <td colspan="6" class="text-end">TOTALS:</td>
+                    <td>
+                        <div class="small">₱{{ number_format($totalSales, 2) }}</div>
+                        <div class="small">-₱{{ number_format($totalDiscounts, 2) }}</div>
+                        <div class="small">₱{{ number_format($totalDiscountedSales, 2) }}</div>
+                    </td>
+                    <td>
+                        <div class="small">₱{{ number_format($totalCashReceived ?? 0, 2) }}</div>
+                        <div class="small">₱{{ number_format($totalChangeGiven ?? 0, 2) }}</div>
+                    </td>
                     <td class="text-warning">₱{{ number_format($totalProfit, 2) }}</td>
                 </tr>
             </tfoot>
@@ -283,45 +292,47 @@
     {{-- Stocked In --}}
     <h6 class="text-success mt-3 mb-2">STOCKED IN ITEMS</h6>
     <div class="table-responsive mb-4">
-        <table class="table table-bordered table-sm">
+        <table class="table table-bordered table-sm compact-table">
             <thead class="table-success">
                 <tr>
-                    <th>#</th>
-                    <th>Product Name</th>
-                    <th>Generic Name</th>
-                    <th>Batch No</th>
-                    <th>Quantity</th>
-                    <th>Purchase Price</th>
-                    <th>Selling Price</th>
-                    <th>Total Value</th>
-                    <th>Date Added</th>
+                    <th style="width: 40px;">#</th>
+                    <th style="width: 120px;">Product</th>
+                    <th style="width: 80px;">Batch</th>
+                    <th style="width: 50px;">Qty</th>
+                    <th style="width: 80px;">Price</th>
+                    <th style="width: 80px;">Total Value</th>
+                    <th style="width: 100px;">Date Added</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($validReports as $index => $report)
                     <tr>
                         <td class="fw-bold">{{ $index + 1 }}</td>
-                        <td class="fw-bold">{{ $report->product->productName ?? 'N/A' }}</td>
-                        <td>{{ $report->product->genericName ?? 'N/A' }}</td>
+                        <td>
+                            <div class="fw-bold small">{{ $report->product->productName ?? 'N/A' }}</div>
+                            <div class="text-muted x-small">{{ $report->product->genericName ?? 'N/A' }}</div>
+                        </td>
                         <td><span class="badge bg-secondary">{{ $report->batchNo ?? 'N/A' }}</span></td>
                         <td class="text-center">{{ $report->quantity }}</td>
-                        <td>₱{{ number_format($report->purchase_price, 2) }}</td>
-                        <td>₱{{ number_format($report->selling_price, 2) }}</td>
+                        <td>
+                            <div class="small">Buy: ₱{{ number_format($report->purchase_price, 2) }}</div>
+                            <div class="small">Sell: ₱{{ number_format($report->selling_price, 2) }}</div>
+                        </td>
                         <td class="fw-bold">₱{{ number_format($report->quantity * $report->selling_price, 2) }}</td>
                         <td>{{ $report->created_at->timezone('Asia/Manila')->format('M d, Y h:i A') }}</td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="9" class="text-center text-muted py-2">No stock added during this period.</td>
+                        <td colspan="7" class="text-center text-muted py-2">No stock added during this period.</td>
                     </tr>
                 @endforelse
             </tbody>
             @if($validReports->count() > 0)
             <tfoot class="table-light">
                 <tr class="fw-bold">
-                    <td colspan="4" class="text-end">TOTAL:</td>
+                    <td colspan="3" class="text-end">TOTAL:</td>
                     <td class="text-center">{{ number_format($validReports->sum('quantity')) }}</td>
-                    <td colspan="2"></td>
+                    <td></td>
                     <td>₱{{ number_format($validReports->sum(function($r) { return $r->quantity * $r->selling_price; }), 2) }}</td>
                     <td></td>
                 </tr>
@@ -333,24 +344,25 @@
     {{-- Pulled Out --}}
     <h6 class="text-warning mt-3 mb-2">PULLED OUT ITEMS</h6>
     <div class="table-responsive mb-4">
-        <table class="table table-bordered table-sm">
+        <table class="table table-bordered table-sm compact-table">
             <thead class="table-warning">
                 <tr>
-                    <th>#</th>
-                    <th>Product Name</th>
-                    <th>Generic Name</th>
-                    <th>Batch No</th>
-                    <th>Quantity</th>
-                    <th>Reason</th>
-                    <th>Date Pulled Out</th>
+                    <th style="width: 40px;">#</th>
+                    <th style="width: 120px;">Product</th>
+                    <th style="width: 80px;">Batch</th>
+                    <th style="width: 50px;">Qty</th>
+                    <th style="width: 80px;">Reason</th>
+                    <th style="width: 100px;">Date Pulled Out</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($pulledOutReports as $index => $report)
                     <tr>
                         <td class="fw-bold">{{ $index + 1 }}</td>
-                        <td class="fw-bold">{{ $report->product->productName ?? 'N/A' }}</td>
-                        <td>{{ $report->product->genericName ?? 'N/A' }}</td>
+                        <td>
+                            <div class="fw-bold small">{{ $report->product->productName ?? 'N/A' }}</div>
+                            <div class="text-muted x-small">{{ $report->product->genericName ?? 'N/A' }}</div>
+                        </td>
                         <td><span class="badge bg-secondary">{{ $report->batchNo ?? 'N/A' }}</span></td>
                         <td class="text-center">{{ $report->quantity }}</td>
                         <td>
@@ -362,14 +374,14 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-2">No items pulled out during this period.</td>
+                        <td colspan="6" class="text-center text-muted py-2">No items pulled out during this period.</td>
                     </tr>
                 @endforelse
             </tbody>
             @if($pulledOutReports->count() > 0)
             <tfoot class="table-light">
                 <tr class="fw-bold">
-                    <td colspan="4" class="text-end">TOTAL:</td>
+                    <td colspan="3" class="text-end">TOTAL:</td>
                     <td class="text-center">{{ number_format($pulledOutReports->sum('quantity')) }}</td>
                     <td colspan="2"></td>
                 </tr>
@@ -381,24 +393,25 @@
     {{-- Expired --}}
     <h6 class="text-danger mt-3 mb-2">EXPIRED ITEMS</h6>
     <div class="table-responsive">
-        <table class="table table-bordered table-sm">
+        <table class="table table-bordered table-sm compact-table">
             <thead class="table-danger">
                 <tr>
-                    <th>#</th>
-                    <th>Product Name</th>
-                    <th>Generic Name</th>
-                    <th>Batch No</th>
-                    <th>Quantity</th>
-                    <th>Expiry Date</th>
-                    <th>Date Recorded</th>
+                    <th style="width: 40px;">#</th>
+                    <th style="width: 120px;">Product</th>
+                    <th style="width: 80px;">Batch</th>
+                    <th style="width: 50px;">Qty</th>
+                    <th style="width: 80px;">Expiry Date</th>
+                    <th style="width: 100px;">Date Recorded</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($expiredReports as $index => $report)
                     <tr>
                         <td class="fw-bold">{{ $index + 1 }}</td>
-                        <td class="fw-bold">{{ $report->product->productName ?? 'N/A' }}</td>
-                        <td>{{ $report->product->genericName ?? 'N/A' }}</td>
+                        <td>
+                            <div class="fw-bold small">{{ $report->product->productName ?? 'N/A' }}</div>
+                            <div class="text-muted x-small">{{ $report->product->genericName ?? 'N/A' }}</div>
+                        </td>
                         <td><span class="badge bg-secondary">{{ $report->batchNo ?? 'N/A' }}</span></td>
                         <td class="text-center">{{ $report->quantity }}</td>
                         <td class="text-danger fw-bold">
@@ -408,61 +421,15 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-2">No expired items during this period.</td>
+                        <td colspan="6" class="text-center text-muted py-2">No expired items during this period.</td>
                     </tr>
                 @endforelse
             </tbody>
             @if($expiredReports->count() > 0)
             <tfoot class="table-light">
                 <tr class="fw-bold">
-                    <td colspan="4" class="text-end">TOTAL:</td>
+                    <td colspan="3" class="text-end">TOTAL:</td>
                     <td class="text-center">{{ number_format($expiredReports->sum('quantity')) }}</td>
-                    <td colspan="2"></td>
-                </tr>
-            </tfoot>
-            @endif
-        </table>
-    </div>
-
-    {{-- Near Expiry --}}
-    <h6 class="text-warning mt-3 mb-2">NEAR EXPIRY ITEMS</h6>
-    <div class="table-responsive">
-        <table class="table table-bordered table-sm">
-            <thead class="table-warning">
-                <tr>
-                    <th>#</th>
-                    <th>Product Name</th>
-                    <th>Generic Name</th>
-                    <th>Batch No</th>
-                    <th>Quantity</th>
-                    <th>Expiry Date</th>
-                    <th>Date Recorded</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($nearExpiryReports ?? [] as $index => $report)
-                    <tr>
-                        <td class="fw-bold">{{ $index + 1 }}</td>
-                        <td class="fw-bold">{{ $report->product->productName ?? 'N/A' }}</td>
-                        <td>{{ $report->product->genericName ?? 'N/A' }}</td>
-                        <td><span class="badge bg-secondary">{{ $report->batchNo ?? 'N/A' }}</span></td>
-                        <td class="text-center">{{ $report->quantity }}</td>
-                        <td class="text-warning fw-bold">
-                            {{ \Carbon\Carbon::parse($report->expiryDate)->format('M d, Y') }}
-                        </td>
-                        <td>{{ $report->created_at->timezone('Asia/Manila')->format('M d, Y h:i A') }}</td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="7" class="text-center text-muted py-2">No near-expiry items during this period.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-            @if(isset($nearExpiryReports) && $nearExpiryReports->count() > 0)
-            <tfoot class="table-light">
-                <tr class="fw-bold">
-                    <td colspan="4" class="text-end">TOTAL:</td>
-                    <td class="text-center">{{ number_format($nearExpiryReports->sum('quantity')) }}</td>
                     <td colspan="2"></td>
                 </tr>
             </tfoot>
