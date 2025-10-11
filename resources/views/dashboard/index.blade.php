@@ -4,15 +4,16 @@
 <style>
     .dashboard-card {
         border: none;
-        border-radius: 15px;
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
         transition: all 0.3s ease;
         overflow: hidden;
+        background: white;
     }
     
     .dashboard-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
     }
     
     .dashboard-card .card-body {
@@ -20,66 +21,72 @@
     }
     
     .stat-icon {
-        font-size: 2.5rem;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
         opacity: 0.8;
-        margin-bottom: 0.5rem;
     }
     
     .stat-value {
-        font-size: 2rem;
+        font-size: 1.75rem;
         font-weight: 700;
         margin-bottom: 0.25rem;
+        text-align: right;
     }
     
     .stat-label {
-        font-size: 0.9rem;
-        opacity: 0.9;
+        font-size: 0.875rem;
         font-weight: 500;
+        color: #6c757d;
+        text-align: left;
     }
     
     .filter-section {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        border-radius: 15px;
-        padding: 1.5rem;
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.25rem;
         margin-bottom: 2rem;
-        border: 1px solid #dee2e6;
+        border: 1px solid #e9ecef;
     }
     
     .section-card {
         border: none;
-        border-radius: 15px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
         transition: all 0.3s ease;
+        background: white;
     }
     
     .section-card:hover {
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     }
     
     .section-header {
-        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        background: #f8f9fa;
         border-bottom: 1px solid #e9ecef;
-        border-radius: 15px 15px 0 0;
+        border-radius: 12px 12px 0 0;
         padding: 1.25rem 1.5rem;
     }
     
     .table-modern {
-        border-radius: 10px;
+        border-radius: 8px;
         overflow: hidden;
+        margin: 0;
     }
     
     .table-modern thead th {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        background: #f8f9fa;
         border: none;
         font-weight: 600;
         color: #495057;
         padding: 1rem;
+        font-size: 0.875rem;
     }
     
     .table-modern tbody td {
         padding: 0.875rem 1rem;
         border: none;
         vertical-align: middle;
+        font-size: 0.875rem;
     }
     
     .table-modern tbody tr {
@@ -91,34 +98,67 @@
         background-color: #f8f9fa;
     }
     
-    .badge-rank {
-        background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
-        color: #8b6914;
-        font-weight: 700;
-        padding: 0.5rem 0.75rem;
-        border-radius: 50%;
-        width: 35px;
-        height: 35px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+    .alert-item {
+        border-left: 4px solid #dc3545;
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+        background: #f8f9fa;
+        border-radius: 0 8px 8px 0;
+        transition: all 0.3s ease;
+        cursor: pointer;
     }
     
-    .badge-type {
-        padding: 0.375rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.75rem;
+    .alert-item:hover {
+        background: #e9ecef;
+        transform: translateX(4px);
+    }
+    
+    .alert-item.warning {
+        border-left-color: #ffc107;
+    }
+    
+    .alert-item.info {
+        border-left-color: #17a2b8;
+    }
+    
+    .quick-action {
+        border: 2px dashed #dee2e6;
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        background: #f8f9fa;
+        cursor: pointer;
+    }
+    
+    .quick-action:hover {
+        border-color: #28a745;
+        background: white;
+        transform: translateY(-2px);
+    }
+    
+    .metric-positive {
+        color: #28a745;
         font-weight: 600;
     }
     
-    .badge-type.IN {
-        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-        color: white;
+    .metric-negative {
+        color: #dc3545;
+        font-weight: 600;
     }
     
-    .badge-type.OUT {
-        background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+    .metric-neutral {
+        color: #6c757d;
+        font-weight: 600;
+    }
+    
+    .badge-alert {
+        background: #dc3545;
         color: white;
+        font-weight: 600;
+        padding: 0.375rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
     }
 </style>
 
@@ -126,12 +166,12 @@
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="h3 mb-1 text-dark fw-bold">Dashboard</h1>
-            <p class="text-muted mb-0">Welcome back! Here's what's happening with your pharmacy.</p>
+            <h1 class="h3 mb-1 text-dark fw-bold">Dashboard Overview</h1>
+            <p class="text-muted mb-0">Welcome back! Here's your business at a glance</p>
         </div>
         <div class="filter-section">
             <form method="GET" class="d-flex align-items-center gap-3">
-                <label for="period" class="form-label mb-0 fw-semibold text-dark">Filter Sales:</label>
+                <label for="period" class="form-label mb-0 fw-semibold text-dark">Reporting Period:</label>
                 <select name="period" id="period" onchange="this.form.submit()" class="form-select w-auto">
                     <option value="today" {{ request('period') == 'today' ? 'selected' : '' }}>Today</option>
                     <option value="monthly" {{ request('period') == 'monthly' ? 'selected' : '' }}>This Month</option>
@@ -141,104 +181,190 @@
         </div>
     </div>
 
-
-    {{-- Dashboard Cards --}}
-    <div class="row g-4 mb-4">
+    {{-- Key Performance Indicators --}}
+    <div class="row g-3 mb-4">
         <div class="col-lg-3 col-md-6">
-            <div class="dashboard-card text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                <div class="card-body text-center">
-                    <div class="stat-icon">💰</div>
-                    <div class="stat-value">₱{{ number_format($salesTotal, 2) }}</div>
-                    <div class="stat-label">Total Sales ({{ ucfirst($period) }})</div>
+            <div class="dashboard-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="stat-label">Today's Revenue</div>
+                            <div class="stat-value metric-positive">₱{{ number_format($todaySales, 2) }}</div>
+                            <small class="text-muted">From {{ $todayTransactions }} transactions</small>
+                        </div>
+                        <div class="stat-icon text-success">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="col-lg-3 col-md-6">
-            <div class="dashboard-card text-white" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                <div class="card-body text-center">
-                    <div class="stat-icon">📦</div>
-                    <div class="stat-value">{{ $totalProducts }}</div>
-                    <div class="stat-label">Total Products</div>
+            <div class="dashboard-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="stat-label">Active Products</div>
+                            <div class="stat-value metric-neutral">{{ $totalProducts }}</div>
+                            <small class="text-muted">In inventory</small>
+                        </div>
+                        <div class="stat-icon text-primary">
+                            <i class="fas fa-pills"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="col-lg-3 col-md-6">
-            <div class="dashboard-card text-white" style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); color: #8b4513;">
-                <div class="card-body text-center">
-                    <div class="stat-icon">⚠️</div>
-                    <div class="stat-value">{{ $lowStockCount }}</div>
-                    <div class="stat-label">Low Stock Items</div>
+            <a href="{{ route('inventory.nearExpiry') }}" class="text-decoration-none">
+                <div class="dashboard-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="stat-label">Low Stock Items</div>
+                                <div class="stat-value metric-negative">{{ $lowStockCount }}</div>
+                                <small class="text-muted">Requires restocking</small>
+                            </div>
+                            <div class="stat-icon text-warning">
+                                <i class="fas fa-box-open"></i>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
 
         <div class="col-lg-3 col-md-6">
-            <a class="text-decoration-none" href="{{ route('inventory.nearExpiry') }}">
-                <div class="dashboard-card text-white" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); color: #8b0000;">
-                    <div class="card-body text-center">
-                        <div class="stat-icon">⏳</div>
-                        <div class="stat-value" style="text-align: right;">{{ \App\Models\Stock::where('type','IN')->where('availability', true)->whereDate('expiryDate','>', now())->whereDate('expiryDate','<=', now()->addMonths(6))->count() }}</div>
-                        <div class="stat-label">Near Expiry (≤ 6 mo)</div>
+            <a href="{{ route('inventory.nearExpiry') }}" class="text-decoration-none">
+                <div class="dashboard-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="stat-label">Near Expiry</div>
+                                <div class="stat-value metric-negative">{{ $nearExpiryCount }}</div>
+                                <small class="text-muted">Within 6 months</small>
+                            </div>
+                            <div class="stat-icon text-danger">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </a>
         </div>
     </div>
 
-
     <div class="row g-4 mb-4">
-        {{-- Left column: Top Products --}}
+        {{-- Critical Alerts --}}
+    <div class="col-lg-6">
+        <div class="section-card h-100">
+            <div class="section-header d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-1 fw-bold text-dark">Critical Alerts</h5>
+                    <small class="text-muted">Items requiring immediate attention</small>
+                </div>
+                <span class="badge bg-{{ $criticalAlertsCount > 0 ? 'danger' : 'success' }}">
+                    {{ $criticalAlertsCount }} Alert{{ $criticalAlertsCount !== 1 ? 's' : '' }}
+                </span>
+            </div>
+            <div class="card-body">
+                @foreach($criticalAlerts as $alert)
+                    <div class="alert-item {{ $alert['type'] }}" onclick="@if($alert['link']) window.location.href='{{ $alert['link'] }}' @endif">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center mb-1">
+                                    <div class="fw-bold me-2">{{ $alert['title'] }}</div>
+                                    <span class="badge bg-{{ $alert['priority'] == 'high' ? 'danger' : ($alert['priority'] == 'medium' ? 'warning' : 'success') }} fs-xxsmall">
+                                        {{ ucfirst($alert['priority']) }}
+                                    </span>
+                                </div>
+                                <div class="text-muted small mb-1">{{ $alert['description'] }}</div>
+                                <small class="text-muted">{{ $alert['date'] }}</small>
+                            </div>
+                            @if($alert['link'])
+                            <div class="text-end ms-3">
+                                <i class="fas fa-chevron-right text-muted"></i>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+
+        {{-- Quick Actions --}}
         <div class="col-lg-6">
             <div class="section-card h-100">
-                <div class="section-header d-flex justify-content-between align-items-center">
-                    <div>
-                        <h5 class="mb-1 fw-bold text-dark">🏆 Top Products</h5>
-                        <small class="text-muted">Based on quantity sold</small>
-                    </div>
+                <div class="section-header">
+                    <h5 class="mb-1 fw-bold text-dark">Quick Actions</h5>
+                    <small class="text-muted">Frequently used tasks</small>
                 </div>
-                <div class="card-body p-0">
-                    <div style="max-height: 300px; overflow-y: auto;">
-                        <table class="table table-modern mb-0">
-                            <thead>
-                                <tr>
-                                    <th style="width:60px;" class="text-center">Rank</th>
-                                    <th>Product</th>
-                                    <th class="text-end">Total Sold</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($topProductsData as $i => $product)
-                                    <tr>
-                                        <td class="text-center">
-                                            @if($i < 3)
-                                                <span class="badge-rank">{{ $i+1 }}</span>
-                                            @else
-                                                <span class="badge bg-light text-dark rounded-circle" style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;">{{ $i+1 }}</span>
-                                            @endif
-                                        </td>
-                                        <td class="fw-medium">{{ $product['name'] }}</td>
-                                        <td class="text-end fw-bold text-primary">{{ $product['total'] }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <a href="{{ route('sales.index') }}" class="text-decoration-none">
+                                <div class="quick-action">
+                                    <div class="text-success mb-2">
+                                        <i class="fas fa-cash-register fa-2x"></i>
+                                    </div>
+                                    <div class="fw-bold text-dark">New Sale</div>
+                                    <small class="text-muted">Process customer purchase</small>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="{{ route('inventory.index') }}" class="text-decoration-none">
+                                <div class="quick-action">
+                                    <div class="text-primary mb-2">
+                                        <i class="fas fa-arrow-down fa-2x"></i>
+                                    </div>
+                                    <div class="fw-bold text-dark">Stock In</div>
+                                    <small class="text-muted">Add new inventory</small>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="{{ route('reports.index') }}" class="text-decoration-none">
+                                <div class="quick-action">
+                                    <div class="text-info mb-2">
+                                        <i class="fas fa-chart-line fa-2x"></i>
+                                    </div>
+                                    <div class="fw-bold text-dark">View Reports</div>
+                                    <small class="text-muted">Analytics & insights</small>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="{{ route('products.index') }}" class="text-decoration-none">
+                                <div class="quick-action">
+                                    <div class="text-warning mb-2">
+                                        <i class="fas fa-pills fa-2x"></i>
+                                    </div>
+                                    <div class="fw-bold text-dark">Manage Products</div>
+                                    <small class="text-muted">Product catalog</small>
+                                </div>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        {{-- Right column: Latest Stock Movements --}}
-        <div class="col-lg-6">
-            <div class="section-card h-100">
+    <div class="row g-4">
+        {{-- Today's Activity --}}
+        <div class="col-lg-8">
+            <div class="section-card">
                 <div class="section-header d-flex justify-content-between align-items-center">
                     <div>
-                        <h5 class="mb-1 fw-bold text-dark">📦 Latest Stock Movements</h5>
-                        <small class="text-muted">Recent inventory changes</small>
+                        <h5 class="mb-1 fw-bold text-dark">Today's Activity</h5>
+                        <small class="text-muted">Recent transactions and movements</small>
                     </div>
-                    <a href="{{ route('reports.index') }}" class="btn btn-outline-primary btn-sm">
-                        <i class="fas fa-external-link-alt me-1"></i>View All
+                    <a href="{{ route('transaction-details.index') }}" class="btn btn-outline-secondary btn-sm">
+                        View All
                     </a>
                 </div>
                 <div class="card-body p-0">
@@ -246,96 +372,126 @@
                         <table class="table table-modern mb-0">
                             <thead>
                                 <tr>
+                                    <th>Time</th>
+                                    <th>Type</th>
                                     <th>Product</th>
-                                    <th class="text-center">Type</th>
-                                    <th class="text-end">Quantity</th>
-                                    <th>Date</th>
+                                    <th class="text-end">Amount</th>
+                                    <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($latestStocks as $stock)
+                                @forelse($todayActivities as $activity)
                                     <tr>
-                                        <td class="fw-medium">{{ $stock->product->productName ?? 'Unknown' }}</td>
-                                        <td class="text-center">
-                                            <span class="badge-type {{ $stock->type }}">{{ $stock->type }}</span>
+                                        <td class="text-muted small">{{ $activity['time'] }}</td>
+                                        <td>
+                                            <span class="badge bg-{{ $activity['type_color'] }}">{{ $activity['type'] }}</span>
                                         </td>
-                                        <td class="text-end fw-bold">{{ $stock->quantity }}</td>
-                                        <td class="text-muted small">{{ $stock->created_at->format('M d, h:i A') }}</td>
+                                        <td class="fw-medium">{{ $activity['product_name'] }}</td>
+                                        <td class="text-end fw-bold {{ $activity['amount_class'] }}">
+                                            {{ $activity['amount'] }}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{{ $activity['status_color'] }}">{{ $activity['status'] }}</span>
+                                        </td>
                                     </tr>
-                                @endforeach
+                                @empty
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4">
+                                            <i class="fas fa-clock fa-2x text-muted mb-2"></i>
+                                            <p class="text-muted mb-0">No activity today</p>
+                                        </td>
+                                    </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    {{-- Sales Summary Table --}}
-    <div class="section-card mb-4">
-        <div class="section-header">
-            <h5 class="mb-0 fw-bold text-dark">📊 Sales Summary (Last 30 Days)</h5>
+        {{-- System Status --}}
+        <div class="col-lg-4">
+            <div class="section-card h-100">
+                <div class="section-header">
+                    <h5 class="mb-1 fw-bold text-dark">System Status</h5>
+                    <small class="text-muted">Application health check</small>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-medium">Total Products</span>
+                            <span class="badge bg-success">{{ $totalProducts }}</span>
+                        </div>
+                        <div class="progress mb-3" style="height: 6px;">
+                            <div class="progress-bar bg-success" style="width: {{ min(($totalProducts/500)*100, 100) }}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-medium">Active Stock</span>
+                            <span class="badge bg-info">{{ $totalStocks }}</span>
+                        </div>
+                        <div class="progress mb-3" style="height: 6px;">
+                            <div class="progress-bar bg-info" style="width: {{ min(($totalStocks/1000)*100, 100) }}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-medium">Today's Performance</span>
+                            <span class="badge bg-{{ $todaySales > 0 ? 'success' : 'secondary' }}">
+                                {{ $todayTransactions }} sales
+                            </span>
+                        </div>
+                        <div class="progress mb-3" style="height: 6px;">
+                            <div class="progress-bar bg-{{ $todaySales > 0 ? 'success' : 'secondary' }}" style="width: {{ min(($todayTransactions/50)*100, 100) }}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 p-3 bg-light rounded">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-medium">Current Period</span>
+                            <span class="text-muted small text-capitalize">{{ $period }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <span class="fw-medium">Period Revenue</span>
+                            <span class="text-success fw-bold">₱{{ number_format($salesTotal, 2) }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-modern mb-0">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th class="text-center">Transactions</th>
-                            <th class="text-center">Items Sold</th>
-                            <th class="text-end">Total Sales</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($salesSummary as $summary)
+        {{-- Monthly Sales (1% Deduction every month) --}}
+        <div class="section-card">
+            <div class="section-header">
+                <h5 class="mb-0 fw-bold text-dark">Monthly Sales</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-modern mb-0">
+                        <thead>
                             <tr>
-                                <td class="fw-medium">{{ $summary->saleDate }}</td>
-                                <td class="text-center">
-                                    <span class="badge bg-primary rounded-pill">{{ $summary->transactions_count }}</span>
-                                </td>
-                                <td class="text-center">
-                                    <span class="badge bg-info rounded-pill">{{ $summary->items_sold }}</span>
-                                </td>
-                                <td class="text-end fw-bold text-success">₱{{ number_format($summary->total_sales, 2) }}</td>
+                                <th>Month</th>
+                                <th>Year</th>
+                                <th class="text-end">Gross Sales</th>
+                                <th class="text-end">Net Sales (after 1% Deduction)</th>
                             </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @foreach($monthlySales as $month)
+                                <tr>
+                                    <td class="fw-medium">{{ \Carbon\Carbon::create()->month($month->month)->format('F') }}</td>
+                                    <td class="text-muted">{{ $month->year }}</td>
+                                    <td class="text-end fw-bold text-warning">₱{{ number_format($month->total_sales, 2) }}</td>
+                                    <td class="text-end fw-bold text-success">₱{{ number_format($month->net_sales, 2) }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
-
-    {{-- Monthly Sales (with VAT deduction applied) --}}
-    <div class="section-card">
-        <div class="section-header">
-            <h5 class="mb-0 fw-bold text-dark">📈 Monthly Sales (Net after VAT)</h5>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-modern mb-0">
-                    <thead>
-                        <tr>
-                            <th>Month</th>
-                            <th>Year</th>
-                            <th class="text-end">Gross Sales</th>
-                            <th class="text-end">Net Sales (after 1% VAT)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($monthlySales as $month)
-                            <tr>
-                                <td class="fw-medium">{{ \Carbon\Carbon::create()->month($month->month)->format('F') }}</td>
-                                <td class="text-muted">{{ $month->year }}</td>
-                                <td class="text-end fw-bold text-warning">₱{{ number_format($month->total_sales, 2) }}</td>
-                                <td class="text-end fw-bold text-success">₱{{ number_format($month->net_sales, 2) }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
 </div>
 @endsection

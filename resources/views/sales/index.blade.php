@@ -3,47 +3,48 @@
 @section('content')
 <style>
     .page-header {
-        background: linear-gradient(135deg, #17a2b8 0%, #6c757d 100%);
-        border-radius: 15px;
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border-radius: 12px;
         padding: 2rem;
         margin-bottom: 2rem;
         color: white;
     }
     
     .products-section {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        border-radius: 15px;
+        background: #f8f9fa;
+        border-radius: 12px;
         padding: 1.5rem;
         margin-bottom: 2rem;
-        border: 1px solid #dee2e6;
+        border: 1px solid #e9ecef;
     }
     
     .product-card {
         border: none;
-        border-radius: 15px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
         transition: all 0.3s ease;
         height: 100%;
+        background: white;
     }
     
     .product-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
     }
     
     .product-card .card-body {
         padding: 1.5rem;
-        text-align: center;
     }
     
     .product-name {
         font-weight: 600;
         color: #495057;
         margin-bottom: 0.5rem;
+        font-size: 0.875rem;
     }
     
     .product-price {
-        font-size: 1.25rem;
+        font-size: 1.125rem;
         font-weight: 700;
         color: #28a745;
         margin-bottom: 0.5rem;
@@ -51,14 +52,15 @@
     
     .product-stock {
         color: #6c757d;
-        font-size: 0.9rem;
+        font-size: 0.8rem;
         margin-bottom: 1rem;
     }
     
     .cart-section {
-        background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-        border-radius: 15px;
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e9ecef;
     }
     
     .cart-table {
@@ -66,19 +68,19 @@
     }
     
     .cart-table thead th {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        background: #f8f9fa;
         border: none;
         font-weight: 600;
         color: #495057;
         padding: 1rem;
-        text-align: center;
+        font-size: 0.875rem;
     }
     
     .cart-table tbody td {
-        padding: 1rem;
+        padding: 0.875rem 1rem;
         border: none;
         vertical-align: middle;
-        text-align: center;
+        font-size: 0.875rem;
     }
     
     .cart-table tbody tr {
@@ -86,45 +88,59 @@
     }
     
     .cart-table tfoot td {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        background: #f8f9fa;
         font-weight: 700;
         padding: 1rem;
         border: none;
     }
     
     .checkout-section {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        border-radius: 15px;
+        background: #f8f9fa;
+        border-radius: 12px;
         padding: 1.5rem;
         margin-top: 1rem;
-        border: 1px solid #dee2e6;
+        border: 1px solid #e9ecef;
     }
     
     .form-control:focus {
-        border-color: #17a2b8;
-        box-shadow: 0 0 0 0.2rem rgba(23, 162, 184, 0.25);
+        border-color: #28a745;
+        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
     }
     
     .btn-add {
-        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        background: #28a745;
         border: none;
-        border-radius: 10px;
+        border-radius: 6px;
         padding: 0.5rem 1rem;
         font-weight: 600;
         transition: all 0.3s ease;
+        color: white;
+        font-size: 0.875rem;
     }
     
     .btn-add:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        background: #218838;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
     }
     
     .search-section {
         background: white;
-        border-radius: 10px;
+        border-radius: 8px;
         padding: 1rem;
         margin-bottom: 1.5rem;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e9ecef;
+    }
+    
+    .discount-badge {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
     }
 </style>
 
@@ -134,10 +150,10 @@
         <div class="d-flex justify-content-between align-items-center">
             <div>
                 <h1 class="h3 mb-1 fw-bold">Sales Management</h1>
-                <p class="mb-0 opacity-75">Process sales and manage your pharmacy transactions</p>
+                <p class="mb-0 opacity-75">Process sales and manage pharmacy transactions</p>
             </div>
             <div class="text-end">
-                <i class="fas fa-shopping-cart fa-3x opacity-50"></i>
+                <i class="fas fa-shopping-cart fa-2x opacity-50"></i>
             </div>
         </div>
     </div>
@@ -152,7 +168,7 @@
 
     @if($hasPrescription)
         <div class="alert alert-warning alert-dismissible fade show" role="alert">
-            <i class="fas fa-exclamation-triangle me-2"></i>Some products in the cart need a prescription. Please verify before completing the sale.
+            <i class="fas fa-exclamation-triangle me-2"></i>Some products in the cart require prescription verification.
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     @endif
@@ -166,12 +182,10 @@
 
     <div class="row">
         {{-- Left: Available Products --}}
-        <div class="col-md-8">
+        <div class="col-lg-8">
             <div class="products-section">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h4 class="mb-0 fw-bold">
-                        <i class="me-2 text-primary"></i>Available Products
-                    </h4>
+                    <h5 class="mb-0 fw-bold">Available Products</h5>
                 </div>
                 
                 {{-- Search Section --}}
@@ -181,34 +195,34 @@
                             <i class="fas fa-search text-muted"></i>
                         </span>
                         <input type="text" id="search-bar" value="{{ $search ?? '' }}" class="form-control border-start-0" placeholder="Search products by name, category, or supplier...">
-                        <button id="search-btn" class="btn btn-primary" type="button">
-                            <i class="fas fa-search me-1"></i>Search
+                        <button id="search-btn" class="btn btn-success" type="button">
+                            Search
                         </button>
                     </div>
                 </div>
 
                 <div class="row" id="product-list">
                     @forelse($stocks as $stock)
-                        <div class="col-md-4 mb-3 product-card">
+                        <div class="col-xl-4 col-lg-6 mb-3">
                             <div class="card product-card">
                                 <div class="card-body">
-                                    <div class="d-flex align-items-center mb-2">
-                                        <i class="me-2 text-primary"></i>
-                                        <h6 class="product-name mb-0">
-                                        {{ $stock->product->productName }} ({{ $stock->product->genericName }})
-                                    </h6>
+                                    <div class="product-name">
+                                        {{ $stock->product->productName }}
+                                        @if($stock->product->genericName)
+                                            <div class="text-muted small">{{ $stock->product->genericName }}</div>
+                                        @endif
                                     </div>
-                                    <p class="product-expiry mb-2">
-                                        <i class="fas fa-calendar-alt me-1"></i>Expires: {{ date('M d, Y', strtotime($stock->expiryDate)) }}
-                                    </p>
-                                    <p class="product-price mb-1">₱{{ number_format($stock->selling_price, 2) }}</p>
-                                    <p class="product-stock mb-1">
+                                    <div class="product-stock">
                                         <i class="fas fa-boxes me-1"></i>Stock: {{ $stock->available_quantity }}
-                                    </p>
+                                    </div>
+                                    <div class="product-stock">
+                                        <i class="fas fa-calendar-alt me-1"></i>Expires: {{ date('M d, Y', strtotime($stock->expiryDate)) }}
+                                    </div>
+                                    <div class="product-price">₱{{ number_format($stock->selling_price, 2) }}</div>
                                     <form method="POST" action="{{ route('sales.store') }}">
                                         @csrf
                                         <button type="submit" name="add_item" value="{{ $stock->stockID }}" class="btn btn-add w-100">
-                                            <i class="fas fa-plus me-1"></i>Add to Cart
+                                            Add to Cart
                                         </button>
                                     </form>
                                 </div>
@@ -219,7 +233,7 @@
                             <div class="text-muted">
                                 <i class="fas fa-pills fa-3x mb-3"></i>
                                 <h5>No products available</h5>
-                                <p>Check your inventory to add products for sale.</p>
+                                <p class="mb-0">Check your inventory to add products for sale.</p>
                             </div>
                         </div>
                     @endforelse
@@ -228,21 +242,20 @@
         </div>
 
         {{-- Right: Cart --}}
-        <div class="col-md-4">
+        <div class="col-lg-4">
             <div class="cart-section">
                 <div class="d-flex align-items-center mb-3">
-                    <i class="fas fa-shopping-cart me-2 text-white"></i>
-                    <h4 class="mb-0 fw-bold text-white">Shopping Cart</h4>
+                    <h5 class="mb-0 fw-bold">Shopping Cart</h5>
                 </div>
                 
                 <div class="table-responsive">
                     <table class="table cart-table">
                         <thead>
                             <tr>
-                                <th style="width: 40%;">Item</th>
-                                <th style="width: 20%;">Qty</th>
-                                <th style="width: 25%;">Subtotal</th>
-                                <th style="width: 15%;">Action</th>
+                                <th class="text-start">Item</th>
+                                <th class="text-center">Qty</th>
+                                <th class="text-end">Subtotal</th>
+                                <th class="text-center" style="width: 60px;">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -260,10 +273,10 @@
                                     @endphp
                                     <tr>
                                         <td class="text-start">
-                                            <div class="fw-medium">{{ $stock->product->productName }}</div>
-                                            <small class="text-muted">₱{{ number_format($stock->selling_price, 2) }} each</small>
+                                            <div class="fw-medium small">{{ $stock->product->productName }}</div>
+                                            <div class="text-muted x-small">₱{{ number_format($stock->selling_price, 2) }} each</div>
                                         </td>
-                                        <td>
+                                        <td class="text-center">
                                             <form class="update-cart-form" data-id="{{ $stock->stockID }}">
                                                 <input type="number" class="form-control form-control-sm cart-qty-input"
                                                        value="{{ $item['quantity'] }}" min="1" max="{{ $stock->available_quantity }}" 
@@ -272,13 +285,13 @@
                                                        title="Max available: {{ $stock->available_quantity }}">
                                             </form>
                                         </td>
-                                        <td class="fw-bold text-primary item-subtotal">₱{{ number_format($lineTotal, 2) }}</td>
-                                        <td>
+                                        <td class="text-end fw-bold text-primary item-subtotal">₱{{ number_format($lineTotal, 2) }}</td>
+                                        <td class="text-center">
                                             <form method="POST" action="{{ route('sales.store') }}" class="d-inline">
                                                 @csrf
                                                 <button type="submit" name="remove_item" value="{{ $stock->stockID }}" 
-                                                        class="btn btn-danger btn-sm" title="Remove from cart">
-                                                    <i class="fas fa-trash"></i>
+                                                        class="btn btn-outline-danger btn-sm" title="Remove from cart">
+                                                    Remove
                                                 </button>
                                             </form>
                                         </td>
@@ -301,7 +314,7 @@
                                 <td colspan="2" class="text-start">
                                     <strong>Subtotal:</strong>
                                 </td>
-                                <td id="cart-subtotal" class="fw-bold text-primary">₱{{ number_format($subtotal ?? 0, 2) }}</td>
+                                <td id="cart-subtotal" class="text-end fw-bold text-primary">₱{{ number_format($subtotal ?? 0, 2) }}</td>
                                 <td></td>
                             </tr>
                         </tfoot>
@@ -311,30 +324,29 @@
 
             {{-- Discount display + confirm form area --}}
             @if(!empty($cartItems))
-            {{-- Discount display (updated by JS) --}}
-            <div class="mb-2 px-2">
-                <div id="discount-row" class="text-success" style="display:none;">
-                    Discount (20%): -<span id="discount-amount">₱0.00</span>
-                </div>
-                <div id="grand-total-row" class="fw-bold" style="display:none;">
-                    Grand Total: <span id="grand-total">₱0.00</span>
-                </div>
-            </div>
-
             <div class="checkout-section">
-                <h5 class="fw-bold mb-3">
-                    <i class="fas fa-credit-card me-2 text-primary"></i>Checkout
-                </h5>
+                <h6 class="fw-bold mb-3">Checkout</h6>
+                
+                {{-- Discount display (updated by JS) --}}
+                <div class="mb-3">
+                    <div id="discount-row" class="d-flex justify-content-between text-success" style="display:none !important;">
+                        <span>Discount (20%):</span>
+                        <span>-<span id="discount-amount">₱0.00</span></span>
+                    </div>
+                    <div id="grand-total-row" class="d-flex justify-content-between fw-bold border-top pt-2" style="display:none !important;">
+                        <span>Grand Total:</span>
+                        <span id="grand-total">₱0.00</span>
+                    </div>
+                </div>
                 
                 <form method="POST" action="{{ route('sales.confirm') }}">
                     @csrf
                     
-                    {{-- Senior / PWD checkbox (visual) --}}
+                    {{-- Senior / PWD checkbox --}}
                     <div class="form-check mb-3 p-3 bg-light rounded">
                         <input class="form-check-input" type="checkbox" id="discount-checkbox" 
                                {{ old('isDiscounted') == '1' ? 'checked' : '' }}>
                         <label class="form-check-label fw-semibold" for="discount-checkbox">
-                            <i class="fas fa-percentage me-1 text-success"></i>
                             Senior Citizen or PWD (20% Discount)
                         </label>
                     </div>
@@ -343,15 +355,13 @@
                     <input type="hidden" name="isDiscounted" id="isDiscountedInput" value="{{ old('isDiscounted', '0') }}">
 
                     <div class="mb-3">
-                        <label for="cash" class="form-label fw-semibold">
-                            <i class="fas fa-money-bill-wave me-2 text-primary"></i>Cash Received
-                        </label>
-                        <input type="number" step="0.01" class="form-control form-control-lg" name="cash" id="cash" 
+                        <label for="cash" class="form-label fw-semibold">Cash Received</label>
+                        <input type="number" step="0.01" class="form-control" name="cash" id="cash" 
                                placeholder="Enter amount received" required>
                     </div>
                     
-                    <button type="submit" class="btn btn-success btn-lg w-100">
-                        <i class="fas fa-check me-2"></i>Proceed to Confirmation
+                    <button type="submit" class="btn btn-success w-100">
+                        Proceed to Confirmation
                     </button>
                 </form>
             </div>
@@ -575,8 +585,8 @@ document.addEventListener("DOMContentLoaded", function () {
             discountAmountEl.innerText = "₱" + fmtDiscount;
             grandTotalEl.innerText = "₱" + fmtGrand;
 
-            discountRow.style.display = "block";
-            grandTotalRow.style.display = "block";
+            discountRow.style.display = "flex";
+            grandTotalRow.style.display = "flex";
         } else {
             // hide discount and grand total rows when not applied
             discountRow.style.display = "none";

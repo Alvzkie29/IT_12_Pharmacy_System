@@ -243,7 +243,7 @@
                 </a>
                 <a href="{{ route('inventory.nearExpiry') }}" 
                    class="nav-link text-white mb-1 {{ request()->routeIs('inventory.nearExpiry') ? 'active-link rounded' : '' }}">
-                    <i class="fas fa-hourglass-end me-2"></i> Near Expiry
+                    <i class="fas fa-hourglass-end me-2"></i> Near Expiry & Low Stock
                 </a>
             </div>
 
@@ -267,7 +267,7 @@
                    class="nav-link text-white mb-1 {{ request()->routeIs('reports.index') ? 'active-link rounded' : '' }}">
                     <i class="fas fa-file-alt me-2"></i> Summary Reports
                 </a>
-                <a href="{{ route('reports.transaction_details') }}" 
+                <a href="{{ route('transaction-details.index') }}" 
                    class="nav-link text-white mb-1 {{ request()->routeIs('reports.transaction_details') ? 'active-link rounded' : '' }}">
                     <i class="fas fa-receipt me-2"></i> Transaction Details
                 </a>

@@ -1,320 +1,419 @@
 @extends('layouts.app')
 
 @section('content')
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        color: white;
+    }
+    
+    .alert-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        background: white;
+        margin-bottom: 2rem;
+    }
+    
+    .alert-card .card-header {
+        background: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+        border-radius: 12px 12px 0 0;
+        padding: 1.25rem 1.5rem;
+    }
+    
+    .alert-table {
+        margin: 0;
+    }
+    
+    .alert-table thead th {
+        background: #f8f9fa;
+        border: none;
+        font-weight: 600;
+        color: #495057;
+        padding: 1rem;
+        font-size: 0.875rem;
+    }
+    
+    .alert-table tbody td {
+        padding: 0.875rem 1rem;
+        border: none;
+        vertical-align: middle;
+        font-size: 0.875rem;
+    }
+    
+    .alert-table tbody tr {
+        border-bottom: 1px solid #f1f3f4;
+        transition: background-color 0.2s ease;
+    }
+    
+    .alert-table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .status-badge {
+        padding: 0.5rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border: 1px solid;
+    }
+    
+    .status-badge.critical {
+        background: #f8d7da;
+        color: #721c24;
+        border-color: #f1b0b7;
+    }
+    
+    .status-badge.warning {
+        background: #fff3cd;
+        color: #856404;
+        border-color: #ffeaa7;
+    }
+    
+    .status-badge.monitor {
+        background: #e2e3e5;
+        color: #383d41;
+        border-color: #d6d8db;
+    }
+    
+    .status-badge.low-stock {
+        background: #fff3cd;
+        color: #856404;
+        border-color: #ffeaa7;
+    }
+    
+    .status-badge.very-low {
+        background: #f8d7da;
+        color: #721c24;
+        border-color: #f1b0b7;
+    }
+    
+    .btn-action {
+        border-radius: 6px;
+        padding: 0.5rem 0.75rem;
+        transition: all 0.3s ease;
+        font-size: 0.875rem;
+    }
+    
+    .btn-action:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+    
+    .modal-content {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+    
+    .modal-header {
+        background: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+        border-radius: 12px 12px 0 0;
+        padding: 1.25rem 1.5rem;
+    }
+</style>
+
 <div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h3 mb-1 fw-bold">Inventory Alerts</h1>
+                <p class="mb-0 opacity-75">Monitor near-expiry and low stock items</p>
+            </div>
+            <div class="text-end">
+                <i class="fas fa-exclamation-triangle fa-2x opacity-50"></i>
+            </div>
+        </div>
+    </div>
+
+    {{-- Flash Messages --}}
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
     <div class="row">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title">
-                        Inventory Alerts
-                    </h5>
+        {{-- NEAR EXPIRY SECTION --}}
+        <div class="col-lg-6 mb-4">
+            <div class="alert-card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-1 fw-bold text-dark">Near Expiry Items</h5>
+                        <small class="text-muted">Products expiring within 6 months</small>
+                    </div>
+                    <span class="badge bg-warning">{{ $nearExpiryStocks->count() }}</span>
                 </div>
-
                 <div class="card-body">
-                    {{-- Success/Error Messages --}}
-                    @if(session('success'))
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            <i class="fas fa-check-circle"></i> {{ session('success') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    @endif
-
-                    @if(session('error'))
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <i class="fas fa-exclamation-circle"></i> {{ session('error') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    @endif
-
-                    <div class="row">
-                        {{-- NEAR EXPIRY SECTION --}}
-                        <div class="col-md-6 mb-4">
-                            <div class="card h-100">
-                                <div class="card-header bg-warning text-white">
-                                    <h6 class="card-title mb-0">
-                                        <i class="fas fa-clock"></i> Near Expiry Items
-                                        <span class="badge bg-light text-dark ms-2">{{ $nearExpiryStocks->count() }}</span>
-                                    </h6>
+                    @if($nearExpiryStocks->count() > 0)
+                        {{-- Bulk Action Section --}}
+                        <div class="alert alert-warning mb-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="small">
+                                    <strong>Expiring within 6 months</strong>
                                 </div>
-                                <div class="card-body">
-                                    @if($nearExpiryStocks->count() > 0)
-                                        {{-- Pull Out All Button --}}
-                                        <div class="mb-3">
-                                            <div class="alert alert-warning py-2">
-                                                <div class="d-flex justify-content-between align-items-center">
-                                                    <div>
-                                                        <small><strong>Expiring within 6 months</strong></small>
-                                                    </div>
-                                                    <form id="pullOutAllForm" action="{{ route('inventory.stock-out') }}" method="POST" style="display: inline;">
-                                                        @csrf
-                                                        <input type="hidden" name="pull_all_near_expiry" value="1">
-                                                        <input type="hidden" name="months" value="6">
-                                                        <button type="submit" class="btn btn-danger btn-sm" id="pullOutAllBtn" onclick="return confirmPullOut()">
-                                                            <i class="fas fa-exclamation-triangle"></i> Pull Out All
-                                                        </button>
-                                                    </form>
+                                <form id="pullOutAllForm" action="{{ route('inventory.stock-out') }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="pull_all_near_expiry" value="1">
+                                    <input type="hidden" name="months" value="6">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm" id="pullOutAllBtn" onclick="return confirmPullOut()">
+                                        Pull Out All
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table alert-table">
+                                <thead>
+                                    <tr>
+                                        <th class="text-start">Product</th>
+                                        <th class="text-center">Batch</th>
+                                        <th class="text-center">Qty</th>
+                                        <th class="text-center">Expiry</th>
+                                        <th class="text-center">Status</th>
+                                        <th class="text-center" style="width: 80px;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($nearExpiryStocks as $stock)
+                                        @php
+                                            $expiryDate = \Carbon\Carbon::parse($stock->expiryDate);
+                                            $daysUntilExpiry = now()->diffInDays($expiryDate, false);
+                                            $isCritical = $daysUntilExpiry <= 30;
+                                            $isWarning = $daysUntilExpiry <= 90;
+                                        @endphp
+                                        <tr>
+                                            <td class="text-start">
+                                                <div class="fw-medium small">{{ $stock->product->productName ?? 'N/A' }}</div>
+                                                <div class="text-muted x-small">{{ $stock->product->genericName ?? '' }}</div>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge bg-light text-dark border">{{ $stock->batchNo ?? 'N/A' }}</span>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge bg-secondary">{{ $stock->available_quantity }}</span>
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="small {{ $isCritical ? 'text-danger fw-bold' : ($isWarning ? 'text-warning' : '') }}">
+                                                    {{ $expiryDate->format('M d, Y') }}
                                                 </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="table-responsive" style="max-height: 400px;">
-                                            <table class="table table-sm table-hover">
-                                                <thead class="table-dark">
-                                                    <tr>
-                                                        <th>#</th>
-                                                        <th>Product</th>
-                                                        <th>Batch</th>
-                                                        <th>Qty</th>
-                                                        <th>Expiry</th>
-                                                        <th>Status</th>
-                                                        <th>Action</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach($nearExpiryStocks as $index => $stock)
-                                                        @php
-                                                            $expiryDate = \Carbon\Carbon::parse($stock->expiryDate);
-                                                            $daysUntilExpiry = now()->diffInDays($expiryDate, false);
-                                                            $isCritical = $daysUntilExpiry <= 30;
-                                                            $isWarning = $daysUntilExpiry <= 90;
-                                                        @endphp
-                                                        <tr class="{{ $isCritical ? 'table-danger' : ($isWarning ? 'table-warning' : '') }}">
-                                                            <td class="fw-bold">{{ $index + 1 }}</td>
-                                                            <td>
-                                                                <div>
-                                                                    <small class="fw-bold">{{ $stock->product->productName ?? 'N/A' }}</small>
-                                                                    <br>
-                                                                    <small class="text-muted">{{ $stock->product->genericName ?? '' }}</small>
-                                                                </div>
-                                                            </td>
-                                                            <td>
-                                                                <span class="badge bg-secondary">{{ $stock->batchNo ?? 'N/A' }}</span>
-                                                            </td>
-                                                            <td>
-                                                                <span class="badge bg-info">{{ $stock->available_quantity }}</span>
-                                                            </td>
-                                                            <td>
-                                                                <small class="{{ $isCritical ? 'text-danger fw-bold' : ($isWarning ? 'text-warning' : '') }}">
-                                                                    {{ $expiryDate->format('M d, Y') }}
-                                                                </small>
-                                                                <br>
-                                                                <small class="text-muted">{{ $daysUntilExpiry }} days</small>
-                                                            </td>
-                                                            <td>
-                                                                @if($isCritical)
-                                                                    <span class="badge bg-danger">Critical</span>
-                                                                @elseif($isWarning)
-                                                                    <span class="badge bg-warning">Warning</span>
-                                                                @else
-                                                                    <span class="badge bg-secondary">Monitor</span>
-                                                                @endif
-                                                            </td>
-                                                            <td>
-                                                                <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#pullOutModal{{ $stock->stockID }}">
-                                                                    <i class="fas fa-external-link-alt"></i>
-                                                                </button>
-                                                            </td>
-                                                        </tr>
-                                                    @endforeach
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    @else
-                                        <div class="text-center py-4">
-                                            <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
-                                            <p class="text-success mb-0">No near-expiry items</p>
-                                            <small class="text-muted">All items are within safe expiry range</small>
-                                        </div>
-                                    @endif
-                                </div>
-                            </div>
+                                                <div class="x-small text-muted">{{ $daysUntilExpiry }} days</div>
+                                            </td>
+                                            <td class="text-center">
+                                                @if($isCritical)
+                                                    <span class="status-badge critical">Critical</span>
+                                                @elseif($isWarning)
+                                                    <span class="status-badge warning">Warning</span>
+                                                @else
+                                                    <span class="status-badge monitor">Monitor</span>
+                                                @endif
+                                            </td>
+                                            <td class="text-center">
+                                                <button type="button" class="btn btn-outline-danger btn-action" data-bs-toggle="modal" data-bs-target="#pullOutModal{{ $stock->stockID }}" title="Pull Out Item">
+                                                    Pull Out
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
-
-                        {{-- LOW STOCK SECTION --}}
-                        <div class="col-md-6 mb-4">
-                            <div class="card h-100">
-                                <div class="card-header bg-danger text-white">
-                                    <h6 class="card-title mb-0">
-                                        <i class="fas fa-boxes"></i> Low Stock Items
-                                        <span class="badge bg-light text-dark ms-2">{{ $lowStocks->count() }}</span>
-                                    </h6>
-                                </div>
-                                <div class="card-body">
-                                    @if($lowStocks->count() > 0)
-                                        <div class="table-responsive" style="max-height: 400px;">
-                                            <table class="table table-sm table-hover">
-                                                <thead class="table-secondary">
-                                                    <tr>
-                                                        <th>#</th>
-                                                        <th>Product</th>
-                                                        <th>Batch</th>
-                                                        <th>Qty</th>
-                                                        <th>Status</th>
-                                                        <th>Action</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach($lowStocks as $index => $stock)
-                                                        @php
-                                                            $expiryDate = $stock->expiryDate ? \Carbon\Carbon::parse($stock->expiryDate) : null;
-                                                            $daysUntilExpiry = $expiryDate ? now()->diffInDays($expiryDate, false) : null;
-                                                            $isVeryLow = $stock->available_quantity <= 5;
-                                                            $isExpired = $expiryDate && $daysUntilExpiry < 0;
-                                                            $isNearExpiry = $expiryDate && $daysUntilExpiry <= 180;
-                                                        @endphp
-                                                        <tr class="{{ $isVeryLow ? 'table-danger' : 'table-warning' }}">
-                                                            <td class="fw-bold">{{ $index + 1 }}</td>
-                                                            <td>
-                                                                <div>
-                                                                    <small class="fw-bold">{{ $stock->product->productName ?? 'N/A' }}</small>
-                                                                    <br>
-                                                                    <small class="text-muted">{{ $stock->product->genericName ?? '' }}</small>
-                                                                </div>
-                                                            </td>
-                                                            <td>
-                                                                <span class="badge bg-secondary">{{ $stock->batchNo ?? 'N/A' }}</span>
-                                                            </td>
-                                                            <td>
-                                                                <span class="badge {{ $isVeryLow ? 'bg-danger' : 'bg-warning' }}">
-                                                                    {{ $stock->available_quantity }}
-                                                                </span>
-                                                            </td>
-                                                            <td>
-                                                                @if($isVeryLow)
-                                                                    <span class="badge bg-danger">Very Low</span>
-                                                                @else
-                                                                    <span class="badge bg-warning">Low Stock</span>
-                                                                @endif
-                                                                @if($expiryDate && $isNearExpiry)
-                                                                    <br>
-                                                                    <small class="text-warning">Near Expiry</small>
-                                                                @endif
-                                                            </td>
-                                                            <td>
-                                                                <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#restockModal{{ $stock->stockID }}">
-                                                                    <i class="fas fa-plus"></i>
-                                                                </button>
-                                                            </td>
-                                                        </tr>
-                                                    @endforeach
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    @else
-                                        <div class="text-center py-4">
-                                            <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
-                                            <p class="text-success mb-0">No low stock items</p>
-                                            <small class="text-muted">All items have sufficient stock</small>
-                                        </div>
-                                    @endif
-                                </div>
-                            </div>
+                    @else
+                        <div class="text-center py-4">
+                            <i class="fas fa-check-circle fa-2x text-success mb-3"></i>
+                            <h5 class="text-success mb-2">No Near-Expiry Items</h5>
+                            <p class="text-muted mb-0">All items are within safe expiry range</p>
                         </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        {{-- LOW STOCK SECTION --}}
+        <div class="col-lg-6 mb-4">
+            <div class="alert-card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-1 fw-bold text-dark">Low Stock Items</h5>
+                        <small class="text-muted">Products below minimum stock level</small>
                     </div>
-
-                    {{-- Individual Pull Out Modals for Near Expiry Items --}}
-                    @foreach($nearExpiryStocks as $stock)
-                    <div class="modal fade" id="pullOutModal{{ $stock->stockID }}" tabindex="-1" aria-labelledby="pullOutModalLabel{{ $stock->stockID }}" aria-hidden="true">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="pullOutModalLabel{{ $stock->stockID }}">
-                                        <i class="fas fa-external-link-alt text-danger me-2"></i>
-                                        Pull Out - {{ $stock->product->productName ?? 'N/A' }}
-                                    </h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <form action="{{ route('inventory.stock-out', $stock->stockID) }}" method="POST">
-                                    @csrf
-                                    <div class="modal-body">
-                                        <div class="alert alert-warning">
-                                            <small>
-                                                <i class="fas fa-exclamation-triangle"></i>
-                                                This item expires on: <strong>{{ \Carbon\Carbon::parse($stock->expiryDate)->format('M d, Y') }}</strong>
-                                            </small>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="quantity{{ $stock->stockID }}" class="form-label">Quantity to Pull Out</label>
-                                            <input type="number" class="form-control" id="quantity{{ $stock->stockID }}" name="quantity" min="1" max="{{ $stock->available_quantity }}" value="{{ $stock->available_quantity }}" required>
-                                            <small class="form-text text-muted">Available: {{ $stock->available_quantity }} units</small>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="reason{{ $stock->stockID }}" class="form-label">Reason</label>
-                                            <select class="form-control" id="reason{{ $stock->stockID }}" name="reason" required>
-                                                <option value="pulled_out_near_expiry">Near Expiry</option>
-                                                <option value="pulled_out_damaged">Damaged</option>
-                                                <option value="pulled_out_other">Other</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                        <button type="submit" class="btn btn-danger">Pull Out</button>
-                                    </div>
-                                </form>
-                            </div>
+                    <span class="badge bg-danger">{{ $lowStocks->count() }}</span>
+                </div>
+                <div class="card-body">
+                    @if($lowStocks->count() > 0)
+                        <div class="table-responsive">
+                            <table class="table alert-table">
+                                <thead>
+                                    <tr>
+                                        <th class="text-start">Product</th>
+                                        <th class="text-center">Batch</th>
+                                        <th class="text-center">Qty</th>
+                                        <th class="text-center">Status</th>
+                                        <th class="text-center" style="width: 80px;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($lowStocks as $stock)
+                                        @php
+                                            $expiryDate = $stock->expiryDate ? \Carbon\Carbon::parse($stock->expiryDate) : null;
+                                            $daysUntilExpiry = $expiryDate ? now()->diffInDays($expiryDate, false) : null;
+                                            $isVeryLow = $stock->available_quantity <= 5;
+                                            $isExpired = $expiryDate && $daysUntilExpiry < 0;
+                                            $isNearExpiry = $expiryDate && $daysUntilExpiry <= 180;
+                                        @endphp
+                                        <tr>
+                                            <td class="text-start">
+                                                <div class="fw-medium small">{{ $stock->product->productName ?? 'N/A' }}</div>
+                                                <div class="text-muted x-small">{{ $stock->product->genericName ?? '' }}</div>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge bg-light text-dark border">{{ $stock->batchNo ?? 'N/A' }}</span>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge {{ $isVeryLow ? 'bg-danger' : 'bg-warning' }}">
+                                                    {{ $stock->available_quantity }}
+                                                </span>
+                                            </td>
+                                            <td class="text-center">
+                                                @if($isVeryLow)
+                                                    <span class="status-badge very-low">Very Low</span>
+                                                @else
+                                                    <span class="status-badge low-stock">Low Stock</span>
+                                                @endif
+                                                @if($expiryDate && $isNearExpiry)
+                                                    <div class="x-small text-warning mt-1">Near Expiry</div>
+                                                @endif
+                                            </td>
+                                            <td class="text-center">
+                                                <button type="button" class="btn btn-outline-success btn-action" data-bs-toggle="modal" data-bs-target="#restockModal{{ $stock->stockID }}" title="Restock Item">
+                                                    Restock
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
-                    </div>
-                    @endforeach
-
-                    {{-- Restock Modals for Low Stock Items --}}
-                    @foreach($lowStocks as $stock)
-                    <div class="modal fade" id="restockModal{{ $stock->stockID }}" tabindex="-1" aria-labelledby="restockModalLabel{{ $stock->stockID }}" aria-hidden="true">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="restockModalLabel{{ $stock->stockID }}">
-                                        <i class="fas fa-plus-circle text-success me-2"></i>
-                                        Restock - {{ $stock->product->productName ?? 'N/A' }}
-                                    </h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <form action="{{ route('inventory.restock', $stock->stockID) }}" method="POST">
-                                    @csrf
-                                    <div class="modal-body">
-                                        <div class="alert alert-info">
-                                            <small>
-                                                <i class="fas fa-info-circle"></i>
-                                                Current stock: <strong>{{ $stock->available_quantity }}</strong> units
-                                            </small>
-                                        </div>
-                                        <div class="row g-3">
-                                            <div class="col-md-6">
-                                                <label for="additional_quantity{{ $stock->stockID }}" class="form-label">Additional Qty</label>
-                                                <input type="number" class="form-control" id="additional_quantity{{ $stock->stockID }}" name="additional_quantity" min="1" required>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label for="batchNo{{ $stock->stockID }}" class="form-label">Batch No</label>
-                                                <input type="text" class="form-control" id="batchNo{{ $stock->stockID }}" name="batchNo" value="{{ $stock->batchNo }}">
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label for="purchase_price{{ $stock->stockID }}" class="form-label">Purchase Price</label>
-                                                <input type="number" step="0.01" class="form-control" id="purchase_price{{ $stock->stockID }}" name="purchase_price" value="{{ $stock->purchase_price }}" required>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label for="selling_price{{ $stock->stockID }}" class="form-label">Selling Price</label>
-                                                <input type="number" step="0.01" class="form-control" id="selling_price{{ $stock->stockID }}" name="selling_price" value="{{ $stock->selling_price }}" required>
-                                            </div>
-                                            <div class="col-12">
-                                                <label for="expiryDate{{ $stock->stockID }}" class="form-label">Expiry Date</label>
-                                                <input type="date" class="form-control" id="expiryDate{{ $stock->stockID }}" name="expiryDate" value="{{ $stock->expiryDate ? \Carbon\Carbon::parse($stock->expiryDate)->format('Y-m-d') : '' }}" required>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                        <button type="submit" class="btn btn-success">Add Stock</button>
-                                    </div>
-                                </form>
-                            </div>
+                    @else
+                        <div class="text-center py-4">
+                            <i class="fas fa-check-circle fa-2x text-success mb-3"></i>
+                            <h5 class="text-success mb-2">No Low Stock Items</h5>
+                            <p class="text-muted mb-0">All items have sufficient stock</p>
                         </div>
-                    </div>
-                    @endforeach
+                    @endif
                 </div>
             </div>
         </div>
     </div>
+
+    {{-- Individual Pull Out Modals for Near Expiry Items --}}
+    @foreach($nearExpiryStocks as $stock)
+    <div class="modal fade" id="pullOutModal{{ $stock->stockID }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Pull Out Item</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="{{ route('inventory.stock-out', $stock->stockID) }}" method="POST">
+                    @csrf
+                    <div class="modal-body">
+                        <div class="alert alert-warning">
+                            <div class="small">
+                                <strong>{{ $stock->product->productName ?? 'N/A' }}</strong>
+                                <div class="text-muted">Expires: {{ \Carbon\Carbon::parse($stock->expiryDate)->format('M d, Y') }}</div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Quantity to Pull Out</label>
+                            <input type="number" class="form-control" name="quantity" min="1" max="{{ $stock->available_quantity }}" value="{{ $stock->available_quantity }}" required>
+                            <div class="form-text text-muted">Available: {{ $stock->available_quantity }} units</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Reason</label>
+                            <select class="form-select" name="reason" required>
+                                <option value="pulled_out_near_expiry">Near Expiry</option>
+                                <option value="pulled_out_damaged">Damaged</option>
+                                <option value="pulled_out_other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger">Pull Out</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endforeach
+
+    {{-- Restock Modals for Low Stock Items --}}
+    @foreach($lowStocks as $stock)
+    <div class="modal fade" id="restockModal{{ $stock->stockID }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Restock Item</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="{{ route('inventory.restock', $stock->stockID) }}" method="POST">
+                    @csrf
+                    <div class="modal-body">
+                        <div class="alert alert-info mb-3">
+                            <div class="small">
+                                <strong>{{ $stock->product->productName ?? 'N/A' }}</strong>
+                                <div class="text-muted">Current stock: {{ $stock->available_quantity }} units</div>
+                            </div>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Additional Quantity</label>
+                                <input type="number" class="form-control" name="additional_quantity" min="1" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Batch Number</label>
+                                <input type="text" class="form-control" name="batchNo" value="{{ $stock->batchNo }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Purchase Price</label>
+                                <input type="number" step="0.01" class="form-control" name="purchase_price" value="{{ $stock->purchase_price }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Selling Price</label>
+                                <input type="number" step="0.01" class="form-control" name="selling_price" value="{{ $stock->selling_price }}" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Expiry Date</label>
+                                <input type="date" class="form-control" name="expiryDate" value="{{ $stock->expiryDate ? \Carbon\Carbon::parse($stock->expiryDate)->format('Y-m-d') : '' }}" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success">Add Stock</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endforeach
 </div>
 @endsection
 
@@ -336,7 +435,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const pullOutBtn = document.getElementById('pullOutAllBtn');
     if (pullOutBtn) {
         pullOutBtn.addEventListener('click', function() {
-            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Pulling Out...';
+            this.innerHTML = 'Pulling Out...';
             this.disabled = true;
         });
     }

@@ -30,7 +30,7 @@ Route::resource('suppliers', SuppliersController::class);
 
 Route::get('/reports', [ReportsController::class, 'index'])->name('reports.index');
 Route::get('/reports/print/{date}', [ReportsController::class, 'print'])->name('reports.print');
-Route::get('/reports/transaction-details', [TransactionDetailsController::class, 'index'])->name('reports.transaction_details');
+Route::get('/reports/transaction-details', [TransactionDetailsController::class, 'index'])->name('transaction-details.index');
 
 Route::post('/products', [ProductController::class, 'store'])->name('products.store');
 

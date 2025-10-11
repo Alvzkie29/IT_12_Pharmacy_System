@@ -3,103 +3,105 @@
 @section('content')
 <style>
     .page-header {
-        background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
-        border-radius: 15px;
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border-radius: 12px;
         padding: 2rem;
         margin-bottom: 2rem;
         color: white;
     }
     
     .filter-section {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        border-radius: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
         padding: 1.5rem;
         margin-bottom: 2rem;
-        border: none;
+        border: 1px solid #e9ecef;
     }
     
     .stats-card {
         border: none;
-        border-radius: 15px;
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
         transition: all 0.3s ease;
         height: 100%;
+        background: white;
     }
     
     .stats-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
     }
     
     .stats-card .card-body {
-        padding: 2rem;
-        text-align: center;
+        padding: 1.5rem;
     }
     
     .stats-icon {
-        font-size: 2.5rem;
+        font-size: 1.5rem;
         margin-bottom: 1rem;
         opacity: 0.8;
     }
     
     .stats-value {
-        font-size: 2.5rem;
+        font-size: 1.75rem;
         font-weight: 700;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.25rem;
+        text-align: right;
     }
     
     .stats-label {
-        font-size: 1.1rem;
-        font-weight: 600;
-        opacity: 0.9;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #6c757d;
+        text-align: left;
     }
     
     .chart-card {
         border: none;
-        border-radius: 15px;
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
         margin-bottom: 2rem;
         overflow: hidden;
+        background: white;
     }
     
     .chart-card .card-header {
-        background: linear-gradient(135deg, #17a2b8 0%, #6c757d 100%);
-        color: white;
-        border: none;
-        padding: 1.5rem;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+        padding: 1.25rem 1.5rem;
     }
     
     .chart-card .card-body {
-        padding: 2rem;
+        padding: 1.5rem;
     }
     
     .summary-card {
         border: none;
-        border-radius: 15px;
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
         margin-bottom: 2rem;
         overflow: hidden;
+        background: white;
     }
     
     .summary-card .card-header {
-        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-        color: white;
-        border: none;
-        padding: 1.5rem;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+        padding: 1.25rem 1.5rem;
     }
     
     .movement-item {
-        border-left: 4px solid #007bff;
+        border-left: 4px solid #28a745;
         padding: 1rem;
-        margin-bottom: 1rem;
+        margin-bottom: 0.75rem;
         background: #f8f9fa;
-        border-radius: 0 10px 10px 0;
+        border-radius: 0 8px 8px 0;
         transition: all 0.3s ease;
     }
     
     .movement-item:hover {
-        transform: translateX(5px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        background: #e9ecef;
+        transform: translateX(4px);
     }
     
     .movement-item.out {
@@ -112,6 +114,10 @@
     
     .movement-item.expired {
         border-left-color: #ffc107;
+    }
+    
+    .movement-item.sold {
+        border-left-color: #007bff;
     }
     
     .chart-container {
@@ -143,26 +149,51 @@
     }
     
     .rank-badge {
-        background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
-        color: #8b6914;
-        font-weight: 700;
-        padding: 0.5rem 0.75rem;
-        border-radius: 50%;
-        width: 35px;
-        height: 35px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.9rem;
-    }
-    
-    .rank-badge.top-3 {
-        background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
-    }
-    
-    .rank-badge.other {
-        background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        background: #28a745;
         color: white;
+        font-weight: 600;
+        padding: 0.5rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        min-width: 35px;
+        text-align: center;
+    }
+    
+    .metric-positive {
+        color: #28a745;
+        font-weight: 600;
+    }
+    
+    .metric-negative {
+        color: #dc3545;
+        font-weight: 600;
+    }
+    
+    .metric-neutral {
+        color: #6c757d;
+        font-weight: 600;
+    }
+    
+    .table-modern {
+        border-radius: 8px;
+        overflow: hidden;
+        margin: 0;
+    }
+    
+    .table-modern thead th {
+        background: #f8f9fa;
+        border: none;
+        font-weight: 600;
+        color: #495057;
+        padding: 1rem;
+        font-size: 0.875rem;
+    }
+    
+    .table-modern tbody td {
+        padding: 0.875rem 1rem;
+        border: none;
+        vertical-align: middle;
+        font-size: 0.875rem;
     }
 </style>
 
@@ -171,11 +202,11 @@
     <div class="page-header">
         <div class="d-flex justify-content-between align-items-center">
             <div>
-                <h1 class="h3 mb-1 fw-bold">📊 Reports & Analytics</h1>
-                <p class="mb-0 opacity-75">Comprehensive insights for {{ $date ?? now()->toDateString() }}</p>
+                <h1 class="h3 mb-1 fw-bold">Reports & Analytics</h1>
+                <p class="mb-0 opacity-75">Comprehensive business insights and performance metrics</p>
             </div>
             <div class="text-end">
-                <i class="fas fa-chart-line fa-3x opacity-50"></i>
+                <i class="fas fa-chart-line fa-2x opacity-50"></i>
             </div>
         </div>
     </div>
@@ -187,9 +218,7 @@
                 <form action="{{ route('reports.index') }}" method="GET">
                     <div class="row g-3">
                         <div class="col-md-3">
-                            <label for="period" class="form-label fw-semibold">
-                                <i class="fas fa-calendar me-2 text-primary"></i>Period
-                            </label>
+                            <label for="period" class="form-label fw-semibold">Period</label>
                             <select name="period" id="period" class="form-select">
                                 <option value="today" {{ request('period') === 'today' ? 'selected' : '' }}>Today</option>
                                 <option value="monthly" {{ request('period') === 'monthly' ? 'selected' : '' }}>This Month</option>
@@ -198,77 +227,146 @@
                             </select>
                         </div>
                         <div class="col-md-3" id="from-date-container" style="display: {{ request('period') === 'custom_range' ? 'block' : 'none' }};">
-                            <label for="from_date" class="form-label fw-semibold">
-                                <i class="fas fa-calendar-alt me-2 text-primary"></i>From
-                            </label>
+                            <label for="from_date" class="form-label fw-semibold">From Date</label>
                             <input type="date" name="from_date" id="from_date" value="{{ request('from_date') ?? now()->toDateString() }}" class="form-control">
                         </div>
                         <div class="col-md-3" id="to-date-container" style="display: {{ request('period') === 'custom_range' ? 'block' : 'none' }};">
-                            <label for="to_date" class="form-label fw-semibold">
-                                <i class="fas fa-calendar-alt me-2 text-primary"></i>To
-                            </label>
+                            <label for="to_date" class="form-label fw-semibold">To Date</label>
                             <input type="date" name="to_date" id="to_date" value="{{ request('to_date') ?? now()->toDateString() }}" class="form-control">
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">&nbsp;</label>
-                            <button type="submit" class="btn btn-primary w-100">
-                                <i class="fas fa-filter me-1"></i>Filter
+                            <button type="submit" class="btn btn-success w-100">
+                                Apply Filter
                             </button>
                         </div>
                     </div>
                 </form>
             </div>
             <div class="col-md-4 text-end">
-                <a href="{{ route('reports.print', ['date' => $date ?? now()->toDateString(), 'period' => $period ?? 'today']) }}" class="btn btn-outline-primary btn-lg">
-                    <i class="fas fa-print me-2"></i>Print Report
+                <a href="{{ route('reports.print', ['date' => $date ?? now()->toDateString(), 'period' => $period ?? 'today']) }}" class="btn btn-outline-success">
+                    Print Report
                 </a>
             </div>
         </div>
     </div>
 
     {{-- Key Metrics Cards --}}
+    <div class="row g-3 mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="stats-label">Stock In</div>
+                            <div class="stats-value metric-positive">{{ $totalStockIn }}</div>
+                            <small class="text-muted">Total incoming stock</small>
+                        </div>
+                        <div class="stats-icon text-success">
+                            <i class="fas fa-arrow-up"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="stats-label">Pulled Out</div>
+                            <div class="stats-value metric-neutral">{{ $totalPulledOut }}</div>
+                            <small class="text-muted">Items removed</small>
+                        </div>
+                        <div class="stats-icon text-warning">
+                            <i class="fas fa-arrow-down"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="stats-label">Expired Items</div>
+                            <div class="stats-value metric-negative">{{ $totalExpired }}</div>
+                            <small class="text-muted">Stock losses</small>
+                        </div>
+                        <div class="stats-icon text-danger">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="stats-label">Total Profit</div>
+                            <div class="stats-value metric-positive">₱{{ number_format($totalProfit, 2) }}</div>
+                            <small class="text-muted">Net profit</small>
+                        </div>
+                        <div class="stats-icon text-success">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Revenue Summary with VAT --}}
     <div class="row mb-4">
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card stats-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white;">
-                <div class="card-body">
-                    <div class="stats-icon">
-                        <i class="fas fa-arrow-up"></i>
-                    </div>
-                    <div class="stats-value">{{ $totalStockIn }}</div>
-                    <div class="stats-label">Stock In</div>
+        <div class="col-12">
+            <div class="chart-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold">Revenue Summary</h5>
+                    <span class="badge bg-success">Period: {{ ucfirst($period ?? 'today') }}</span>
                 </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card stats-card" style="background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%); color: white;">
                 <div class="card-body">
-                    <div class="stats-icon">
-                        <i class="fas fa-arrow-down"></i>
+                    <div class="row text-center">
+                        <div class="col-md-3 mb-3">
+                            <div class="border-end">
+                                <div class="h4 metric-positive fw-bold">₱{{ number_format($totalSales, 2) }}</div>
+                                <small class="text-muted">Gross Sales</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="border-end">
+                                <div class="h4 metric-negative fw-bold">₱{{ number_format($totalDiscounts, 2) }}</div>
+                                <small class="text-muted">Total Discounts</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="border-end">
+                                <div class="h4 metric-positive fw-bold">₱{{ number_format($totalDiscountedSales, 2) }}</div>
+                                <small class="text-muted">Net Sales</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div>
+                                <div class="h4 metric-neutral fw-bold">₱{{ number_format($vatAmount ?? 0, 2) }}</div>
+                                <small class="text-muted">VAT (1%)</small>
+                            </div>
+                        </div>
                     </div>
-                    <div class="stats-value">{{ $totalPulledOut }}</div>
-                    <div class="stats-label">Pulled Out</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card stats-card" style="background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%); color: white;">
-                <div class="card-body">
-                    <div class="stats-icon">
-                        <i class="fas fa-exclamation-triangle"></i>
+                    @if($period === 'monthly' && isset($netSales))
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="alert alert-success">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <strong>Monthly Net Revenue (After VAT):</strong>
+                                    <span class="h5 mb-0 metric-positive">₱{{ number_format($netSales, 2) }}</span>
+                                </div>
+                                <small class="text-muted">Gross sales minus 1% VAT deduction for monthly reporting</small>
+                            </div>
+                        </div>
                     </div>
-                    <div class="stats-value">{{ $totalExpired }}</div>
-                    <div class="stats-label">Expired</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card stats-card" style="background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%); color: white;">
-                <div class="card-body">
-                    <div class="stats-icon">
-                        <i class="fas fa-dollar-sign"></i>
-                    </div>
-                    <div class="stats-value">₱{{ number_format($totalProfit, 2) }}</div>
-                    <div class="stats-label">Total Profit</div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -280,9 +378,7 @@
         <div class="col-lg-8">
             <div class="chart-card">
                 <div class="card-header">
-                    <h5 class="mb-0 fw-bold">
-                        <i class="fas fa-chart-line me-2"></i>Sales Performance
-                    </h5>
+                    <h5 class="mb-0 fw-bold">Sales Performance</h5>
                 </div>
                 <div class="card-body">
                     <div class="chart-container">
@@ -296,9 +392,7 @@
         <div class="col-lg-4">
             <div class="chart-card">
                 <div class="card-header">
-                    <h5 class="mb-0 fw-bold">
-                        <i class="fas fa-trophy me-2"></i>Top Products
-                    </h5>
+                    <h5 class="mb-0 fw-bold">Top Products</h5>
                 </div>
                 <div class="card-body">
                     <div class="top-products-list">
@@ -315,16 +409,14 @@
                         @foreach($topProducts as $index => $product)
                             <div class="product-item">
                                 <div class="d-flex align-items-center">
-                                    <span class="rank-badge {{ $index < 3 ? 'top-3' : 'other' }} me-3">
-                                        {{ (int)$index + 1 }}
-                                    </span>
+                                    <span class="rank-badge me-3">{{ (int)$index + 1 }}</span>
                                     <div>
                                         <div class="fw-medium">{{ $product['name'] }}</div>
                                         <small class="text-muted">₱{{ number_format($product['revenue'], 2) }} revenue</small>
                                     </div>
                                 </div>
                                 <div class="text-end">
-                                    <div class="fw-bold text-primary">{{ $product['total'] }}</div>
+                                    <div class="fw-bold metric-positive">{{ $product['total'] }}</div>
                                     <small class="text-muted">sold</small>
                                 </div>
                             </div>
@@ -335,43 +427,12 @@
         </div>
     </div>
 
-    {{-- Summary Cards Row --}}
+    {{-- Additional Analytics --}}
     <div class="row mb-4">
-        <div class="col-lg-4">
-            <div class="summary-card">
+        <div class="col-lg-6">
+            <div class="chart-card">
                 <div class="card-header">
-                    <h5 class="mb-0 fw-bold">
-                        <i class="fas fa-money-bill-wave me-2"></i>Revenue Summary
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-6">
-                            <div class="border-end">
-                                <div class="h4 text-success fw-bold">₱{{ number_format($totalSales, 2) }}</div>
-                                <small class="text-muted">Gross Sales</small>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="h4 text-primary fw-bold">₱{{ number_format($totalDiscountedSales, 2) }}</div>
-                            <small class="text-muted">Net Sales</small>
-                        </div>
-                    </div>
-                    <hr>
-                    <div class="text-center">
-                        <div class="h5 text-warning fw-bold">₱{{ number_format($totalDiscounts, 2) }}</div>
-                        <small class="text-muted">Total Discounts</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-4">
-            <div class="summary-card">
-                <div class="card-header">
-                    <h5 class="mb-0 fw-bold">
-                        <i class="fas fa-percentage me-2"></i>Discount Analysis
-                    </h5>
+                    <h5 class="mb-0 fw-bold">Discount Analysis</h5>
                 </div>
                 <div class="card-body">
                     <div class="chart-container">
@@ -381,12 +442,10 @@
             </div>
         </div>
         
-        <div class="col-lg-4">
-            <div class="summary-card">
+        <div class="col-lg-6">
+            <div class="chart-card">
                 <div class="card-header">
-                    <h5 class="mb-0 fw-bold">
-                        <i class="fas fa-boxes me-2"></i>Stock Movement
-                    </h5>
+                    <h5 class="mb-0 fw-bold">Stock Movement</h5>
                 </div>
                 <div class="card-body">
                     <div class="chart-container">
@@ -400,16 +459,13 @@
     {{-- Recent Product Movements --}}
     <div class="chart-card">
         <div class="card-header">
-            <h5 class="mb-0 fw-bold">
-                <i class="fas fa-history me-2"></i>Recent Product Movements
-            </h5>
+            <h5 class="mb-0 fw-bold">Recent Product Movements</h5>
         </div>
         <div class="card-body">
             <div class="row">
                 @php
                     $recentMovements = collect();
                     
-                    // Add stock movements (IN, expired, pulled out)
                     if(isset($validReportsPaginated)) {
                         $recentMovements = $recentMovements->merge($validReportsPaginated->map(function($item) {
                             return [
@@ -456,7 +512,6 @@
                         }));
                     }
                     
-                    // Add sales transactions
                     if(isset($salesData)) {
                         $recentMovements = $recentMovements->merge($salesData->map(function($sale) {
                             return [
@@ -474,7 +529,6 @@
                         }));
                     }
                     
-                    // Sort by date and take latest 10
                     $recentMovements = $recentMovements->sortByDesc(function($movement) {
                         return $movement['date'];
                     })->take(10);
@@ -483,10 +537,10 @@
                 @if($recentMovements->count() > 0)
                     @foreach($recentMovements as $movement)
                         <div class="col-md-6 mb-3">
-                            <div class="movement-item {{ $movement['class'] }} p-3 border rounded">
+                            <div class="movement-item {{ $movement['class'] }}">
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div class="flex-grow-1">
-                                        <div class="fw-bold text-truncate">{{ $movement['productName'] }}</div>
+                                        <div class="fw-bold">{{ $movement['productName'] }}</div>
                                         @if($movement['genericName'])
                                             <div class="text-muted small">{{ $movement['genericName'] }}</div>
                                         @endif
@@ -552,7 +606,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Add event listener for period change
     const periodSelect = document.getElementById('period');
     if (periodSelect) {
         periodSelect.addEventListener('change', toggleCustomDate);
@@ -567,9 +620,10 @@ document.addEventListener('DOMContentLoaded', function() {
             datasets: [{
                 label: 'Sales Revenue',
                 data: [{{ (float) $totalSales * 0.8 }}, {{ (float) $totalSales * 0.9 }}, {{ (float) $totalSales * 1.1 }}, {{ (float) $totalSales }}],
-                borderColor: 'rgb(75, 192, 192)',
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                tension: 0.4
+                borderColor: '#28a745',
+                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                tension: 0.4,
+                fill: true
             }]
         },
         options: {
@@ -602,8 +656,8 @@ document.addEventListener('DOMContentLoaded', function() {
             datasets: [{
                 data: [{{ (float) $totalSales - (float) $totalDiscounts }}, {{ (float) $totalDiscounts }}],
                 backgroundColor: [
-                    'rgba(54, 162, 235, 0.8)',
-                    'rgba(255, 205, 86, 0.8)'
+                    'rgba(40, 167, 69, 0.8)',
+                    'rgba(255, 193, 7, 0.8)'
                 ],
                 borderWidth: 2,
                 borderColor: '#fff'

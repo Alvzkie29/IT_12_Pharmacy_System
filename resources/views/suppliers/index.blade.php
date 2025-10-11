@@ -3,26 +3,27 @@
 @section('content')
 <style>
     .page-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 15px;
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border-radius: 12px;
         padding: 2rem;
         margin-bottom: 2rem;
         color: white;
     }
     
     .search-section {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        border-radius: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
         padding: 1.5rem;
         margin-bottom: 2rem;
-        border: none;
+        border: 1px solid #e9ecef;
     }
     
     .suppliers-card {
         border: none;
-        border-radius: 15px;
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
         overflow: hidden;
+        background: white;
     }
     
     .suppliers-table {
@@ -30,30 +31,28 @@
     }
     
     .suppliers-table thead th {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        background: #f8f9fa;
         border: none;
         font-weight: 600;
         color: #495057;
         padding: 1rem;
-        text-align: center;
+        font-size: 0.875rem;
     }
     
     .suppliers-table tbody td {
-        padding: 1rem;
+        padding: 0.875rem 1rem;
         border: none;
         vertical-align: middle;
-        text-align: center;
+        font-size: 0.875rem;
     }
     
     .suppliers-table tbody tr {
         border-bottom: 1px solid #f1f3f4;
-        transition: all 0.3s ease;
+        transition: background-color 0.2s ease;
     }
     
     .suppliers-table tbody tr:hover {
         background-color: #f8f9fa;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
     
     .action-buttons {
@@ -63,53 +62,52 @@
     }
     
     .btn-action {
-        border-radius: 8px;
+        border-radius: 6px;
         padding: 0.5rem 0.75rem;
         transition: all 0.3s ease;
+        font-size: 0.875rem;
     }
     
     .btn-action:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     }
     
     .modal-content {
         border: none;
-        border-radius: 15px;
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
     }
     
     .modal-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 15px 15px 0 0;
-        border: none;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+        border-radius: 12px 12px 0 0;
+        padding: 1.25rem 1.5rem;
     }
     
     .form-control:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        border-color: #28a745;
+        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
     }
     
-    .pagination {
-        justify-content: center;
+    .badge-status {
+        padding: 0.5rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
     }
     
-    .page-link {
-        border-radius: 8px;
-        margin: 0 2px;
-        border: none;
-        color: #667eea;
+    .badge-status.active {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
     }
     
-    .page-link:hover {
-        background-color: #667eea;
-        color: white;
-    }
-    
-    .page-item.active .page-link {
-        background-color: #667eea;
-        border-color: #667eea;
+    .badge-status.inactive {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f1b0b7;
     }
 </style>
 
@@ -119,10 +117,10 @@
         <div class="d-flex justify-content-between align-items-center">
             <div>
                 <h1 class="h3 mb-1 fw-bold">Suppliers Management</h1>
-                <p class="mb-0 opacity-75">Manage your pharmacy suppliers and their information</p>
+                <p class="mb-0 opacity-75">Manage your pharmacy suppliers and vendor information</p>
             </div>
             <div class="text-end">
-                <i class="fas fa-truck-field fa-3x opacity-50"></i>
+                <i class="fas fa-truck fa-2x opacity-50"></i>
             </div>
         </div>
     </div>
@@ -141,7 +139,7 @@
         </div>
     @endif
 
-    {{-- Search Section --}}
+    {{-- Search and Actions Section --}}
     <div class="search-section">
         <div class="d-flex justify-content-between align-items-center">
             <div class="input-group" style="max-width: 500px;">
@@ -154,12 +152,11 @@
                     class="form-control border-start-0" 
                     placeholder="Search suppliers by name, contact, or address...">
             </div>
-            <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#addSupplierModal">
-                <i class="fas fa-plus me-2"></i>Add Supplier
+            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addSupplierModal">
+                Add Supplier
             </button>
         </div>
     </div>
-
 
     <!-- Suppliers Table -->
     <div class="suppliers-card">
@@ -167,49 +164,49 @@
             <table class="table suppliers-table">
                 <thead>
                     <tr>
-                        <th style="width: 80px;">#</th>
-                        <th>Supplier Name</th>
-                        <th>Contact Information</th>
-                        <th>Address</th>
-                        <th>Status</th>
-                        <th style="width: 150px;">Actions</th>
+                        <th style="width: 60px;">#</th>
+                        <th class="text-start">Supplier Name</th>
+                        <th class="text-start">Contact Information</th>
+                        <th class="text-start">Address</th>
+                        <th class="text-center">Status</th>
+                        <th style="width: 200px;" class="text-center">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($suppliers as $i => $supplier)
                     <tr>
-                        <td>
-                            <span class="badge bg-primary rounded-pill">{{ $i + 1 }}</span>
+                        <td class="text-muted fw-medium">
+                            {{ ($suppliers->currentPage() - 1) * $suppliers->perPage() + $i + 1 }}
                         </td>
                         <td class="fw-medium text-start">{{ $supplier->supplierName }}</td>
                         <td class="text-start">
-                            <i class="fas fa-phone me-2 text-muted"></i>{{ $supplier->contactInfo }}
+                            <div class="small">{{ $supplier->contactInfo }}</div>
                         </td>
                         <td class="text-start">
-                            <i class="fas fa-map-marker-alt me-2 text-muted"></i>{{ $supplier->address }}
+                            <div class="small text-muted">{{ $supplier->address }}</div>
                         </td>
-                        <td>
-                            <span class="badge {{ $supplier->is_active ? 'bg-success' : 'bg-danger' }} rounded-pill">
+                        <td class="text-center">
+                            <span class="badge-status {{ $supplier->is_active ? 'active' : 'inactive' }}">
                                 {{ $supplier->is_active ? 'Active' : 'Inactive' }}
                             </span>
                         </td>
                         <td>
                             <div class="action-buttons">
-                                <button class="btn btn-warning btn-action" data-bs-toggle="modal" data-bs-target="#editSupplierModal{{ $supplier->supplierID }}" title="Edit Supplier">
-                                    <i class="fas fa-edit"></i>
+                                <button class="btn btn-outline-primary btn-action" data-bs-toggle="modal" data-bs-target="#editSupplierModal{{ $supplier->supplierID }}" title="Edit Supplier">
+                                    Edit
                                 </button>
                                 @if ($supplier->is_active)
                                     <form action="{{ route('suppliers.deactivate', $supplier->supplierID) }}" method="POST" class="d-inline">
                                         @csrf
-                                        <button class="btn btn-secondary btn-action" title="Deactivate Supplier" type="submit">
-                                            <i class="fas fa-times-circle"></i> Deactivate
+                                        <button class="btn btn-outline-warning btn-action" title="Deactivate Supplier" type="submit" onclick="return confirm('Are you sure you want to deactivate this supplier?')">
+                                            Deactivate
                                         </button>
                                     </form>
                                 @else
                                     <form action="{{ route('suppliers.activate', $supplier->supplierID) }}" method="POST" class="d-inline">
                                         @csrf
-                                        <button class="btn btn-success btn-action" title="Activate Supplier" type="submit">
-                                            <i class="fas fa-check-circle"></i> Activate
+                                        <button class="btn btn-outline-success btn-action" title="Activate Supplier" type="submit">
+                                            Activate
                                         </button>
                                     </form>
                                 @endif
@@ -218,11 +215,11 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" class="text-center py-5">
+                        <td colspan="6" class="text-center py-5">
                             <div class="text-muted">
-                                <i class="fas fa-inbox fa-3x mb-3"></i>
+                                <i class="fas fa-truck fa-3x mb-3"></i>
                                 <h5>No suppliers found</h5>
-                                <p>Start by adding your first supplier using the button above.</p>
+                                <p class="mb-0">Start by adding your first supplier using the button above.</p>
                             </div>
                         </td>
                     </tr>
@@ -231,12 +228,13 @@
             </table>
         </div>
     </div>
-</div>
 
     <!-- Pagination -->
+    @if($suppliers->hasPages())
     <div class="d-flex justify-content-center mt-4">
         {{ $suppliers->links() }}
     </div>
+    @endif
 </div>
 
 {{-- Add Supplier Modal --}}
@@ -246,40 +244,28 @@
             <form action="{{ route('suppliers.store') }}" method="POST">
                 @csrf
                 <div class="modal-header">
-                    <h5 class="modal-title">
-                        <i class="fas fa-plus-circle me-2"></i>Add Supplier
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title fw-bold">Add New Supplier</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
                     <div class="row g-3">
                         <div class="col-12">
-                            <label class="form-label fw-semibold">
-                                <i class="fas fa-building me-2 text-primary"></i>Supplier Name
-                            </label>
-                            <input type="text" name="supplierName" class="form-control form-control-lg" placeholder="Enter supplier name" required>
+                            <label class="form-label fw-semibold">Supplier Name</label>
+                            <input type="text" name="supplierName" class="form-control" placeholder="Enter supplier name" required>
                         </div>
                         <div class="col-12">
-                            <label class="form-label fw-semibold">
-                                <i class="fas fa-phone me-2 text-primary"></i>Contact Information
-                            </label>
-                            <input type="text" name="contactInfo" class="form-control form-control-lg" placeholder="Enter phone number or email">
+                            <label class="form-label fw-semibold">Contact Information</label>
+                            <input type="text" name="contactInfo" class="form-control" placeholder="Enter phone number or email">
                         </div>
                         <div class="col-12">
-                            <label class="form-label fw-semibold">
-                                <i class="fas fa-map-marker-alt me-2 text-primary"></i>Address
-                            </label>
-                            <textarea name="address" class="form-control form-control-lg" rows="3" placeholder="Enter supplier address"></textarea>
+                            <label class="form-label fw-semibold">Address</label>
+                            <textarea name="address" class="form-control" rows="3" placeholder="Enter supplier address"></textarea>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-secondary btn-lg" data-bs-dismiss="modal">
-                        <i class="fas fa-times me-2"></i>Cancel
-                    </button>
-                    <button type="submit" class="btn btn-success btn-lg">
-                        <i class="fas fa-save me-2"></i>Add Supplier
-                    </button>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Add Supplier</button>
                 </div>
             </form>
         </div>
@@ -295,40 +281,28 @@
                 @csrf
                 @method('PUT')
                 <div class="modal-header">
-                    <h5 class="modal-title">
-                        <i class="fas fa-edit me-2"></i>Edit Supplier
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title fw-bold">Edit Supplier</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
                     <div class="row g-3">
                         <div class="col-12">
-                            <label class="form-label fw-semibold">
-                                <i class="fas fa-building me-2 text-primary"></i>Supplier Name
-                            </label>
-                            <input type="text" name="supplierName" class="form-control form-control-lg" value="{{ $supplier->supplierName }}" required>
+                            <label class="form-label fw-semibold">Supplier Name</label>
+                            <input type="text" name="supplierName" class="form-control" value="{{ $supplier->supplierName }}" required>
                         </div>
                         <div class="col-12">
-                            <label class="form-label fw-semibold">
-                                <i class="fas fa-phone me-2 text-primary"></i>Contact Information
-                            </label>
-                            <input type="text" name="contactInfo" class="form-control form-control-lg" value="{{ $supplier->contactInfo }}">
+                            <label class="form-label fw-semibold">Contact Information</label>
+                            <input type="text" name="contactInfo" class="form-control" value="{{ $supplier->contactInfo }}">
                         </div>
                         <div class="col-12">
-                            <label class="form-label fw-semibold">
-                                <i class="fas fa-map-marker-alt me-2 text-primary"></i>Address
-                            </label>
-                            <textarea name="address" class="form-control form-control-lg" rows="3">{{ $supplier->address }}</textarea>
+                            <label class="form-label fw-semibold">Address</label>
+                            <textarea name="address" class="form-control" rows="3">{{ $supplier->address }}</textarea>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-secondary btn-lg" data-bs-dismiss="modal">
-                        <i class="fas fa-times me-2"></i>Cancel
-                    </button>
-                    <button type="submit" class="btn btn-success btn-lg">
-                        <i class="fas fa-save me-2"></i>Update Supplier
-                    </button>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Update Supplier</button>
                 </div>
             </form>
         </div>
