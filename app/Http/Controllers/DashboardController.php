@@ -107,16 +107,16 @@ class DashboardController extends Controller
             ->take(7)
             ->get();
 
-        // Monthly sales with VAT
-        $monthlySales = DB::table('sales')
+        // Quarterly sales with VAT (1% deduction per quarter)
+        $quarterlySales = DB::table('sales')
             ->select(
-                DB::raw('MONTH(saleDate) as month'),
+                DB::raw('QUARTER(saleDate) as quarter'),
                 DB::raw('YEAR(saleDate) as year'),
                 DB::raw('SUM(totalAmount) as total_sales'),
                 DB::raw('SUM(totalAmount) - (SUM(totalAmount) * 0.01) as net_sales')
             )
-            ->groupBy(DB::raw('YEAR(saleDate), MONTH(saleDate)'))
-            ->orderByDesc(DB::raw('YEAR(saleDate), MONTH(saleDate)'))
+            ->groupBy(DB::raw('YEAR(saleDate), QUARTER(saleDate)'))
+            ->orderByDesc(DB::raw('YEAR(saleDate), QUARTER(saleDate)'))
             ->get();
 
         $totalExpiredDamaged = Stock::whereIn('reason', ['expired', 'damaged'])->count();
@@ -127,7 +127,7 @@ class DashboardController extends Controller
             'stockIn', 'pulledOut', 'expiredItems', 'damagedItems',
             'topProductsData',
             'totalProducts', 'totalStocks', 'lowStockCount', 'nearExpiryCount',
-            'latestStocks', 'salesSummary', 'monthlySales',
+            'latestStocks', 'salesSummary', 'quarterlySales', // Changed from monthlySales to quarterlySales
             'date', 'totalExpiredDamaged',
             'criticalAlerts', 'criticalAlertsCount', 'todayActivities'
         ));

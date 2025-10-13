@@ -518,25 +518,16 @@ document.addEventListener("DOMContentLoaded", function () {
     const grandTotalEl = document.getElementById("grand-total");
     const cartSubtotalEl = document.getElementById("cart-subtotal");
 
-    // Load saved checkbox state on page load
-    if (discountCheckbox) {
-        // Check if there's a saved state in localStorage
-        const savedState = localStorage.getItem('discountCheckboxState');
-        if (savedState === 'true') {
-            discountCheckbox.checked = true;
-            if (isDiscountedInput) {
-                isDiscountedInput.value = 1;
-            }
-        }
-    }
+    // REMOVED: Loading saved checkbox state from localStorage
+    // The checkbox will now always start unchecked unless explicitly set by old() data
 
     // call once on load to set UI
     updateDiscountUI();
 
     if (discountCheckbox) {
         discountCheckbox.addEventListener("change", function () {
-            // Save state to localStorage
-            localStorage.setItem('discountCheckboxState', this.checked);
+            // REMOVED: Saving state to localStorage
+            // The state will not persist between page visits
             
             // set hidden input value so controller receives it on submit
             if (isDiscountedInput) {

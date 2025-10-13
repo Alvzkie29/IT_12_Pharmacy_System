@@ -142,7 +142,7 @@
                 <!-- Manual update button removed as expiry status is now updated automatically -->
                 <div class="col-md-2">
                     <button class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#addStockModal">
-                        <i class="fas fa-plus me-2"></i>Add Stock
+                        <i class="fas fa-plus me-2"></i>Add
                     </button>
                 </div>
             </div>
@@ -342,7 +342,7 @@
                         </div>
                         <div class="col-md-6">
                             <label for="package_total_cost" class="form-label fw-semibold">
-                                <i class="fas fa-boxes me-2 text-primary"></i>Package Total (incl. delivery)
+                                <i class="fas fa-boxes me-2 text-primary"></i>Package Total Cost
                                 <i class="fas fa-info-circle text-muted ms-1" 
                                 data-bs-toggle="tooltip" 
                                 data-bs-placement="top"

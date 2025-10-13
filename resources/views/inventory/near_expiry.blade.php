@@ -213,7 +213,6 @@
                                                 <div class="small {{ $isCritical ? 'text-danger fw-bold' : ($isWarning ? 'text-warning' : '') }}">
                                                     {{ $expiryDate->format('M d, Y') }}
                                                 </div>
-                                                <div class="x-small text-muted">{{ $daysUntilExpiry }} days</div>
                                             </td>
                                             <td class="text-center">
                                                 @if($isCritical)

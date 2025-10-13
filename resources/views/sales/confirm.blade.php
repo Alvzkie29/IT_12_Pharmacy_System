@@ -241,15 +241,13 @@ function printReceipt() {
     // Wait for content to load then print
     printWindow.onload = function() {
         printWindow.print();
-        // Optional: close the window after printing
-        // printWindow.afterprint = function() { printWindow.close(); }
+        printWindow.afterprint = function() { printWindow.close(); }
     };
 }
 
 // Auto-print receipt when page loads (optional)
-// document.addEventListener('DOMContentLoaded', function() {
-//     // Uncomment the line below if you want to auto-print on page load
-//     // printReceipt();
-// });
+document.addEventListener('DOMContentLoaded', function() {
+    printReceipt();
+});
 </script>
 @endsection

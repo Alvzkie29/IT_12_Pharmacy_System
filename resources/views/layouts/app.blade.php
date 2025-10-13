@@ -276,13 +276,14 @@
 
         <!-- Logout -->
         <div class="mt-auto">
-            <form action="{{ route('logout') }}" method="POST">
-                @csrf
-                <button type="submit" class="btn logout-btn w-100 d-flex align-items-center justify-content-center gap-2">
-                    <i class="fas fa-sign-out-alt"></i> Log Out
-                </button>
-            </form>
-        </div>
+    <form action="{{ route('logout') }}" method="POST">
+        @csrf
+        <button type="submit" class="btn btn-outline-dark w-100 d-flex align-items-center justify-content-center gap-2 py-2" 
+                style="color: #dc3545;">
+            <i class="fas fa-sign-out-alt"></i> Log Out
+        </button>
+    </form>
+</div>
     </aside>
 
     <!-- Main Content -->

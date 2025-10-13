@@ -257,12 +257,16 @@
             <div class="stats-card">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <div class="stats-label">Stock In</div>
-                            <div class="stats-value metric-positive">{{ $totalStockIn }}</div>
-                            <small class="text-muted">Total incoming stock</small>
+                        <div class="text-start w-100">
+                            <div class="stats-label text-start">Stock In</div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="stats-value metric-positive">{{ $totalStockIn }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-1">
+                                <small class="text-muted text-start">Total incoming stock</small>
+                            </div>
                         </div>
-                        <div class="stats-icon text-success">
+                        <div class="stats-icon text-success ms-3">
                             <i class="fas fa-arrow-up"></i>
                         </div>
                     </div>
@@ -273,12 +277,16 @@
             <div class="stats-card">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <div class="stats-label">Pulled Out</div>
-                            <div class="stats-value metric-neutral">{{ $totalPulledOut }}</div>
-                            <small class="text-muted">Items removed</small>
+                        <div class="text-start w-100">
+                            <div class="stats-label text-start">Pulled Out</div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="stats-value metric-neutral">{{ $totalPulledOut }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-1">
+                                <small class="text-muted text-start">Items removed</small>
+                            </div>
                         </div>
-                        <div class="stats-icon text-warning">
+                        <div class="stats-icon text-warning ms-3">
                             <i class="fas fa-arrow-down"></i>
                         </div>
                     </div>
@@ -289,13 +297,17 @@
             <div class="stats-card">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <div class="stats-label">Expired Items</div>
-                            <div class="stats-value metric-negative">{{ $totalExpired }}</div>
-                            <small class="text-muted">Stock losses</small>
+                        <div class="text-start w-100">
+                            <div class="stats-label text-start">Expired Items</div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="stats-value metric-negative">{{ $totalExpired }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-1">
+                                <small class="text-muted text-start">Stock losses</small>
+                            </div>
                         </div>
-                        <div class="stats-icon text-danger">
-                            <i class="fas fa-exclamation-triangle"></i>
+                        <div class="stats-icon text-danger ms-3">
+                            <i class="fas fa-hourglass-end"></i>
                         </div>
                     </div>
                 </div>
@@ -305,12 +317,16 @@
             <div class="stats-card">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <div class="stats-label">Total Profit</div>
-                            <div class="stats-value metric-positive">₱{{ number_format($totalProfit, 2) }}</div>
-                            <small class="text-muted">Net profit</small>
+                        <div class="text-start w-100">
+                            <div class="stats-label text-start">Total Profit</div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="stats-value metric-positive">₱{{ number_format($totalProfit, 2) }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-1">
+                                <small class="text-muted text-start">Net profit</small>
+                            </div>
                         </div>
-                        <div class="stats-icon text-success">
+                        <div class="stats-icon text-success ms-3">
                             <i class="fas fa-dollar-sign"></i>
                         </div>
                     </div>
@@ -319,58 +335,52 @@
         </div>
     </div>
 
-    {{-- Revenue Summary with VAT --}}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="chart-card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 fw-bold">Revenue Summary</h5>
-                    <span class="badge bg-success">Period: {{ ucfirst($period ?? 'today') }}</span>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-md-3 mb-3">
-                            <div class="border-end">
-                                <div class="h4 metric-positive fw-bold">₱{{ number_format($totalSales, 2) }}</div>
-                                <small class="text-muted">Gross Sales</small>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="border-end">
-                                <div class="h4 metric-negative fw-bold">₱{{ number_format($totalDiscounts, 2) }}</div>
-                                <small class="text-muted">Total Discounts</small>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="border-end">
-                                <div class="h4 metric-positive fw-bold">₱{{ number_format($totalDiscountedSales, 2) }}</div>
-                                <small class="text-muted">Net Sales</small>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div>
-                                <div class="h4 metric-neutral fw-bold">₱{{ number_format($vatAmount ?? 0, 2) }}</div>
-                                <small class="text-muted">VAT (1%)</small>
-                            </div>
+    {{-- Revenue Summary --}}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="chart-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold">Revenue Summary</h5>
+                <span class="badge bg-success">Period: {{ ucfirst($period ?? 'today') }}</span>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4 mb-3">
+                        <div class="border-end">
+                            <div class="h4 metric-positive fw-bold">₱{{ number_format($totalSales, 2) }}</div>
+                            <small class="text-muted">Gross Sales</small>
                         </div>
                     </div>
-                    @if($period === 'monthly' && isset($netSales))
-                    <div class="row mt-3">
-                        <div class="col-12">
-                            <div class="alert alert-success">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <strong>Monthly Net Revenue (After VAT):</strong>
-                                    <span class="h5 mb-0 metric-positive">₱{{ number_format($netSales, 2) }}</span>
-                                </div>
-                                <small class="text-muted">Gross sales minus 1% VAT deduction for monthly reporting</small>
-                            </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="border-end">
+                            <div class="h4 metric-negative fw-bold">₱{{ number_format($totalDiscounts, 2) }}</div>
+                            <small class="text-muted">Total Discounts</small>
                         </div>
                     </div>
-                    @endif
+                    <div class="col-md-4 mb-3">
+                        <div>
+                            <div class="h4 metric-positive fw-bold">₱{{ number_format($totalDiscountedSales, 2) }}</div>
+                            <small class="text-muted">Net Sales</small>
+                        </div>
+                    </div>
                 </div>
+                @if($period === 'monthly' && isset($netSales))
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="alert alert-success">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <strong>Monthly Net Revenue:</strong>
+                                <span class="h5 mb-0 metric-positive">₱{{ number_format($netSales, 2) }}</span>
+                            </div>
+                            <small class="text-muted">Gross sales after all deductions</small>
+                        </div>
+                    </div>
+                </div>
+                @endif
             </div>
         </div>
     </div>
+</div>
 
     {{-- Charts and Analytics Row --}}
     <div class="row mb-4">

@@ -153,7 +153,7 @@
                     placeholder="Search suppliers by name, contact, or address...">
             </div>
             <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addSupplierModal">
-                Add Supplier
+                Add
             </button>
         </div>
     </div>

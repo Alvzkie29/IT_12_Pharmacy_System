@@ -171,7 +171,7 @@
                     placeholder="Search products by name, generic name, or category...">
             </div>
             <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addProductModal">
-                Add Product
+                Add
             </button>
         </div>
     </div>

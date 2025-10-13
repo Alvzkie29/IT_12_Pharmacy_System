@@ -182,79 +182,95 @@
     </div>
 
     {{-- Key Performance Indicators --}}
-    <div class="row g-3 mb-4">
-        <div class="col-lg-3 col-md-6">
-            <div class="dashboard-card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <div class="stat-label">Today's Revenue</div>
-                            <div class="stat-value metric-positive">₱{{ number_format($todaySales, 2) }}</div>
-                            <small class="text-muted">From {{ $todayTransactions }} transactions</small>
+<div class="row g-3 mb-4">
+    <div class="col-lg-3 col-md-6">
+        <div class="dashboard-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="text-start w-100">
+                        <div class="stat-label text-start">Today's Revenue</div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="stat-value metric-positive">₱{{ number_format($todaySales, 2) }}</span>
                         </div>
-                        <div class="stat-icon text-success">
-                            <i class="fas fa-shopping-cart"></i>
+                        <div class="d-flex justify-content-between align-items-center mt-1">
+                            <small class="text-muted text-start">From {{ $todayTransactions }} transactions</small>
                         </div>
+                    </div>
+                    <div class="stat-icon text-success ms-3">
+                        <i class="fas fa-shopping-cart"></i>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div class="col-lg-3 col-md-6">
-            <div class="dashboard-card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <div class="stat-label">Active Products</div>
-                            <div class="stat-value metric-neutral">{{ $totalProducts }}</div>
-                            <small class="text-muted">In inventory</small>
-                        </div>
-                        <div class="stat-icon text-primary">
-                            <i class="fas fa-pills"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-3 col-md-6">
-            <a href="{{ route('inventory.nearExpiry') }}" class="text-decoration-none">
-                <div class="dashboard-card">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <div class="stat-label">Low Stock Items</div>
-                                <div class="stat-value metric-negative">{{ $lowStockCount }}</div>
-                                <small class="text-muted">Requires restocking</small>
-                            </div>
-                            <div class="stat-icon text-warning">
-                                <i class="fas fa-box-open"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </a>
-        </div>
-
-        <div class="col-lg-3 col-md-6">
-            <a href="{{ route('inventory.nearExpiry') }}" class="text-decoration-none">
-                <div class="dashboard-card">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <div class="stat-label">Near Expiry</div>
-                                <div class="stat-value metric-negative">{{ $nearExpiryCount }}</div>
-                                <small class="text-muted">Within 6 months</small>
-                            </div>
-                            <div class="stat-icon text-danger">
-                                <i class="fas fa-clock"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </a>
         </div>
     </div>
+
+    <div class="col-lg-3 col-md-6">
+        <div class="dashboard-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="text-start w-100">
+                        <div class="stat-label text-start">Active Products</div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="stat-value metric-neutral">{{ $totalProducts }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-1">
+                            <small class="text-muted text-start">In inventory</small>
+                        </div>
+                    </div>
+                    <div class="stat-icon text-primary ms-3">
+                        <i class="fas fa-pills"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6">
+        <a href="{{ route('inventory.nearExpiry') }}" class="text-decoration-none">
+            <div class="dashboard-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="text-start w-100">
+                            <div class="stat-label text-start">Low Stock Items</div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="stat-value metric-negative">{{ $lowStockCount }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-1">
+                                <small class="text-muted text-start">Requires restocking</small>
+                            </div>
+                        </div>
+                        <div class="stat-icon text-warning ms-3">
+                            <i class="fas fa-box-open"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-lg-3 col-md-6">
+        <a href="{{ route('inventory.nearExpiry') }}" class="text-decoration-none">
+            <div class="dashboard-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="text-start w-100">
+                            <div class="stat-label text-start">Near Expiry</div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="stat-value metric-negative">{{ $nearExpiryCount }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-1">
+                                <small class="text-muted text-start">Within 6 months</small>
+                            </div>
+                        </div>
+                        <div class="stat-icon text-danger ms-3">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
 
     <div class="row g-4 mb-4">
         {{-- Critical Alerts --}}
@@ -462,29 +478,29 @@
                 </div>
             </div>
         </div>
-        {{-- Monthly Sales (1% Deduction every month) --}}
+        {{-- Quarterly Sales (3% Deduction every quarter) --}}
         <div class="section-card">
             <div class="section-header">
-                <h5 class="mb-0 fw-bold text-dark">Monthly Sales</h5>
+                <h5 class="mb-0 fw-bold text-dark">Quarterly Sales</h5>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-modern mb-0">
                         <thead>
                             <tr>
-                                <th>Month</th>
+                                <th>Quarter</th>
                                 <th>Year</th>
                                 <th class="text-end">Gross Sales</th>
-                                <th class="text-end">Net Sales (after 1% Deduction)</th>
+                                <th class="text-end">Net Sales (after 3% Deduction)</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($monthlySales as $month)
+                            @foreach($quarterlySales as $quarter)
                                 <tr>
-                                    <td class="fw-medium">{{ \Carbon\Carbon::create()->month($month->month)->format('F') }}</td>
-                                    <td class="text-muted">{{ $month->year }}</td>
-                                    <td class="text-end fw-bold text-warning">₱{{ number_format($month->total_sales, 2) }}</td>
-                                    <td class="text-end fw-bold text-success">₱{{ number_format($month->net_sales, 2) }}</td>
+                                    <td class="fw-medium">Q{{ $quarter->quarter }}</td>
+                                    <td class="text-muted">{{ $quarter->year }}</td>
+                                    <td class="text-end fw-bold text-warning">₱{{ number_format($quarter->total_sales, 2) }}</td>
+                                    <td class="text-end fw-bold text-success">₱{{ number_format($quarter->net_sales, 2) }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
