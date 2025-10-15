@@ -14,7 +14,8 @@ class SuppliersController extends Controller
     {
         $search = $request->input('search');
 
-        $suppliers = Suppliers::when($search, function ($query, $search) {
+        $suppliers = Suppliers::where('is_active', true)
+            ->when($search, function ($query, $search) {
                 return $query->where('supplierName', 'like', "%$search%");
             })
             ->orderBy('supplierName')
@@ -24,6 +25,26 @@ class SuppliersController extends Controller
         $suppliers->appends($request->only('search'));
 
         return view('suppliers.index', compact('suppliers'));
+    }
+    
+    /**
+     * Display a listing of deactivated suppliers.
+     */
+    public function deactivatedList(Request $request)
+    {
+        $search = $request->input('search');
+
+        $suppliers = Suppliers::where('is_active', false)
+            ->when($search, function ($query, $search) {
+                return $query->where('supplierName', 'like', "%$search%");
+            })
+            ->orderBy('deleted_at', 'desc')
+            ->paginate(10);
+
+        // Keep the search query in pagination links
+        $suppliers->appends($request->only('search'));
+
+        return view('suppliers.deactivated', compact('suppliers'));
     }
 
     /**
@@ -98,5 +119,17 @@ class SuppliersController extends Controller
         $supplier->delete(); // soft delete -> archived
 
         return redirect()->route('suppliers.index')->with('success', 'Supplier archived successfully.');
+    }
+    
+    /**
+     * Restore a deactivated supplier.
+     */
+    public function restore($id)
+    {
+        $supplier = Suppliers::findOrFail($id);
+        $supplier->is_active = true;
+        $supplier->save();
+
+        return redirect()->route('suppliers.deactivated')->with('success', 'Supplier restored successfully.');
     }
 }

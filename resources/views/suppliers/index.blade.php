@@ -1,6 +1,28 @@
 @extends('layouts.app')
 
 @section('content')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('liveSearch');
+    if (searchInput) {
+        searchInput.addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase();
+            const tableRows = document.querySelectorAll('.suppliers-table tbody tr');
+            
+            tableRows.forEach(row => {
+                const supplierName = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                const contactInfo = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+                const address = row.querySelector('td:nth-child(4)').textContent.toLowerCase();
+                
+                if (supplierName.includes(searchTerm) || contactInfo.includes(searchTerm) || address.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+});</script>
 <style>
     .page-header {
         background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
@@ -93,7 +115,6 @@
     
     .badge-status {
         padding: 0.5rem 0.75rem;
-        border-radius: 6px;
         font-size: 0.75rem;
         font-weight: 600;
     }
@@ -148,9 +169,10 @@
                 </span>
                 <input 
                     type="text" 
-                    id="supplierSearch" 
+                    id="liveSearch" 
                     class="form-control border-start-0" 
-                    placeholder="Search suppliers by name, contact, or address...">
+                    placeholder="Search suppliers by name..."
+                    data-search-url="{{ route('suppliers.index') }}">
             </div>
             <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addSupplierModal">
                 Add

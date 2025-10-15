@@ -224,6 +224,11 @@ class ReportsController extends Controller
             \Carbon\Carbon::parse($from)->startOfDay(),
             \Carbon\Carbon::parse($to)->endOfDay()
         ]);
+        $salesQuery->whereBetween('saleDate', [
+            \Carbon\Carbon::parse($from)->startOfDay(),
+            \Carbon\Carbon::parse($to)->endOfDay()
+        ]);
+        $reportTitle = 'Custom Report - ' . $from . ' to ' . $to;
         }
          else {
             $reportsQuery->whereDate('created_at', $date);
@@ -245,7 +250,11 @@ class ReportsController extends Controller
             ->when($period === 'today', fn($q) => $q->whereDate('created_at', today()))
             ->when($period === 'monthly', fn($q) => $q->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year))
             ->when($period === 'yearly', fn($q) => $q->whereYear('created_at', now()->year))
-            ->when($period === 'custom_range', fn($q) => $q->whereDate('created_at', $date))
+            ->when($period === 'custom_range' && $from && $to, fn($q) => $q->whereBetween('created_at', [
+                \Carbon\Carbon::parse($from)->startOfDay(),
+                \Carbon\Carbon::parse($to)->endOfDay()
+            ]))
+            ->when($period !== 'custom_range' && $period !== 'today' && $period !== 'monthly' && $period !== 'yearly', fn($q) => $q->whereDate('created_at', $date))
             ->get();
 
     $expiredReports = Stock::with('product')
@@ -253,7 +262,11 @@ class ReportsController extends Controller
         ->when($period === 'today', fn($q) => $q->whereDate('created_at', today()))
         ->when($period === 'monthly', fn($q) => $q->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year))
         ->when($period === 'yearly', fn($q) => $q->whereYear('created_at', now()->year))
-        ->when($period === 'custom_range', fn($q) => $q->whereDate('created_at', $date))
+        ->when($period === 'custom_range' && $from && $to, fn($q) => $q->whereBetween('created_at', [
+            \Carbon\Carbon::parse($from)->startOfDay(),
+            \Carbon\Carbon::parse($to)->endOfDay()
+        ]))
+        ->when($period !== 'custom_range' && $period !== 'today' && $period !== 'monthly' && $period !== 'yearly', fn($q) => $q->whereDate('created_at', $date))
         ->where('type', 'IN')
         ->where('quantity', '>', 0)
         ->get();
@@ -264,7 +277,11 @@ class ReportsController extends Controller
         ->when($period === 'today', fn($q) => $q->whereDate('created_at', today()))
         ->when($period === 'monthly', fn($q) => $q->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year))
         ->when($period === 'yearly', fn($q) => $q->whereYear('created_at', now()->year))
-        ->when($period === 'custom_range', fn($q) => $q->whereDate('created_at', $date))
+        ->when($period === 'custom_range' && $from && $to, fn($q) => $q->whereBetween('created_at', [
+            \Carbon\Carbon::parse($from)->startOfDay(),
+            \Carbon\Carbon::parse($to)->endOfDay()
+        ]))
+        ->when($period !== 'custom_range' && $period !== 'today' && $period !== 'monthly' && $period !== 'yearly', fn($q) => $q->whereDate('created_at', $date))
         ->get();
 
     $pulledOutReports = Stock::with('product')
@@ -276,7 +293,11 @@ class ReportsController extends Controller
         ->when($period === 'today', fn($q) => $q->whereDate('created_at', today()))
         ->when($period === 'monthly', fn($q) => $q->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year))
         ->when($period === 'yearly', fn($q) => $q->whereYear('created_at', now()->year))
-        ->when($period === 'custom_range', fn($q) => $q->whereDate('created_at', $date))
+        ->when($period === 'custom_range' && $from && $to, fn($q) => $q->whereBetween('created_at', [
+            \Carbon\Carbon::parse($from)->startOfDay(),
+            \Carbon\Carbon::parse($to)->endOfDay()
+        ]))
+        ->when($period !== 'custom_range' && $period !== 'today' && $period !== 'monthly' && $period !== 'yearly', fn($q) => $q->whereDate('created_at', $date))
         ->get();
 
         // Get the sales

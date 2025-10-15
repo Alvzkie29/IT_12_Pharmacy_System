@@ -93,7 +93,7 @@
     
     .category-badge {
         padding: 0.5rem 0.75rem;
-        border-radius: 6px;
+        
         font-size: 0.75rem;
         font-weight: 600;
         border: 1px solid;

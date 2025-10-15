@@ -127,14 +127,12 @@
                     <select id="expiryFilter" class="form-select">
                         <option value="">All Expiry Status</option>
                         <option value="expired">Expired</option>
-                        <option value="warning">Near Expiry</option>
                         <option value="safe">Safe</option>
                     </select>
                 </div>
                 <div class="col-md-2">
                     <select id="quantityFilter" class="form-select">
                         <option value="">All Stock Levels</option>
-                        <option value="low">Low Stock</option>
                         <option value="medium">Medium Stock</option>
                         <option value="high">High Stock</option>
                     </select>

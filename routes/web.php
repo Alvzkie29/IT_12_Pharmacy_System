@@ -27,6 +27,8 @@ Route::get('/sales/confirm', [SaleController::class, 'showConfirm'])->name('sale
 Route::post('/sales/finalize', [SaleController::class, 'finalize'])->name('sales.finalize'); 
 
 Route::resource('suppliers', SuppliersController::class);
+Route::get('/suppliers/deactivated/list', [SuppliersController::class, 'deactivatedList'])->name('suppliers.deactivated');
+Route::post('/suppliers/{id}/restore', [SuppliersController::class, 'restore'])->name('suppliers.restore');
 
 Route::get('/reports', [ReportsController::class, 'index'])->name('reports.index');
 Route::get('/reports/print/{date}', [ReportsController::class, 'print'])->name('reports.print');

@@ -329,13 +329,17 @@
                 
                 {{-- Discount display (updated by JS) --}}
                 <div class="mb-3">
-                    <div id="discount-row" class="d-flex justify-content-between text-success" style="display:none !important;">
+                    <div id="discount-row" class="d-flex justify-content-between text-success" style="display:none;">
                         <span>Discount (20%):</span>
                         <span>-<span id="discount-amount">₱0.00</span></span>
                     </div>
-                    <div id="grand-total-row" class="d-flex justify-content-between fw-bold border-top pt-2" style="display:none !important;">
+                    <div id="grand-total-row" class="d-flex justify-content-between fw-bold border-top pt-2">
                         <span>Grand Total:</span>
                         <span id="grand-total">₱0.00</span>
+                    </div>
+                    <div id="change-row" class="d-flex justify-content-between text-success mt-2" style="display:none;">
+                        <span>Change:</span>
+                        <span id="change-amount">₱0.00</span>
                     </div>
                 </div>
                 
@@ -517,12 +521,17 @@ document.addEventListener("DOMContentLoaded", function () {
     const grandTotalRow = document.getElementById("grand-total-row");
     const grandTotalEl = document.getElementById("grand-total");
     const cartSubtotalEl = document.getElementById("cart-subtotal");
+    const cashInput = document.getElementById("cash");
+    const changeRow = document.getElementById("change-row");
+    const changeAmountEl = document.getElementById("change-amount");
 
     // REMOVED: Loading saved checkbox state from localStorage
     // The checkbox will now always start unchecked unless explicitly set by old() data
 
     // call once on load to set UI
     updateDiscountUI();
+
+    // Grand total will be initialized by updateDiscountUI function
 
     if (discountCheckbox) {
         discountCheckbox.addEventListener("change", function () {
@@ -534,7 +543,30 @@ document.addEventListener("DOMContentLoaded", function () {
                 isDiscountedInput.value = this.checked ? 1 : 0;
             }
             updateDiscountUI();
+            updateChangeAmount();
         });
+    }
+    
+    // Cash received input event listener
+    if (cashInput) {
+        cashInput.addEventListener('input', updateChangeAmount);
+    }
+    
+    // Function to update change amount
+    function updateChangeAmount() {
+        if (!cashInput || !changeAmountEl || !changeRow) return;
+        
+        let cashAmount = parseFloat(cashInput.value) || 0;
+        // Always use grand total for change calculation
+        let totalAmount = parseMoney(grandTotalEl.innerText);
+        
+        if (cashAmount >= totalAmount) {
+            let change = cashAmount - totalAmount;
+            changeAmountEl.innerText = "₱" + change.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            changeRow.style.display = "flex";
+        } else {
+            changeRow.style.display = "none";
+        }
     }
 
     // ---- NOTIFICATION FUNCTION ----
@@ -564,6 +596,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // get numeric subtotal
         let subtotal = parseMoney(cartSubtotalEl.innerText);
+        
+        // Always show grand total row
+        grandTotalRow.style.display = "flex";
 
         if (discountCheckbox && discountCheckbox.checked) {
             let discount = subtotal * 0.20;
@@ -577,11 +612,17 @@ document.addEventListener("DOMContentLoaded", function () {
             grandTotalEl.innerText = "₱" + fmtGrand;
 
             discountRow.style.display = "flex";
-            grandTotalRow.style.display = "flex";
+            if (isDiscountedInput) isDiscountedInput.value = 1;
         } else {
-            // hide discount and grand total rows when not applied
+            // When discount not applied, set grand total equal to subtotal
+            let fmtSubtotal = subtotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            grandTotalEl.innerText = "₱" + fmtSubtotal;
+            
+            // Reset discount amount to zero
+            discountAmountEl.innerText = "₱0.00";
+            
+            // Hide discount row when not applied
             discountRow.style.display = "none";
-            grandTotalRow.style.display = "none";
             if (isDiscountedInput) isDiscountedInput.value = 0;
         }
     }

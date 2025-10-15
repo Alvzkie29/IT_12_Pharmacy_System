@@ -3,11 +3,11 @@
 @section('content')
 <style>
     .page-header {
-        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        background: linear-gradient(135deg, #ffc107 0%, #ffca2c 100%);
         border-radius: 12px;
         padding: 2rem;
         margin-bottom: 2rem;
-        color: white;
+        color: #856404;
     }
     
     .alert-card {
@@ -57,7 +57,6 @@
     
     .status-badge {
         padding: 0.5rem 0.75rem;
-        border-radius: 6px;
         font-size: 0.75rem;
         font-weight: 600;
         border: 1px solid;
@@ -124,7 +123,7 @@
     <div class="page-header">
         <div class="d-flex justify-content-between align-items-center">
             <div>
-                <h1 class="h3 mb-1 fw-bold">Inventory Alerts</h1>
+                <h1 class="h3 mb-1 fw-bold" style = "color: white;">Inventory Alerts</h1>
                 <p class="mb-0 opacity-75">Monitor near-expiry and low stock items</p>
             </div>
             <div class="text-end">

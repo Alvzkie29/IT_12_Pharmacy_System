@@ -153,7 +153,6 @@
         color: white;
         font-weight: 600;
         padding: 0.5rem 0.75rem;
-        border-radius: 6px;
         font-size: 0.75rem;
         min-width: 35px;
         text-align: center;

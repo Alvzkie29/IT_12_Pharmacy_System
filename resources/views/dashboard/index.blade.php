@@ -186,19 +186,15 @@
     <div class="col-lg-3 col-md-6">
         <div class="dashboard-card">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div class="text-start w-100">
-                        <div class="stat-label text-start">Today's Revenue</div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="stat-value metric-positive">₱{{ number_format($todaySales, 2) }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center mt-1">
-                            <small class="text-muted text-start">From {{ $todayTransactions }} transactions</small>
-                        </div>
-                    </div>
-                    <div class="stat-icon text-success ms-3">
+                <div class="stat-label text-start">Sales Revenue</div>
+                <div class="d-flex align-items-center mt-1">
+                    <div class="stat-icon text-success me-3">
                         <i class="fas fa-shopping-cart"></i>
                     </div>
+                    <span class="stat-value metric-positive text-end ms-auto">₱{{ number_format($salesTotal, 2) }}</span>
+                </div>
+                <div class="d-flex align-items-center mt-1">
+                    <small class="text-muted text-start">From {{ $todayTransactions }} transactions</small>
                 </div>
             </div>
         </div>
@@ -207,19 +203,15 @@
     <div class="col-lg-3 col-md-6">
         <div class="dashboard-card">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div class="text-start w-100">
-                        <div class="stat-label text-start">Active Products</div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="stat-value metric-neutral">{{ $totalProducts }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center mt-1">
-                            <small class="text-muted text-start">In inventory</small>
-                        </div>
-                    </div>
-                    <div class="stat-icon text-primary ms-3">
+                <div class="stat-label text-start">Active Products</div>
+                <div class="d-flex align-items-center mt-1">
+                    <div class="stat-icon text-primary me-3">
                         <i class="fas fa-pills"></i>
                     </div>
+                    <span class="stat-value metric-neutral text-end ms-auto">{{ $totalProducts }}</span>
+                </div>
+                <div class="d-flex align-items-center mt-1">
+                    <small class="text-muted text-start">In inventory</small>
                 </div>
             </div>
         </div>
@@ -229,19 +221,15 @@
         <a href="{{ route('inventory.nearExpiry') }}" class="text-decoration-none">
             <div class="dashboard-card">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div class="text-start w-100">
-                            <div class="stat-label text-start">Low Stock Items</div>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="stat-value metric-negative">{{ $lowStockCount }}</span>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center mt-1">
-                                <small class="text-muted text-start">Requires restocking</small>
-                            </div>
-                        </div>
-                        <div class="stat-icon text-warning ms-3">
+                    <div class="stat-label text-start">Low Stock Items</div>
+                    <div class="d-flex align-items-center mt-1">
+                        <div class="stat-icon text-warning me-3">
                             <i class="fas fa-box-open"></i>
                         </div>
+                        <span class="stat-value metric-negative text-end ms-auto">{{ $lowStockCount }}</span>
+                    </div>
+                    <div class="d-flex align-items-center mt-1">
+                        <small class="text-muted text-start">Requires restocking</small>
                     </div>
                 </div>
             </div>
@@ -252,25 +240,22 @@
         <a href="{{ route('inventory.nearExpiry') }}" class="text-decoration-none">
             <div class="dashboard-card">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div class="text-start w-100">
-                            <div class="stat-label text-start">Near Expiry</div>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="stat-value metric-negative">{{ $nearExpiryCount }}</span>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center mt-1">
-                                <small class="text-muted text-start">Within 6 months</small>
-                            </div>
-                        </div>
-                        <div class="stat-icon text-danger ms-3">
+                    <div class="stat-label text-start">Near Expiry</div>
+                    <div class="d-flex align-items-center mt-1">
+                        <div class="stat-icon text-danger me-3">
                             <i class="fas fa-clock"></i>
                         </div>
+                        <span class="stat-value metric-negative text-end ms-auto">{{ $nearExpiryCount }}</span>
+                    </div>
+                    <div class="d-flex align-items-center mt-1">
+                        <small class="text-muted text-start">Within 6 months</small>
                     </div>
                 </div>
             </div>
         </a>
     </div>
 </div>
+
 
     <div class="row g-4 mb-4">
         {{-- Critical Alerts --}}

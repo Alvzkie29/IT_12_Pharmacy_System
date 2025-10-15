@@ -113,7 +113,7 @@ class DashboardController extends Controller
                 DB::raw('QUARTER(saleDate) as quarter'),
                 DB::raw('YEAR(saleDate) as year'),
                 DB::raw('SUM(totalAmount) as total_sales'),
-                DB::raw('SUM(totalAmount) - (SUM(totalAmount) * 0.01) as net_sales')
+                DB::raw('SUM(totalAmount) - (SUM(totalAmount) * 0.03) as net_sales')
             )
             ->groupBy(DB::raw('YEAR(saleDate), QUARTER(saleDate)'))
             ->orderByDesc(DB::raw('YEAR(saleDate), QUARTER(saleDate)'))

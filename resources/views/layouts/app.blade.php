@@ -217,10 +217,28 @@
                 <i class="fas fa-home me-2"></i> Dashboard
             </a>
 
-            <a href="{{ route('suppliers.index') }}" 
-               class="nav-link text-white mb-2 {{ request()->routeIs('suppliers.index') ? 'active-link rounded' : '' }}">
-                <i class="fa-solid fa-truck-field"></i> Suppliers
+            <!-- Suppliers Dropdown -->
+            @php
+                $suppliersActive = request()->routeIs('suppliers.index') || request()->routeIs('suppliers.deactivated');
+            @endphp
+            <a class="nav-link text-white mb-2 d-flex justify-content-between align-items-center {{ $suppliersActive ? 'active-link rounded' : '' }}" 
+               data-bs-toggle="collapse" href="#suppliersMenu" role="button" 
+               aria-expanded="{{ $suppliersActive ? 'true' : 'false' }}" aria-controls="suppliersMenu">
+                <span><i class="fa-solid fa-truck-field me-2"></i> Suppliers</span>
+                <i class="fas fa-chevron-down small"></i>
             </a>
+            <div class="collapse {{ $suppliersActive ? 'show' : '' }}" id="suppliersMenu">
+                <div class="ps-3">
+                    <a href="{{ route('suppliers.index') }}" 
+                       class="nav-link text-white mb-2 {{ request()->routeIs('suppliers.index') ? 'active-sublink rounded' : '' }}">
+                        <i class="fas fa-circle-dot me-2 small"></i> Active Suppliers
+                    </a>
+                    <a href="{{ route('suppliers.deactivated') }}" 
+                       class="nav-link text-white mb-2 {{ request()->routeIs('suppliers.deactivated') ? 'active-sublink rounded' : '' }}">
+                        <i class="fas fa-circle-dot me-2 small"></i> Deactivated Suppliers
+                    </a>
+                </div>
+            </div>
 
             <!-- Inventory Dropdown -->
             @php
@@ -278,8 +296,8 @@
         <div class="mt-auto">
     <form action="{{ route('logout') }}" method="POST">
         @csrf
-        <button type="submit" class="btn btn-outline-dark w-100 d-flex align-items-center justify-content-center gap-2 py-2" 
-                style="color: #dc3545;">
+        <button type="submit" class="btn btn-danger  w-100 d-flex align-items-center justify-content-center gap-2 py-2" 
+                style="color:rgb(255, 255, 255);">
             <i class="fas fa-sign-out-alt"></i> Log Out
         </button>
     </form>
