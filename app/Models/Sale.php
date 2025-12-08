@@ -13,11 +13,23 @@ class Sale extends Model
 
     protected $fillable = [
         'employeeID',
+        'cash_received',
+        'change_given',
         'totalAmount',
         'isDiscounted',
         'subtotal',
         'discountAmount',
         'saleDate',
+    ];
+
+    protected $casts = [
+        'cash_received' => 'decimal:2',
+        'change_given' => 'decimal:2',
+        'totalAmount' => 'decimal:2',
+        'subtotal' => 'decimal:2',
+        'discountAmount' => 'decimal:2',
+        'isDiscounted' => 'boolean',
+        'saleDate' => 'datetime',
     ];
 
     // Relationships

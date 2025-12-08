@@ -217,14 +217,32 @@
                 <i class="fas fa-home me-2"></i> Dashboard
             </a>
 
-            <a href="{{ route('suppliers.index') }}" 
-               class="nav-link text-white mb-2 {{ request()->routeIs('suppliers.index') ? 'active-link rounded' : '' }}">
-                <i class="fa-solid fa-truck-field"></i> Suppliers
+            <!-- Suppliers Dropdown -->
+            @php
+                $suppliersActive = request()->routeIs('suppliers.index') || request()->routeIs('suppliers.deactivated');
+            @endphp
+            <a class="nav-link text-white mb-2 d-flex justify-content-between align-items-center {{ $suppliersActive ? 'active-link rounded' : '' }}" 
+               data-bs-toggle="collapse" href="#suppliersMenu" role="button" 
+               aria-expanded="{{ $suppliersActive ? 'true' : 'false' }}" aria-controls="suppliersMenu">
+                <span><i class="fa-solid fa-truck-field me-2"></i> Suppliers</span>
+                <i class="fas fa-chevron-down small"></i>
             </a>
+            <div class="collapse {{ $suppliersActive ? 'show' : '' }}" id="suppliersMenu">
+                <div class="ps-3">
+                    <a href="{{ route('suppliers.index') }}" 
+                       class="nav-link text-white mb-2 {{ request()->routeIs('suppliers.index') ? 'active-sublink rounded' : '' }}">
+                        <i class="fas fa-circle-dot me-2 small"></i> Active Suppliers
+                    </a>
+                    <a href="{{ route('suppliers.deactivated') }}" 
+                       class="nav-link text-white mb-2 {{ request()->routeIs('suppliers.deactivated') ? 'active-sublink rounded' : '' }}">
+                        <i class="fas fa-circle-dot me-2 small"></i> Deactivated Suppliers
+                    </a>
+                </div>
+            </div>
 
             <!-- Inventory Dropdown -->
             @php
-                $inventoryActive = request()->routeIs('products.index') || request()->routeIs('inventory.index');
+                $inventoryActive = request()->routeIs('products.index') || request()->routeIs('inventory.index') || request()->routeIs('inventory.nearExpiry');
             @endphp
             <a class="nav-link text-white mb-2 d-flex justify-content-between align-items-center {{ $inventoryActive ? 'active-link rounded' : '' }}" 
                data-bs-toggle="collapse" href="#inventoryMenu" role="button" 
@@ -241,27 +259,49 @@
                    class="nav-link text-white mb-1 {{ request()->routeIs('inventory.index') ? 'active-link rounded' : '' }}">
                     <i class="fas fa-warehouse me-2"></i> Stocks
                 </a>
+                <a href="{{ route('inventory.nearExpiry') }}" 
+                   class="nav-link text-white mb-1 {{ request()->routeIs('inventory.nearExpiry') ? 'active-link rounded' : '' }}">
+                    <i class="fas fa-hourglass-end me-2"></i> Near Expiry & Low Stock
+                </a>
             </div>
 
             <a href="{{ route('sales.index') }}" 
                class="nav-link text-white mb-2 {{ request()->routeIs('sales.index') ? 'active-link rounded' : '' }}">
                 <i class="fas fa-shopping-cart me-2"></i> Sales
             </a>
-            <a href="{{ route('reports.index') }}" 
-               class="nav-link text-white mb-2 {{ request()->routeIs('reports.index') ? 'active-link rounded' : '' }}">
-                <i class="fas fa-chart-line me-2"></i> Reports
+            
+            <!-- Reports Dropdown -->
+            @php
+                $reportsActive = request()->routeIs('reports.index') || request()->routeIs('reports.transaction_details');
+            @endphp
+            <a class="nav-link text-white mb-2 d-flex justify-content-between align-items-center {{ $reportsActive ? 'active-link rounded' : '' }}" 
+               data-bs-toggle="collapse" href="#reportsMenu" role="button" 
+               aria-expanded="{{ $reportsActive ? 'true' : 'false' }}" aria-controls="reportsMenu">
+                <span><i class="fas fa-chart-line me-2"></i> Reports</span>
+                <i class="fas fa-chevron-down small"></i>
             </a>
+            <div class="collapse ps-3 {{ $reportsActive ? 'show' : '' }}" id="reportsMenu">
+                <a href="{{ route('reports.index') }}" 
+                   class="nav-link text-white mb-1 {{ request()->routeIs('reports.index') ? 'active-link rounded' : '' }}">
+                    <i class="fas fa-file-alt me-2"></i> Summary Reports
+                </a>
+                <a href="{{ route('transaction-details.index') }}" 
+                   class="nav-link text-white mb-1 {{ request()->routeIs('reports.transaction_details') ? 'active-link rounded' : '' }}">
+                    <i class="fas fa-receipt me-2"></i> Transaction Details
+                </a>
+            </div>
         </nav>
 
         <!-- Logout -->
         <div class="mt-auto">
-            <form action="{{ route('logout') }}" method="POST">
-                @csrf
-                <button type="submit" class="btn logout-btn w-100 d-flex align-items-center justify-content-center gap-2">
-                    <i class="fas fa-sign-out-alt"></i> Log Out
-                </button>
-            </form>
-        </div>
+    <form action="{{ route('logout') }}" method="POST">
+        @csrf
+        <button type="submit" class="btn btn-danger  w-100 d-flex align-items-center justify-content-center gap-2 py-2" 
+                style="color:rgb(255, 255, 255);">
+            <i class="fas fa-sign-out-alt"></i> Log Out
+        </button>
+    </form>
+</div>
     </aside>
 
     <!-- Main Content -->

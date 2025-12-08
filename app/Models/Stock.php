@@ -12,12 +12,14 @@ class Stock extends Model
     protected $primaryKey = 'stockID';
 
     protected $fillable = [
+        'supplierID',
         'productID',
         'employeeID',
         'type',
         'reason',
         'purchase_price',
         'selling_price',
+        'package_total_cost',
         'quantity',
         'availability',
         'batchNo',
@@ -27,6 +29,10 @@ class Stock extends Model
 
     protected $casts = [
         'movementDate' => 'datetime',
+        'purchase_price' => 'decimal:2',
+        'selling_price' => 'decimal:2',
+        'package_total_cost' => 'decimal:2',
+        'quantity' => 'integer',
     ];
 
     public function getStatusBadgeAttribute()
@@ -52,6 +58,11 @@ class Stock extends Model
     }
 
     // Relationships
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class, 'supplierID');
+    }
+
     public function product()
     {
         return $this->belongsTo(Product::class, 'productID');
@@ -117,7 +128,7 @@ class Stock extends Model
         return self::with('product')
             ->where('type', 'IN')
             ->where('availability', true)
-            ->whereDate('expiryDate', '>', now())
+            ->whereDate('expiryDate', '>', now()->startOfDay()) // Exclude today's date
             ->get()
             ->filter(function ($stock) {
                 return $stock->available_quantity > 0;

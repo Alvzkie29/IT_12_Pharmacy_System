@@ -12,7 +12,6 @@ class Product extends Model
     protected $primaryKey = 'productID';
 
     protected $fillable = [
-        'supplierID',
         'productName',
         'genericName',     
         'productWeight',  
@@ -22,11 +21,11 @@ class Product extends Model
         'description',
     ];
 
+    protected $casts = [
+        'price' => 'decimal:2',
+    ];
+
     // Relationships
-    public function supplier()
-    {
-        return $this->belongsTo(Supplier::class, 'supplierID');
-    }
 
     public function stocks()
     {
