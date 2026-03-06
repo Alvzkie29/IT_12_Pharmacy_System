@@ -8,6 +8,7 @@ use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class SaleController extends Controller
 {
@@ -464,6 +465,23 @@ public function finalize(Request $request)
         session()->forget('cart');
         session()->forget('confirm_cash');
         session()->forget('confirm_discount');
+
+        $receiptHTML = $request->input('receipt_html');
+
+        if ($receiptHTML) {
+
+            $filename = 'receipt_' . $sale->saleID . '.html';
+
+            Storage::disk('s3')->put(
+                'receipts/' . $filename,
+                $receiptHTML
+            );
+
+            // Optional: save path to database
+            $sale->update([
+                'receipt_path' => 'receipts/' . $filename
+            ]);
+        }
 
         return redirect()->route('sales.index')
             ->with('success', 'Sale recorded successfully! Change: ₱' . number_format($change, 2));

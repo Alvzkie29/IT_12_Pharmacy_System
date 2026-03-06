@@ -166,10 +166,11 @@
 
     {{-- Action Buttons --}}
     <div class="d-flex gap-2 no-print">
-        <form method="POST" action="{{ route('sales.finalize') }}" class="flex-fill">
+        <form method="POST" action="{{ route('sales.finalize') }}" class="flex-fill" id="finalizeForm">
             @csrf
             <input type="hidden" name="cash" value="{{ $cash }}">
             <input type="hidden" name="isDiscounted" value="{{ $isDiscounted }}">
+            <input type="hidden" name="receipt_html" id="receipt_html">
             <button type="submit" class="btn btn-success w-100">
                 <i class="fas fa-check me-2"></i>Confirm & Complete Sale
             </button>
@@ -248,6 +249,11 @@ function printReceipt() {
 // Auto-print receipt when page loads (optional)
 document.addEventListener('DOMContentLoaded', function() {
     printReceipt();
+});
+
+document.getElementById("finalizeForm").addEventListener("submit", function () {
+    const receiptHTML = document.getElementById("receipt").outerHTML;
+    document.getElementById("receipt_html").value = receiptHTML;
 });
 </script>
 @endsection
