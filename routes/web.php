@@ -31,7 +31,7 @@ Route::get('/suppliers/deactivated/list', [SuppliersController::class, 'deactiva
 Route::post('/suppliers/{id}/restore', [SuppliersController::class, 'restore'])->name('suppliers.restore');
 
 Route::get('/reports', [ReportsController::class, 'index'])->name('reports.index');
-Route::get('/reports/print/{date}', [ReportsController::class, 'print'])->name('reports.print');
+Route::get('/reports/print', [ReportsController::class, 'print'])->name('reports.print');
 Route::get('/reports/transaction-details', [TransactionDetailsController::class, 'index'])->name('transaction-details.index');
 
 Route::post('/products', [ProductController::class, 'store'])->name('products.store');
