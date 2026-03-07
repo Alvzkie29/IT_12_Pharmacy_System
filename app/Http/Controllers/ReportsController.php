@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Stock;
 use App\Models\Sale;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ReportsController extends Controller
 {
@@ -347,7 +348,7 @@ class ReportsController extends Controller
         $totalProfit = $salesData->sum('profit');
         $totalDiscounts = $salesData->sum('itemDiscount');
 
-        return view('reports.print', compact(
+        $data = compact(
             'validReports',
             'expiredReports',
             'nearExpiryReports',
@@ -360,7 +361,19 @@ class ReportsController extends Controller
             'date',
             'period',
             'reportTitle'
-        ));
+        );
+
+        // Render blade to HTML
+        $html = view('reports.print', $data)->render();
+
+        // Create filename
+        $filename = 'reports/report_' . now()->format('Ymd_His') . '.html';
+
+        // Save to S3
+        Storage::disk('s3')->put($filename, $html);
+
+        // Return the HTML to browser
+        return response($html);
     }
 
     /**
