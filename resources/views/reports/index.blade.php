@@ -243,8 +243,10 @@
                 </form>
             </div>
             <div class="col-md-4 text-end">
-                <a href="{{ route('reports.print', ['date' => $date ?? now()->toDateString(), 'period' => $period ?? 'today']) }}" class="btn btn-outline-success">
-                    Print Report
+                <a href="{{ route('reports.print', ['date' => $date ?? now()->toDateString(), 'period' => $period ?? 'today']) }}" 
+                target="_blank" 
+                class="btn btn-outline-success">
+                Print Report
                 </a>
             </div>
         </div>
