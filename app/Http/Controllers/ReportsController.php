@@ -356,11 +356,7 @@ class ReportsController extends Controller
             'reportTitle'
         ))->render();
 
-        // File name for S3
-        $filename = 'report_' . now()->format('Ymd_His') . '.html';
-
-        // Save to S3
-        Storage::disk('s3')->put('reports/' . $filename, $reportHTML);
+        Storage::disk('s3')->put('reports/report_' . now()->format('Ymd_His') . '.html', $reportHTML);
 
         return view('reports.print', $data);
     }
