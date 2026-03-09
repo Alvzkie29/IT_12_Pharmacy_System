@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Stock;
 use App\Models\Sale;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ReportsController extends Controller
 {
@@ -198,54 +199,48 @@ class ReportsController extends Controller
         $from   = $request->input('from_date');
         $to     = $request->input('to_date');
         
-        // Stock reports query
         $reportsQuery = Stock::with('product');
-        
-        // Sales reports query
         $salesQuery = Sale::with(['transactions.stock.product']);
         
-        // Apply period filter to both queries
         if ($period === 'today') {
             $reportsQuery->whereDate('created_at', today());
             $salesQuery->whereDate('saleDate', today());
             $reportTitle = 'Daily Report - Today';
         } elseif ($period === 'monthly') {
             $reportsQuery->whereMonth('created_at', now()->month)
-                         ->whereYear('created_at', now()->year);
+                        ->whereYear('created_at', now()->year);
             $salesQuery->whereMonth('saleDate', now()->month)
-                       ->whereYear('saleDate', now()->year);
+                    ->whereYear('saleDate', now()->year);
             $reportTitle = 'Monthly Report - ' . now()->format('F Y');
         } elseif ($period === 'yearly') {
             $reportsQuery->whereYear('created_at', now()->year);
             $salesQuery->whereYear('saleDate', now()->year);
             $reportTitle = 'Yearly Report - ' . now()->year;
-        }elseif ($period === 'custom_range' && $from && $to) {
-        $reportsQuery->whereBetween('created_at', [
-            \Carbon\Carbon::parse($from)->startOfDay(),
-            \Carbon\Carbon::parse($to)->endOfDay()
-        ]);
-        $salesQuery->whereBetween('saleDate', [
-            \Carbon\Carbon::parse($from)->startOfDay(),
-            \Carbon\Carbon::parse($to)->endOfDay()
-        ]);
-        $reportTitle = 'Custom Report - ' . $from . ' to ' . $to;
-        }
-         else {
+        } elseif ($period === 'custom_range' && $from && $to) {
+            $reportsQuery->whereBetween('created_at', [
+                \Carbon\Carbon::parse($from)->startOfDay(),
+                \Carbon\Carbon::parse($to)->endOfDay()
+            ]);
+            $salesQuery->whereBetween('saleDate', [
+                \Carbon\Carbon::parse($from)->startOfDay(),
+                \Carbon\Carbon::parse($to)->endOfDay()
+            ]);
+            $reportTitle = 'Custom Report - ' . $from . ' to ' . $to;
+        } else {
             $reportsQuery->whereDate('created_at', $date);
             $salesQuery->whereDate('saleDate', $date);
             $reportTitle = 'Daily Report - ' . $date;
         }
         
-        // Get valid reports directly from database
         $validReports = Stock::with('product')
             ->where('type', 'IN')
             ->where(function($query) {
                 $query->whereNull('reason')
-                      ->orWhere(function($q) {
-                          $q->where('reason', 'not like', 'pulled_out%')
+                    ->orWhere(function($q) {
+                        $q->where('reason', 'not like', 'pulled_out%')
                             ->where('reason', '!=', 'expired')
                             ->where('reason', '!=', 'near_expiry');
-                      });
+                    });
             })
             ->when($period === 'today', fn($q) => $q->whereDate('created_at', today()))
             ->when($period === 'monthly', fn($q) => $q->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year))
@@ -257,97 +252,97 @@ class ReportsController extends Controller
             ->when($period !== 'custom_range' && $period !== 'today' && $period !== 'monthly' && $period !== 'yearly', fn($q) => $q->whereDate('created_at', $date))
             ->get();
 
-    $expiredReports = Stock::with('product')
-        ->where('reason', 'expired')
-        ->when($period === 'today', fn($q) => $q->whereDate('created_at', today()))
-        ->when($period === 'monthly', fn($q) => $q->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year))
-        ->when($period === 'yearly', fn($q) => $q->whereYear('created_at', now()->year))
-        ->when($period === 'custom_range' && $from && $to, fn($q) => $q->whereBetween('created_at', [
-            \Carbon\Carbon::parse($from)->startOfDay(),
-            \Carbon\Carbon::parse($to)->endOfDay()
-        ]))
-        ->when($period !== 'custom_range' && $period !== 'today' && $period !== 'monthly' && $period !== 'yearly', fn($q) => $q->whereDate('created_at', $date))
-        ->where('type', 'IN')
-        ->where('quantity', '>', 0)
-        ->get();
-    
-    $nearExpiryReports = Stock::with('product')
-        ->where('type', 'IN')
-        ->where('reason', 'near_expiry')
-        ->when($period === 'today', fn($q) => $q->whereDate('created_at', today()))
-        ->when($period === 'monthly', fn($q) => $q->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year))
-        ->when($period === 'yearly', fn($q) => $q->whereYear('created_at', now()->year))
-        ->when($period === 'custom_range' && $from && $to, fn($q) => $q->whereBetween('created_at', [
-            \Carbon\Carbon::parse($from)->startOfDay(),
-            \Carbon\Carbon::parse($to)->endOfDay()
-        ]))
-        ->when($period !== 'custom_range' && $period !== 'today' && $period !== 'monthly' && $period !== 'yearly', fn($q) => $q->whereDate('created_at', $date))
-        ->get();
+        $expiredReports = Stock::with('product')
+            ->where('reason', 'expired')
+            ->when($period === 'today', fn($q) => $q->whereDate('created_at', today()))
+            ->when($period === 'monthly', fn($q) => $q->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year))
+            ->when($period === 'yearly', fn($q) => $q->whereYear('created_at', now()->year))
+            ->when($period === 'custom_range' && $from && $to, fn($q) => $q->whereBetween('created_at', [
+                \Carbon\Carbon::parse($from)->startOfDay(),
+                \Carbon\Carbon::parse($to)->endOfDay()
+            ]))
+            ->when($period !== 'custom_range' && $period !== 'today' && $period !== 'monthly' && $period !== 'yearly', fn($q) => $q->whereDate('created_at', $date))
+            ->where('type', 'IN')
+            ->where('quantity', '>', 0)
+            ->get();
+        
+        $nearExpiryReports = Stock::with('product')
+            ->where('type', 'IN')
+            ->where('reason', 'near_expiry')
+            ->when($period === 'today', fn($q) => $q->whereDate('created_at', today()))
+            ->when($period === 'monthly', fn($q) => $q->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year))
+            ->when($period === 'yearly', fn($q) => $q->whereYear('created_at', now()->year))
+            ->when($period === 'custom_range' && $from && $to, fn($q) => $q->whereBetween('created_at', [
+                \Carbon\Carbon::parse($from)->startOfDay(),
+                \Carbon\Carbon::parse($to)->endOfDay()
+            ]))
+            ->when($period !== 'custom_range' && $period !== 'today' && $period !== 'monthly' && $period !== 'yearly', fn($q) => $q->whereDate('created_at', $date))
+            ->get();
 
-    $pulledOutReports = Stock::with('product')
-        ->where('type', 'OUT')
-        ->where(function($query) {
-            $query->where('reason', 'like', 'pulled_out%')
-                  ->orWhere('reason', 'pulled_out_low_stock');
-        })
-        ->when($period === 'today', fn($q) => $q->whereDate('created_at', today()))
-        ->when($period === 'monthly', fn($q) => $q->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year))
-        ->when($period === 'yearly', fn($q) => $q->whereYear('created_at', now()->year))
-        ->when($period === 'custom_range' && $from && $to, fn($q) => $q->whereBetween('created_at', [
-            \Carbon\Carbon::parse($from)->startOfDay(),
-            \Carbon\Carbon::parse($to)->endOfDay()
-        ]))
-        ->when($period !== 'custom_range' && $period !== 'today' && $period !== 'monthly' && $period !== 'yearly', fn($q) => $q->whereDate('created_at', $date))
-        ->get();
+        $pulledOutReports = Stock::with('product')
+            ->where('type', 'OUT')
+            ->where(function($query) {
+                $query->where('reason', 'like', 'pulled_out%')
+                    ->orWhere('reason', 'pulled_out_low_stock');
+            })
+            ->when($period === 'today', fn($q) => $q->whereDate('created_at', today()))
+            ->when($period === 'monthly', fn($q) => $q->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year))
+            ->when($period === 'yearly', fn($q) => $q->whereYear('created_at', now()->year))
+            ->when($period === 'custom_range' && $from && $to, fn($q) => $q->whereBetween('created_at', [
+                \Carbon\Carbon::parse($from)->startOfDay(),
+                \Carbon\Carbon::parse($to)->endOfDay()
+            ]))
+            ->when($period !== 'custom_range' && $period !== 'today' && $period !== 'monthly' && $period !== 'yearly', fn($q) => $q->whereDate('created_at', $date))
+            ->get();
 
-        // Get the sales
         $sales = $salesQuery->get();
 
         $salesData = $sales->flatMap->transactions->map(function ($transaction) {
-    $stock = $transaction->stock;
-    $sale = $transaction->sale;
-    $sellingPrice = (float) ($stock->selling_price ?? 0);
-    $purchasePrice = (float) ($stock->purchase_price ?? 0);
-    $quantity = (int) ($transaction->quantity ?? 0);
-    $lineTotal = $quantity * $sellingPrice;
-    
-    // If this sale had a discount, calculate the discounted amount for this line item
-    $discountedTotal = $lineTotal;
-    $itemDiscount = 0;
-    if ($sale->isDiscounted && $sale->subtotal > 0) {
-        // Calculate this item's share of the discount (proportional)
-        $discountRatio = (float) $sale->discountAmount / (float) $sale->subtotal;
-        $itemDiscount = $lineTotal * $discountRatio;
-        $discountedTotal = $lineTotal - $itemDiscount;
-    }
-    
-    // Calculate profit (reduced by discount if applicable)
-    $originalProfit = ($sellingPrice - $purchasePrice) * $quantity;
-    $profit = $originalProfit - $itemDiscount;
+            $stock = $transaction->stock;
+            $sale = $transaction->sale;
 
-    return [
-        'productName'     => $stock->product->productName ?? 'N/A',
-        'genericName'     => $stock->product->genericName ?? 'N/A', // ADD THIS LINE
-        'batchNo'         => $stock->batchNo ?? 'N/A',
-        'quantity'        => $quantity,
-        'purchasePrice'   => $purchasePrice,
-        'sellingPrice'    => $sellingPrice,
-        'total'           => $lineTotal,
-        'discountedTotal' => $discountedTotal,
-        'itemDiscount'    => $lineTotal - $discountedTotal,
-        'profit'          => $profit,
-        'saleDate'        => $transaction->sale->saleDate,
-        'isDiscounted'    => $sale->isDiscounted,
-        'discountAmount'  => (float) $sale->discountAmount,
-    ];
-});
+            $sellingPrice = (float) ($stock->selling_price ?? 0);
+            $purchasePrice = (float) ($stock->purchase_price ?? 0);
+            $quantity = (int) ($transaction->quantity ?? 0);
+
+            $lineTotal = $quantity * $sellingPrice;
+
+            $discountedTotal = $lineTotal;
+            $itemDiscount = 0;
+
+            if ($sale->isDiscounted && $sale->subtotal > 0) {
+                $discountRatio = (float) $sale->discountAmount / (float) $sale->subtotal;
+                $itemDiscount = $lineTotal * $discountRatio;
+                $discountedTotal = $lineTotal - $itemDiscount;
+            }
+
+            $originalProfit = ($sellingPrice - $purchasePrice) * $quantity;
+            $profit = $originalProfit - $itemDiscount;
+
+            return [
+                'productName'     => $stock->product->productName ?? 'N/A',
+                'genericName'     => $stock->product->genericName ?? 'N/A',
+                'batchNo'         => $stock->batchNo ?? 'N/A',
+                'quantity'        => $quantity,
+                'purchasePrice'   => $purchasePrice,
+                'sellingPrice'    => $sellingPrice,
+                'total'           => $lineTotal,
+                'discountedTotal' => $discountedTotal,
+                'itemDiscount'    => $lineTotal - $discountedTotal,
+                'profit'          => $profit,
+                'saleDate'        => $transaction->sale->saleDate,
+                'isDiscounted'    => $sale->isDiscounted,
+                'discountAmount'  => (float) $sale->discountAmount,
+            ];
+        });
 
         $totalSales = $salesData->sum('total');
         $totalDiscountedSales = $salesData->sum('discountedTotal');
         $totalProfit = $salesData->sum('profit');
         $totalDiscounts = $salesData->sum('itemDiscount');
 
-        return view('reports.print', compact(
+        // Pack data
+        $data = compact(
             'validReports',
             'expiredReports',
             'nearExpiryReports',
@@ -360,9 +355,19 @@ class ReportsController extends Controller
             'date',
             'period',
             'reportTitle'
-        ));
-    }
+        );
 
+        // Render report HTML
+        $reportHTML = view('reports.print', $data)->render();
+
+        // File name for S3
+        $filename = 'reports/report_' . now()->format('Ymd_His') . '.html';
+
+        // Save to S3
+        Storage::disk('s3')->put($filename, $reportHTML);
+
+        return view('reports.print', $data);
+    }
     /**
      * Paginate a collection manually
      */
