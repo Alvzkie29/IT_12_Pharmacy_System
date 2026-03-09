@@ -341,8 +341,7 @@ class ReportsController extends Controller
         $totalProfit = $salesData->sum('profit');
         $totalDiscounts = $salesData->sum('itemDiscount');
 
-        // Pack data
-        $data = compact(
+        $reportHTML = view('reports.print', compact(
             'validReports',
             'expiredReports',
             'nearExpiryReports',
@@ -355,16 +354,13 @@ class ReportsController extends Controller
             'date',
             'period',
             'reportTitle'
-        );
-
-        // Render report HTML
-        $reportHTML = view('reports.print', $data)->render();
+        ))->render();
 
         // File name for S3
-        $filename = 'reports/report_' . now()->format('Ymd_His') . '.html';
+        $filename = 'report_' . now()->format('Ymd_His') . '.html';
 
         // Save to S3
-        Storage::disk('s3')->put($filename, $reportHTML);
+        Storage::disk('s3')->put('reports/' . $filename, $reportHTML);
 
         return view('reports.print', $data);
     }
