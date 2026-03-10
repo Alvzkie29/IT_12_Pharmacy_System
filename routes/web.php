@@ -32,6 +32,7 @@ Route::post('/suppliers/{id}/restore', [SuppliersController::class, 'restore'])-
 
 Route::get('/reports', [ReportsController::class, 'index'])->name('reports.index');
 Route::get('/reports/print/{date}', [ReportsController::class, 'print'])->name('reports.print');
+Route::post('/reports/save-to-s3', [ReportsController::class, 'saveToS3'])->name('reports.save-to-s3');
 Route::get('/reports/transaction-details', [TransactionDetailsController::class, 'index'])->name('transaction-details.index');
 
 Route::post('/products', [ProductController::class, 'store'])->name('products.store');
