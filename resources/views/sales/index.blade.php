@@ -349,19 +349,19 @@
                     {{-- Senior / PWD checkbox --}}
                     <div class="form-check mb-3 p-3 bg-light rounded">
                         <input class="form-check-input" type="checkbox" id="discount-checkbox" 
-                               {{ old('isDiscounted') == '1' ? 'checked' : '' }}>
+                            name="isDiscounted" value="1"
+                            {{ old('isDiscounted') == '1' ? 'checked' : '' }}>
                         <label class="form-check-label fw-semibold" for="discount-checkbox">
                             Senior Citizen or PWD (20% Discount)
                         </label>
                     </div>
 
-                    {{-- Hidden field to send discount flag to controller --}}
-                    <input type="hidden" name="isDiscounted" id="isDiscountedInput" value="{{ old('isDiscounted', '0') }}">
+                    {{-- Hidden field removed - we'll use the checkbox directly --}}
 
                     <div class="mb-3">
                         <label for="cash" class="form-label fw-semibold">Cash Received</label>
                         <input type="number" step="0.01" class="form-control" name="cash" id="cash" 
-                               placeholder="Enter amount received" required>
+                            placeholder="Enter amount received" required>
                     </div>
                     
                     <button type="submit" class="btn btn-success w-100">

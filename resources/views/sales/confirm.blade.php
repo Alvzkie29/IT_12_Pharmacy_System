@@ -169,7 +169,7 @@
         <form method="POST" action="{{ route('sales.finalize') }}" class="flex-fill" id="finalizeForm">
             @csrf
             <input type="hidden" name="cash" value="{{ $cash }}">
-            <input type="hidden" name="isDiscounted" value="{{ $isDiscounted }}">
+            <input type="hidden" name="isDiscounted" value="{{ $isDiscounted ? 1 : 0 }}">
             <input type="hidden" name="receipt_html" id="receipt_html">
             <button type="submit" class="btn btn-success w-100">
                 <i class="fas fa-check me-2"></i>Confirm & Complete Sale
@@ -183,29 +183,119 @@
 </div>
 
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM fully loaded');
+    
+    const finalizeForm = document.getElementById('finalizeForm');
+    const receiptInput = document.getElementById('receipt_html');
+    
+    if (finalizeForm && receiptInput) {
+        console.log('Form and receipt input found');
+        
+        // Get the receipt element
+        const receipt = document.getElementById('receipt');
+        
+        if (receipt) {
+            console.log('Receipt element found');
+            
+            // Create a clean copy of the receipt for saving
+            const receiptClone = receipt.cloneNode(true);
+            
+            // Remove any buttons or interactive elements from the clone
+            const elementsToRemove = receiptClone.querySelectorAll('button, .no-print, .btn, .d-flex, .alert, .card-header, .card-body, .btn-group');
+            elementsToRemove.forEach(el => {
+                if (el) el.remove();
+            });
+            
+            // Remove any Bootstrap classes that might cause styling issues
+            const allElements = receiptClone.querySelectorAll('*');
+            allElements.forEach(el => {
+                if (el.classList) {
+                    el.classList.forEach(className => {
+                        if (className.startsWith('btn-') || className.startsWith('alert-')) {
+                            el.classList.remove(className);
+                        }
+                    });
+                }
+            });
+            
+            // Add a timestamp
+            const timestamp = document.createElement('div');
+            timestamp.className = 'text-center text-muted mt-2';
+            timestamp.style.fontSize = '10px';
+            timestamp.style.marginTop = '10px';
+            timestamp.style.paddingTop = '5px';
+            timestamp.style.borderTop = '1px dashed #ccc';
+            const now = new Date();
+            const options = { timeZone: 'Asia/Manila', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+            timestamp.innerHTML = '<small>Receipt generated: ' + now.toLocaleString('en-PH', options) + '</small>';
+            receiptClone.appendChild(timestamp);
+            
+            // Set the receipt HTML
+            const receiptHTML = receiptClone.outerHTML;
+            receiptInput.value = receiptHTML;
+            
+            console.log('Receipt HTML set, length:', receiptHTML.length);
+            console.log('First 200 chars:', receiptHTML.substring(0, 200));
+        } else {
+            console.error('Receipt element not found!');
+        }
+        
+        // Debug: Log form submission
+        finalizeForm.addEventListener('submit', function(e) {
+            const receiptValue = document.getElementById('receipt_html').value;
+            console.log('Form submitting with receipt HTML length:', receiptValue.length);
+            
+            if (!receiptValue || receiptValue.length < 100) {
+                console.warn('Receipt HTML seems too short!');
+                // Optionally show warning to user
+                if (!confirm('Receipt might be empty. Continue anyway?')) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+        });
+    } else {
+        console.error('Form or receipt input not found!');
+        if (!finalizeForm) console.error('finalizeForm not found');
+        if (!receiptInput) console.error('receipt_html input not found');
+    }
+});
+
 function printReceipt() {
-    // Get the receipt element
+    console.log('Printing receipt...');
+    
     const receipt = document.getElementById('receipt');
+    if (!receipt) {
+        console.error('Receipt not found for printing');
+        return;
+    }
     
     // Create a new window for printing
     const printWindow = window.open('', '_blank');
+    
+    // Get the receipt content
+    const receiptContent = receipt.innerHTML;
     
     // Write the receipt content to the new window
     printWindow.document.write(`
         <!DOCTYPE html>
         <html>
         <head>
-            <title>Receipt</title>
+            <title>Receipt - LM3 Pharmacy</title>
             <style>
                 body {
                     font-family: 'Courier New', monospace;
                     margin: 0;
                     padding: 20px;
                     font-size: 12px;
+                    background: white;
                 }
                 .receipt-container {
                     max-width: 300px;
                     margin: 0 auto;
+                    background: white;
+                    padding: 15px;
                 }
                 .receipt-header {
                     text-align: center;
@@ -223,6 +313,14 @@ function printReceipt() {
                     padding-top: 10px;
                     margin-top: 15px;
                 }
+                .text-success { color: #28a745; }
+                .fw-bold { font-weight: bold; }
+                .text-center { text-align: center; }
+                .mt-2 { margin-top: 10px; }
+                .mt-3 { margin-top: 15px; }
+                .mb-1 { margin-bottom: 5px; }
+                .border-top { border-top: 1px solid #333; }
+                .pt-2 { padding-top: 10px; }
                 @media print {
                     body {
                         margin: 0;
@@ -232,7 +330,9 @@ function printReceipt() {
             </style>
         </head>
         <body>
-            ${receipt.innerHTML}
+            <div class="receipt-container">
+                ${receiptContent}
+            </div>
         </body>
         </html>
     `);
@@ -242,18 +342,29 @@ function printReceipt() {
     // Wait for content to load then print
     printWindow.onload = function() {
         printWindow.print();
-        printWindow.afterprint = function() { printWindow.close(); }
+        printWindow.onafterprint = function() { 
+            printWindow.close(); 
+        };
     };
 }
 
-// Auto-print receipt when page loads (optional)
-document.addEventListener('DOMContentLoaded', function() {
-    printReceipt();
-});
-
-document.getElementById("finalizeForm").addEventListener("submit", function () {
-    const receiptHTML = document.getElementById("receipt").outerHTML;
-    document.getElementById("receipt_html").value = receiptHTML;
-});
+// Optional: Auto-print when page loads (uncomment if you want this)
+// document.addEventListener('DOMContentLoaded', function() {
+//     setTimeout(printReceipt, 500);
+// });
 </script>
+
+{{-- Add a small debug div to help troubleshoot --}}
+@if(config('app.debug'))
+<div class="no-print mt-3 p-3 bg-light border rounded small">
+    <strong>Debug Info:</strong>
+    <ul class="mb-0 mt-1">
+        <li>Cash: ₱{{ number_format($cash, 2) }}</li>
+        <li>Discounted: {{ $isDiscounted ? 'Yes' : 'No' }}</li>
+        <li>Items in cart: {{ count($items) }}</li>
+        <li>Subtotal: ₱{{ number_format($subtotal, 2) }}</li>
+    </ul>
+</div>
+@endif
+
 @endsection

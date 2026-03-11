@@ -207,57 +207,64 @@ class SaleController extends Controller
     public function confirm(Request $request)
     {
         $cart = session()->get('cart', []);
-        if (empty($cart)) return back()->with('error', 'Cart is empty.');
+        if (empty($cart)) {
+            return redirect()->route('sales.index')->with('error', 'Cart is empty.');
+        }
 
-        $cash = (float) $request->input('cash', 0);
-        $isDiscounted = (int) ($request->input('isDiscounted') ?? $request->input('discountApplied') ?? $request->input('discounted') ?? 0);
+        $cash = $request->input('cash');
+        $isDiscounted = $request->has('isDiscounted') ? 1 : 0;
 
+        // Validate cash
+        if (!$cash || $cash <= 0) {
+            return back()->with('error', 'Please enter valid cash amount.');
+        }
+
+        // Calculate subtotal and prepare items
+        $items = [];
         $subtotal = 0;
-        $validCart = [];
 
         foreach ($cart as $item) {
             $stock = Stock::with('product')->find($item['stockID']);
-            if (!$stock || !$stock->availability || $stock->expiryDate <= now() || $stock->available_quantity <= 0) continue;
+            if (!$stock || !$stock->availability || $stock->expiryDate <= now()) {
+                continue;
+            }
 
             $lineTotal = $stock->selling_price * $item['quantity'];
             $subtotal += $lineTotal;
 
-            $validCart[$stock->stockID] = [
+            $items[] = [
                 'stockID' => $stock->stockID,
-                'name' => $stock->product->productName,
+                'productName' => $stock->product->productName,
+                'genericName' => $stock->product->genericName,
                 'quantity' => $item['quantity'],
                 'price' => $stock->selling_price,
+                'total' => $lineTotal
             ];
         }
 
-        if (empty($validCart)) return back()->with('error', 'No valid items in cart.');
+        if (empty($items)) {
+            return redirect()->route('sales.index')->with('error', 'No valid items in cart.');
+        }
 
-        $grandTotal = $isDiscounted ? round($subtotal * 0.80, 2) : round($subtotal, 2);
-
-        if ($cash < $grandTotal) return back()->with('error', 'Insufficient cash received. Please enter at least ₱' . number_format($grandTotal, 2));
-
+        // Store confirm data in session
         session()->put('confirm_cash', $cash);
         session()->put('confirm_discount', $isDiscounted);
-        session()->put('cart', $validCart);
 
-        return view('sales.confirm', [
-            'items' => $validCart,
-            'stocks' => Stock::getAvailableStock(),
-            'subtotal' => $subtotal,
-            'grandTotal' => $grandTotal,
-            'cash' => $cash,
-            'change' => round($cash - $grandTotal, 2),
-            'isDiscounted' => $isDiscounted,
-        ]);
+        return view('sales.confirm', compact('items', 'subtotal', 'cash', 'isDiscounted'));
     }
 
     public function finalize(Request $request)
     {
+        \Log::info('=== FINALIZE FUNCTION STARTED ===');
+        \Log::info('Request data:', $request->all());
+        
         $cart = session()->get('cart', []);
         if (empty($cart)) return redirect()->route('sales.index')->with('error', 'Cart is empty.');
 
         $cash = (float) ($request->input('cash') ?? 0);
-        $isDiscounted = (int) ($request->input('isDiscounted') ?? $request->input('discountApplied') ?? $request->input('discounted') ?? 0);
+        $isDiscounted = (int) ($request->input('isDiscounted') ?? 0);
+        
+        \Log::info('Cash: ' . $cash . ', Discounted: ' . $isDiscounted);
 
         $subtotal = 0;
         $validCart = [];
@@ -298,6 +305,8 @@ class SaleController extends Controller
                 'saleDate' => now(),
             ]);
 
+            \Log::info('Sale created: ' . $sale->saleID);
+
             foreach ($validCart as $item) {
                 $stock = Stock::with('product')->find($item['stockID']);
                 $quantity = $item['quantity'];
@@ -337,19 +346,37 @@ class SaleController extends Controller
             session()->forget('confirm_discount');
 
             $receiptHTML = $request->input('receipt_html');
+            
+            \Log::info('Receipt HTML received? ' . ($receiptHTML ? 'YES' : 'NO'));
+            \Log::info('Receipt HTML length: ' . strlen($receiptHTML ?? ''));
 
-            if ($receiptHTML) {
-                $filename = 'receipt_' . $sale->saleID . '.html';
-                Storage::disk('s3')->put('receipts/' . $filename, $receiptHTML);
-                $sale->update(['receipt_path' => 'receipts/' . $filename]);
+            if ($receiptHTML && strlen($receiptHTML) > 100) {
+                $filename = 'receipt_' . $sale->saleID . '_' . now()->format('Ymd_His') . '.html';
+                
+                try {
+                    $uploaded = Storage::disk('s3')->put('receipts/' . $filename, $receiptHTML);
+                    
+                    \Log::info('S3 upload result: ' . ($uploaded ? 'SUCCESS' : 'FAILED'));
+                    
+                    if ($uploaded) {
+                        $sale->update(['receipt_path' => 'receipts/' . $filename]);
+                        \Log::info('Receipt path updated');
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('S3 upload exception: ' . $e->getMessage());
+                }
+            } else {
+                \Log::warning('Receipt HTML too short or empty, not saving to S3');
             }
 
             DB::commit();
+            \Log::info('Transaction committed successfully');
 
             return redirect()->route('sales.index')
                 ->with('success', 'Sale recorded successfully! Change: ₱' . number_format($change, 2));
         } catch (\Exception $e) {
             DB::rollBack();
+            \Log::error('Sale failed: ' . $e->getMessage());
             return back()->with('error', 'Sale failed: ' . $e->getMessage());
         }
     }
