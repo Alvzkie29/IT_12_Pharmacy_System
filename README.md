@@ -26,9 +26,7 @@ User → DuckDNS (lm3pharmacy.duckdns.org) → AWS EC2 → Docker Containers →
 
 ### 4. **Free Domain & SSL**
 - **DuckDNS**: Free domain (lm3pharmacy.duckdns.org)
-- Automatic IP updates via cron job
 - **Let's Encrypt SSL**: Free HTTPS certificates via acme.sh
-- Auto-renewal configuration
 
 ### 5. **Process Management**
 - **tmux**: Keeps containers running after SSH disconnect
